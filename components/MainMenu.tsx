@@ -24,9 +24,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
     hasSeenIntro
 }) => {
     const [showNote, setShowNote] = useState(false);
+    const [startWave, setStartWave] = useState(1);
     
     const handleStart = () => {
-        onStart(1); // Always start at Wave 1
+        onStart(startWave);
     };
 
     return (
@@ -125,6 +126,27 @@ const MainMenu: React.FC<MainMenuProps> = ({
                 } as any)}
                 className="relative z-10 mt-4 flex flex-col items-center gap-6 w-full max-w-md"
             >
+                {/* WAVE SELECTION SLIDER */}
+                {maxWaveReached > 1 && (
+                    <div className="w-full bg-slate-900/80 p-4 rounded-xl border border-slate-700 backdrop-blur-sm shadow-xl">
+                        <label className="text-[10px] text-slate-400 font-tech mb-3 block uppercase tracking-[0.2em] text-center border-b border-slate-800 pb-2">
+                            Select Starting Wave
+                        </label>
+                        <div className="flex items-center gap-4">
+                            <span className="font-mono text-slate-500 text-xs">1</span>
+                            <input 
+                                type="range" 
+                                min="1" 
+                                max={maxWaveReached} 
+                                value={startWave} 
+                                onChange={(e) => setStartWave(parseInt(e.target.value))}
+                                className="flex-1 accent-white h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer hover:accent-purple-400 transition-all"
+                            />
+                            <span className="font-mono text-white font-bold text-xl w-8 text-right">{startWave}</span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="relative w-full">
                     {/* START BUTTON */}
                     <button 
