@@ -1,0 +1,91 @@
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export enum AbilityType {
+  CORE = 'CORE',
+  OFFENSE = 'OFFENSE',
+  DEFENSE = 'DEFENSE',
+  UTILITY = 'UTILITY'
+}
+
+export interface PlayerStats {
+  maxHealth: number;
+  healthRegen: number;
+  moveSpeed: number;
+  dashCooldown: number;
+  dashDuration: number;
+  pickupRange: number;
+  damageAura: number;
+  repulsionForce: number;
+  projectileCount: number;
+  attackSpeed: number;
+  essenceMultiplier: number;
+  
+  // --- ABILITIES (Levels 0 = Locked) ---
+  fireBlastLevel: number;
+  iceNovaLevel: number;
+  thunderChainLevel: number;
+  
+  homingMissileLevel: number; 
+  fireflyLevel: number;       
+  nebulaTrailLevel: number;
+  singularityLevel: number;
+  superDashLevel: number;     
+  
+  solarFlareLevel: number;
+  titanShieldLevel: number;
+  whiteHoleLevel: number;
+
+  // NEW ABILITIES
+  luxBladesLevel: number;
+  repulsionFieldLevel: number; // Replaced Time Warp
+  plasmaWhipLevel: number;
+}
+
+export interface AbilityNodeData {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  position: Position;
+  parentIds: string[];
+  type: AbilityType;
+  icon: string;
+  statBoostDisplay: string;
+  statEffect: Partial<PlayerStats>;
+  isMajor: boolean;
+}
+
+export interface Achievement {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    condition: (state: GameState, stats: PlayerStats, currentWave: number, sessionStartWave: number) => boolean;
+}
+
+export interface Settings {
+    showTouchControls: boolean;
+    mouseMovementEnabled: boolean;
+    masterVolume: number;
+    musicVolume: number;
+    sfxVolume: number;
+    performanceMode: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
+export interface GameState {
+  matter: number;
+  unlockedAbilityIds: string[];
+  seenEnemyIds: string[];
+  unlockedAchievementIds: string[];
+  defeatedBosses: string[]; // Track unique boss kills
+  maxWaveReached: number;
+  maxMaturityAchieved: number;
+  isGameRunning: boolean;
+  isMenuOpen: boolean;
+  hasSeenIntro: boolean;
+  settings: Settings;
+}

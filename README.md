@@ -1,11 +1,38 @@
-<div align="center">
+# Light Rogue Void
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**Light Rogue Void** is a cosmic action-roguelike where you play as a lone spark fighting to escape the creeping entropy of the void. 
 
-  <h1>Built with AI Studio</h2>
+## Studio
+**Beato Forge**
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Developer
+**Goodboycat**
+(Indie Game Developer / Hobbyist)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+---
 
-</div>
+## About The Project
+
+This game is a passion project developed by Goodboycat under the studio name **Beato Forge**. It was built using React and TypeScript, leveraging the HTML5 Canvas API for high-performance rendering of thousands of particles and entities.
+
+### Features
+*   **Massive Ability Tree**: Over 200 nodes to unlock.
+*   **Evolving Universe**: The background evolve as you grow stronger.
+*   **Intense Combat**: Fight against 60+ unique enemy types and massive bosses.
+*   **Physics-Based Gameplay**: Use gravity, black holes, and repulsion fields to manipulate the battlefield.
+
+## Technologies Used
+*   React 19
+*   TypeScript
+*   Tailwind CSS
+*   Framer Motion
+*   HTML5 Canvas
+
+## License
+**All Rights Reserved.**
+
+This project is the proprietary property of **Goodboycat / Beato Forge**.
+Unauthorized modification, or distribution is strictly prohibited.
+
+---
+*Created with passion by an indie dev.*
