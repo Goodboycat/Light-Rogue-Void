@@ -68,6 +68,6 @@ export const LIGHT_PHRASES = [
     "I am the question.",
     "There is no death, only change.",
     "The dream is over.",
-    "The reality begins.",
+    "My realm begins.",
     "The light will triumph."
 ];

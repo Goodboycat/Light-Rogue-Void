@@ -69,22 +69,30 @@ export const useGameSave = () => {
     });
 
     useEffect(() => {
-        const saveState = {
-            matter: gameState.matter,
-            unlockedAbilityIds: gameState.unlockedAbilityIds,
-            seenEnemyIds: gameState.seenEnemyIds,
-            unlockedAchievementIds: gameState.unlockedAchievementIds,
-            defeatedBosses: gameState.defeatedBosses,
-            maxWaveReached: gameState.maxWaveReached,
-            maxMaturityAchieved: gameState.maxMaturityAchieved,
-            hasSeenIntro: gameState.hasSeenIntro,
-            settings: gameState.settings
-        };
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
+        try {
+            const saveState = {
+                matter: gameState.matter,
+                unlockedAbilityIds: gameState.unlockedAbilityIds,
+                seenEnemyIds: gameState.seenEnemyIds,
+                unlockedAchievementIds: gameState.unlockedAchievementIds,
+                defeatedBosses: gameState.defeatedBosses,
+                maxWaveReached: gameState.maxWaveReached,
+                maxMaturityAchieved: gameState.maxMaturityAchieved,
+                hasSeenIntro: gameState.hasSeenIntro,
+                settings: gameState.settings
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
+        } catch (e) {
+            console.warn("Save failed - likely restricted environment (itch.io/private window):", e);
+        }
     }, [gameState]);
 
     const resetSave = () => {
-        localStorage.removeItem(SAVE_KEY);
+        try {
+            localStorage.removeItem(SAVE_KEY);
+        } catch (e) {
+            console.error("Failed to clear save", e);
+        }
         setGameState(INITIAL_STATE);
         // Force a reload to ensure all memory is cleared cleanly
         window.location.reload();
