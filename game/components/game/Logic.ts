@@ -55,7 +55,13 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
-    state.damagePlayer = onDamage; // (2B) boss telegraphs hurt the player through this
+    // (2B) every damage path during a boss fight tags the boss (GameOver death hint); telegraphs call state.damagePlayer
+    const bossTaggedDamage = (amt: number) => {
+        if (state.activeBoss) state.lastBossHit = state.activeBoss.def.id;
+        onDamage(amt);
+    };
+    onDamage = bossTaggedDamage;
+    state.damagePlayer = onDamage;
     
     // Virtual Aim Override for Mouse Position
     if (input.virtualAimActive) {

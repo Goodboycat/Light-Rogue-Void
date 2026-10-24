@@ -8,11 +8,13 @@ interface GameOverProps {
   wave: number;
   maxWaveReached: number;
   maturityTitle: string;
+  /** (2B) set when a boss killed the player: one-line hint, no HP mercy */
+  deathBoss?: { name: string; hint?: string } | null;
   onRestart: (wave?: number) => void;
   onReturnToMenu: () => void;
 }
 
-const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle, onRestart, onReturnToMenu }) => {
+const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle, deathBoss, onRestart, onReturnToMenu }) => {
   const phrase = useMemo(() => VOID_PHRASES[Math.floor(Math.random() * VOID_PHRASES.length)], []);
   const [showContent, setShowContent] = useState(false);
   const [selectedWave, setSelectedWave] = useState(1);
@@ -86,6 +88,12 @@ const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle
             <div className="space-y-1 mb-8">
                 <p className="text-slate-500 font-mono tracking-widest text-sm uppercase">Wave {wave} reached</p>
                 <p className="text-amber-500 font-tech text-xl">{maturityTitle}</p>
+                {deathBoss && (
+                    <p className="text-red-400/90 font-mono text-xs md:text-sm tracking-wide pt-2 max-w-md mx-auto">
+                        You fell to <span className="text-red-300 font-bold">{deathBoss.name}</span>
+                        {deathBoss.hint ? <> — {deathBoss.hint}</> : null}
+                    </p>
+                )}
             </div>
 
             <motion.p 

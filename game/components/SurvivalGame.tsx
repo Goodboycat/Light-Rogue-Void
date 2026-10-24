@@ -9,6 +9,7 @@ import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
+import { bossHint } from '../data/bossHints';
 import WinGame from './WinGame';
 import CinematicOverlay from './CinematicOverlay';
 import MobileControls from './MobileControls';
@@ -115,6 +116,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [currentShield, setCurrentShield] = useState(0); 
   
   const [gameOver, setGameOver] = useState(false);
+  const [deathBoss, setDeathBoss] = useState<{ name: string; hint?: string } | null>(null); // (2B)
   const [gameWon, setGameWon] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(waveTimerSec(initialWave));
   const [waveKills, setWaveKills] = useState(0); // (2A) mirrored from state for the HUD
@@ -301,6 +303,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           setCurrentHealth(nextHp); 
 
           if (nextHp <= 0) {
+              // (2B) death hint: only if a boss is alive and was the last thing that hurt us
+              const st = gameStateRef.current;
+              const b = st.activeBoss;
+              setDeathBoss(b && st.lastBossHit === b.def.id ? { name: b.def.name, hint: bossHint(b.def.id) } : null);
               setGameOver(true);
           }
       }
@@ -526,6 +532,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             wave={wave}
             maxWaveReached={maxWaveReached} 
             maturityTitle={maturity.title} 
+            deathBoss={deathBoss}
             onRestart={onRestart} 
             onReturnToMenu={onReturnToMenu}
         />
