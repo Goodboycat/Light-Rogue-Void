@@ -97,24 +97,5 @@ export const renderGame = (
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Boss Bar
-    if (state.activeBoss) {
-        const boss = state.activeBoss;
-        const pct = boss.hp / boss.maxHp;
-        const x = canvasWidth / 2 - 300;
-        
-        ctx.fillStyle = '#020617';
-        ctx.fillRect(x - 2, 38, 604, 24);
-
-        ctx.fillStyle = boss.def.glowColor;
-        ctx.fillRect(x, 40, 600 * pct, 20);
-
-        ctx.font = '20px Orbitron';
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = '#000';
-        ctx.shadowBlur = 4;
-        ctx.fillText(boss.def.name, canvasWidth / 2, 85);
-        ctx.shadowBlur = 0;
-    }
+    // Boss bar: components/BossBar.tsx (2B, React)
 };

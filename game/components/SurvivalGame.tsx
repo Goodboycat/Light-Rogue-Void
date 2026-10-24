@@ -13,6 +13,8 @@ import WinGame from './WinGame';
 import CinematicOverlay from './CinematicOverlay';
 import MobileControls from './MobileControls';
 import GameOverlay from './GameOverlay';
+import BossBar, { BossBarInfo } from './BossBar';
+import { isPhaseShifting, enrageCountdown } from './game/logic/enemies/BossKit';
 import { INTRO_SCRIPT, CinematicLine } from '../data/cinematics';
 import { BOSS_SCRIPTS } from '../data/bossCinematics';
 import { MATURITY_LEVELS } from '../data/maturity';
@@ -116,6 +118,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [gameWon, setGameWon] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(waveTimerSec(initialWave));
   const [waveKills, setWaveKills] = useState(0); // (2A) mirrored from state for the HUD
+  const [bossInfo, setBossInfo] = useState<BossBarInfo | null>(null); // (2B) boss HUD mirror
   const [sessionMatter, setSessionMatter] = useState(0);
   const [currentPhrase, setCurrentPhrase] = useState(LIGHT_PHRASES[Math.min(initialWave - 1, LIGHT_PHRASES.length - 1)]);
   const [darknessPhrase, setDarknessPhrase] = useState(VOID_PHRASES[0]);
@@ -373,6 +376,12 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             // (2A) mirror the kill counter for the HUD; expose state for `?debug=1` smoke tests
             if (state.frame % 10 === 0) {
                 setWaveKills(state.waveKills);
+                // (2B) boss bar mirror (every 10 f is plenty for a 150 ms-eased bar)
+                const b = state.activeBoss;
+                if (b && !b.state.custom?.cinematicMode) {
+                    setBossInfo({ name: b.def.name, color: b.def.glowColor, hpPct: b.hp / b.maxHp, phase: b.state.phase ?? 1,
+                        shifting: isPhaseShifting(b), enraged: !!state.bossEnraged, enrageIn: enrageCountdown(state) });
+                } else setBossInfo(prev => (prev ? null : prev));
                 if (DEBUG) (window as any).__LIGHT = { state, wave: refs.wave, time: refs.timeRemaining };
             }
 
@@ -494,6 +503,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && (
           <MobileControls input={inputInstance} onOpenMenu={onTogglePause} />
       )}
+
+      {!activeCinematic && !gameOver && !gameWon && bossInfo && <BossBar info={bossInfo} />}
 
       {!activeCinematic && !gameOver && !gameWon && (
           <GameOverlay 
