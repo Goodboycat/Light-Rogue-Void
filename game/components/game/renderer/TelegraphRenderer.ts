@@ -141,3 +141,41 @@ export const drawArenaVignette = (ctx: CanvasRenderingContext2D, outside: number
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
 };
+
+/**
+ * (2B) Boss arrival: 2 s screen-edge vignette in the boss colour + "NOW ARRIVING — <NAME>" banner.
+ * Screen space; draw after the arena vignette. Hidden during cinematics by the caller.
+ */
+export const drawBossArrival = (ctx: CanvasRenderingContext2D, state: MutableGameState, w: number, h: number) => {
+    const a = state.bossArrival; if (!a) return;
+    const t = 1 - a.frames / a.max;                 // 0 → 1
+    const env = t < 0.15 ? t / 0.15 : t > 0.75 ? (1 - t) / 0.25 : 1; // fade in / hold / fade out
+    ctx.save();
+    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.72);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, a.color);
+    ctx.globalAlpha = 0.55 * env;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    // banner: letter-spaced sub line + name sliding in
+    const small = w < 500;
+    const slide = (1 - Math.min(1, t / 0.15)) * 40;
+    ctx.globalAlpha = env;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = a.color; ctx.shadowBlur = 18;
+    ctx.font = `${small ? 11 : 14}px monospace`;
+    ctx.fillText('N O W   A R R I V I N G', w / 2, h * 0.28 - slide);
+    ctx.font = `bold ${small ? 26 : 42}px Orbitron, monospace`;
+    ctx.fillStyle = a.color;
+    ctx.fillText(a.name, w / 2, h * 0.28 + (small ? 22 : 34) + slide);
+    // thin rule under the name
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = env * 0.8;
+    ctx.fillStyle = '#ffffff';
+    const rw = Math.min(w * 0.6, 420) * Math.min(1, t / 0.3);
+    ctx.fillRect(w / 2 - rw / 2, h * 0.28 + (small ? 44 : 66), rw, 1);
+    ctx.restore();
+};

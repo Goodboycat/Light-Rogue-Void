@@ -7,7 +7,7 @@ import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
-import { drawTelegraphs, drawArena, drawArenaVignette } from './renderer/TelegraphRenderer';
+import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 
 export const renderGame = (
@@ -86,6 +86,7 @@ export const renderGame = (
     // --- HURT VIGNETTE / LOW HP (4A, screen space) ---
     drawHurtOverlay(ctx, state, canvasWidth, canvasHeight);
     drawArenaVignette(ctx, arenaOutsideFactor(state), canvasWidth, canvasHeight);
+    if (!state.activeBoss?.state?.custom?.cinematicMode) drawBossArrival(ctx, state, canvasWidth, canvasHeight);
     drawStreakBanner(ctx, state, canvasWidth, canvasHeight);
 
     // --- CURSOR ---

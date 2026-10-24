@@ -18,6 +18,7 @@ import {
     BOSS_ENRAGE_SEC, BOSS_ENRAGE_DMG_MULT, BOSS_ENRAGE_WARN_MULT,
     BOSS_PROJ_CAP, BOSS_PROJ_LIFE, ARENA_RADIUS,
     BOSS_ADD_INTERVAL_SEC, BOSS_ADD_PACK_MIN, BOSS_ADD_PACK_MAX, BOSS_ADD_WARN_FRAMES, BOSS_ADD_CAP,
+    BOSS_ARRIVAL_FRAMES,
 } from '../../Constants';
 
 // ---------------------------------------------------------------- telegraphs
@@ -96,6 +97,8 @@ export const updateTelegraphs = (state: MutableGameState) => {
     }
     const fl = state.telegraphFlashes;
     if (fl) for (let i = fl.length - 1; i >= 0; i--) if (--fl[i].frames <= 0) { fl[i] = fl[fl.length - 1]; fl.pop(); }
+    // (2B) "NOW ARRIVING" reveal countdown
+    if (state.bossArrival && --state.bossArrival.frames <= 0) state.bossArrival = undefined;
 };
 
 /** Drop every pending telegraph without firing (boss death, phase shift). */
@@ -238,6 +241,8 @@ export const openArena = (state: MutableGameState, boss: Enemy) => {
     state.bossStartFrame = state.frame;
     state.bossEnraged = false;
     state.bossAddTimer = 0;
+    state.bossArrival = { name: boss.def.name, color: boss.def.glowColor, frames: BOSS_ARRIVAL_FRAMES, max: BOSS_ARRIVAL_FRAMES };
+    shake(state, 14, 12);
 };
 
 export const closeArena = (state: MutableGameState) => {
@@ -245,6 +250,7 @@ export const closeArena = (state: MutableGameState) => {
     state.bossStartFrame = undefined;
     state.bossEnraged = false;
     state.bossAddTimer = undefined;
+    state.bossArrival = undefined;
     cancelTelegraphs(state);
     clearBossProjectiles(state);
 };
