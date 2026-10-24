@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Usage: bash tools/github.sh <GITHUB_TOKEN>
+# Usage: bash LIGHT/game/tools/github.sh <GITHUB_TOKEN>
 # Stores the token in git's credential store (never committed) and sets the remote.
+# Repo root is LIGHT/ (two levels above this script).
 set -e
 TOKEN="$1"
-if [ -z "$TOKEN" ]; then echo "usage: bash tools/github.sh <TOKEN>"; exit 1; fi
-cd "$(dirname "$0")/.."
+if [ -z "$TOKEN" ]; then echo "usage: bash LIGHT/game/tools/github.sh <TOKEN>"; exit 1; fi
+cd "$(dirname "$0")/../.."
 git config --global credential.helper store
 printf 'https://x-access-token:%s@github.com\n' "$TOKEN" > "$HOME/.git-credentials"
 chmod 600 "$HOME/.git-credentials"
