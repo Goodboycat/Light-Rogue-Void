@@ -11,6 +11,9 @@ interface SkillNodeProps {
   isRevealed: boolean;
   onUnlock: (id: string) => void;
   currentScale: any; // Using any to avoid MotionValue import issues
+  /** (1B) Constellation node whose boss is not yet defeated: dim star + lock. */
+  isBossLocked?: boolean;
+  lockLabel?: string;
 }
 
 const SkillNode: React.FC<SkillNodeProps> = ({
@@ -19,7 +22,9 @@ const SkillNode: React.FC<SkillNodeProps> = ({
   isAffordable,
   isRevealed,
   onUnlock,
-  currentScale
+  currentScale,
+  isBossLocked = false,
+  lockLabel
 }) => {
   // Dynamic Icon Loading
   const IconComponent = (Icons as any)[data.icon] || Icons.Circle;
@@ -36,13 +41,14 @@ const SkillNode: React.FC<SkillNodeProps> = ({
   const inverseScale = useTransform(safeScale, (s: number) => Math.max(0.5, 1 / Math.max(0.1, s)));
 
   const handleClick = () => {
-    if (isUnlocked) return;
+    if (isUnlocked || isBossLocked) return;
     if (isRevealed && isAffordable) {
       onUnlock(data.id);
     } 
   };
 
   const getColors = () => {
+    if (isBossLocked) return 'bg-slate-950/60 border-slate-700/40 opacity-60 cursor-not-allowed';
     if (isUnlocked) {
       // Changed CORE to white/bright style
       if (data.type === AbilityType.CORE) return 'bg-white border-white shadow-[0_0_30px_rgba(255,255,255,0.9)]';
@@ -67,7 +73,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       return 'text-slate-700';
   };
 
-  if (!isRevealed && !isUnlocked) return null;
+  if (!isRevealed && !isUnlocked && !isBossLocked) return null;
 
   return (
     <motion.div
@@ -95,7 +101,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
                 {data.title}
             </h3>
             <p className="text-[10px] text-slate-400 leading-tight mb-2">
-              {data.description}
+              {isBossLocked ? (lockLabel || 'Locked') : data.description}
             </p>
             <div className="flex justify-between items-center text-[10px] font-mono border-t border-slate-800 pt-1">
                 <span className="text-cyan-400">{data.statBoostDisplay}</span>
@@ -104,8 +110,14 @@ const SkillNode: React.FC<SkillNodeProps> = ({
         </div>
       </motion.div>
 
+      {isBossLocked && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+          <Icons.Lock className={`${isMajor ? 'w-6 h-6' : 'w-3 h-3'} text-slate-500`} />
+        </div>
+      )}
+
       {/* Ripple Effect for Affordable Nodes */}
-      {isRevealed && !isUnlocked && isAffordable && (
+      {isRevealed && !isUnlocked && isAffordable && !isBossLocked && (
         <motion.div
             className={`absolute inset-0 rounded-full border-2 border-emerald-500/30`}
             style={{ width: '140%', height: '140%', left: '-20%', top: '-20%' }}
@@ -122,7 +134,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
         {...({
             whileHover: { scale: 1.15 },
             whileTap: { scale: 0.95 },
-            animate: isRevealed && !isUnlocked && isAffordable ? { 
+            animate: isRevealed && !isUnlocked && isAffordable && !isBossLocked ? { 
                 scale: [1, 1.05, 1],
                 boxShadow: [
                     "0 0 10px rgba(16,185,129,0.2)", 

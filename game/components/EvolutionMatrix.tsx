@@ -2,8 +2,8 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle } from 'lucide-react';
-import { GameState } from '../types';
-import { ABILITY_TREE_DATA } from '../data';
+import { AbilityNodeData, GameState } from '../types';
+import { ABILITY_TREE_DATA, BOSS_DISPLAY_NAMES } from '../data';
 import Connection from './Connection';
 import SkillNode from './SkillNode';
 
@@ -28,6 +28,10 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     onResume,
     onReturnToMenu
 }) => {
+    // (1B) Constellation nodes stay locked until their boss is in defeatedBosses.
+    const bossLocked = (n: AbilityNodeData) => !!n.requiresBoss && !(gameState.defeatedBosses || []).includes(n.requiresBoss);
+    const lockLabelFor = (n: AbilityNodeData) => `Defeat ${BOSS_DISPLAY_NAMES[n.requiresBoss!] || n.requiresBoss} to reveal ${n.constellation || 'this constellation'}.`;
+
     const scale = useMotionValue(0.1); // Start small for Big Bang expansion
     const dragX = useMotionValue(0);
     const dragY = useMotionValue(0);
@@ -91,12 +95,12 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             const isUnlocked = gameState.unlockedAbilityIds.includes(n.id);
             const isRevealed = n.parentIds.length === 0 || n.parentIds.some(pid => gameState.unlockedAbilityIds.includes(pid));
             const isAffordable = gameState.matter >= n.cost;
-            return !isUnlocked && isRevealed && isAffordable;
+            return !isUnlocked && isRevealed && isAffordable && !bossLocked(n);
         }).sort((a, b) => {
             if (a.cost !== b.cost) return a.cost - b.cost; // Cheapest first
             return a.id.localeCompare(b.id); // Stable sort by ID
         }); 
-    }, [gameState.unlockedAbilityIds, gameState.matter]);
+    }, [gameState.unlockedAbilityIds, gameState.matter, gameState.defeatedBosses]);
 
     const [buyableIndex, setBuyableIndex] = useState(0);
 
@@ -277,6 +281,14 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                         const p = ABILITY_TREE_DATA.find(n => n.id === pid);
                         const isParentUnlocked = gameState.unlockedAbilityIds.includes(pid);
                         const isNodeUnlocked = gameState.unlockedAbilityIds.includes(node.id);
+                        if (p && node.requiresBoss) {
+                            // (1B) faint constellation line, always visible, brighter once unlocked
+                            return (
+                                <line key={pid+node.id} x1={p.position.x} y1={p.position.y} x2={node.position.x} y2={node.position.y}
+                                    stroke={isNodeUnlocked ? '#e2e8f0' : '#475569'} strokeWidth={isNodeUnlocked ? 3 : 1.5}
+                                    strokeDasharray={isNodeUnlocked ? undefined : '6 10'} opacity={isNodeUnlocked ? 0.9 : 0.35} strokeLinecap="round" />
+                            );
+                        }
                         return p && (
                             <Connection 
                                 key={pid+node.id} 
@@ -303,6 +315,8 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                             isRevealed={isRevealed} 
                             onUnlock={onUnlock}
                             currentScale={scale}
+                            isBossLocked={bossLocked(node)}
+                            lockLabel={bossLocked(node) ? lockLabelFor(node) : undefined}
                         />
                     );
                 })}

@@ -14,13 +14,19 @@ import TransitionOverlay from './components/TransitionOverlay';
 
 import { ABILITY_TREE_DATA } from './data';
 import { checkAchievements } from './data/achievements';
-import { useGameSave } from './hooks/useGameSave';
+import { useGameSave, lastTreeMigration } from './hooks/useGameSave';
 import { usePlayerStats } from './hooks/usePlayerStats';
 import { Settings } from './types';
 
 const App: React.FC = () => {
   const { gameState, setGameState, resetSave } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
+  const [migrationToast, setMigrationToast] = useState(lastTreeMigration);
+  useEffect(() => {
+    if (!migrationToast) return;
+    const t = setTimeout(() => setMigrationToast(null), 7000);
+    return () => clearTimeout(t);
+  }, [migrationToast]);
 
   const [gameKey, setGameKey] = useState(0);
   const [startWave, setStartWave] = useState(1);
@@ -218,6 +224,19 @@ const App: React.FC = () => {
       onContextMenu={(e) => e.preventDefault()}
     >
       <TransitionOverlay isVisible={isTransitioning} duration={1.0} />
+
+      {/* (1B) one-time toast after the skill-tree migration */}
+      <AnimatePresence>
+        {migrationToast && (
+          <motion.div
+            id="tree-migration-toast"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/95 border border-amber-400/40 text-amber-100 text-xs font-tech tracking-wider px-4 py-2 rounded-lg shadow-xl pointer-events-none"
+            {...({ initial: { y: -20, opacity: 0 }, animate: { y: 0, opacity: 1 }, exit: { y: -20, opacity: 0 } } as any)}
+          >
+            THE CONSTELLATION HAS BEEN REDRAWN · {migrationToast.dropped} OLD NODES REFUNDED (+{migrationToast.refunded} MATTER)
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <StarBackground 
         unlockedCount={gameState.unlockedAbilityIds.length} 

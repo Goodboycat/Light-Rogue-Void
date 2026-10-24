@@ -57,6 +57,10 @@ export interface AbilityNodeData {
   statBoostDisplay: string;
   statEffect: Partial<PlayerStats>;
   isMajor: boolean;
+  /** (1B) Constellation node: hidden until this boss id is in `defeatedBosses`. */
+  requiresBoss?: string;
+  /** (1B) Constellation display name, for the lock tooltip and faint lines. */
+  constellation?: string;
 }
 
 export interface Achievement {

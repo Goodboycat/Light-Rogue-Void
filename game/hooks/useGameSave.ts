@@ -1,6 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import { GameState } from '../types';
+import { getNode } from '../data';
+
+/** (1B) Flat refund per unknown node id. The old tree was random per device so
+ *  we cannot know the real price; 20 matter is the depth-0 price. */
+const LEGACY_REFUND_PER_NODE = 20;
+
+export interface TreeMigrationReport { dropped: number; refunded: number }
+/** Set once at load; App.tsx reads it to show a toast. */
+export let lastTreeMigration: TreeMigrationReport | null = null;
 
 const SAVE_KEY = 'light_escapes_void_save_v1';
 
@@ -47,6 +56,20 @@ export const useGameSave = () => {
                 // Ensure defaults for new fields if migration didn't cover it or fresh save
                 if (settings.showTouchControls === undefined) settings.showTouchControls = true;
                 if (settings.mouseMovementEnabled === undefined) settings.mouseMovementEnabled = true;
+
+                // (1B) Tree migration: the seeded tree has stable ids; any id from the
+                // old random tree is dropped and refunded so the save never dangles.
+                const rawIds: string[] = Array.isArray(parsed.unlockedAbilityIds) ? parsed.unlockedAbilityIds : ['root'];
+                const keptIds = rawIds.filter(id => !!getNode(id));
+                if (!keptIds.includes('root')) keptIds.unshift('root');
+                const droppedCount = rawIds.length - rawIds.filter(id => !!getNode(id)).length;
+                if (droppedCount > 0) {
+                    const refund = droppedCount * LEGACY_REFUND_PER_NODE;
+                    parsed.matter = (parsed.matter || 0) + refund;
+                    lastTreeMigration = { dropped: droppedCount, refunded: refund };
+                    console.info(`[LIGHT] tree migration: dropped ${droppedCount} legacy nodes, refunded ${refund} matter`);
+                }
+                parsed.unlockedAbilityIds = keptIds;
 
                 return {
                     ...INITIAL_STATE,
