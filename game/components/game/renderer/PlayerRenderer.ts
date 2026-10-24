@@ -1,5 +1,6 @@
 import { MutableGameState } from '../types';
 import { PlayerStats } from '../../../types';
+import { feel } from '../Feel';
 
 export const drawPlayer = (
     ctx: CanvasRenderingContext2D,
@@ -10,12 +11,19 @@ export const drawPlayer = (
 ) => {
     // --- PLAYER ---
     const lightRadius = state.player.size;
+
+    // (4A) i-frame blink: alternate dim/bright every 3 frames while invulnerable after a hit;
+    // reduceFlash softens it to a steady 0.7 so the player never disappears.
+    const iframes = state.playerIFrames ?? 0;
+    const blinkAlpha = iframes > 0
+        ? (feel.reduceFlash ? 0.7 : (Math.floor(state.frame / 3) % 2 === 0 ? 0.35 : 1))
+        : 1;
     
     // 1. Inner Glow (Background) - Drawn first so it doesn't obscure the core
     ctx.shadowBlur = 20 * maturityScale;
-    ctx.shadowColor = currentStageColor;
+    ctx.shadowColor = iframes > 0 ? '#f87171' : currentStageColor;
     ctx.fillStyle = currentStageColor;
-    ctx.globalAlpha = 1; // Solid color for better visibility against void
+    ctx.globalAlpha = blinkAlpha; // Solid color for better visibility against void
     ctx.beginPath();
     ctx.arc(state.player.x, state.player.y, lightRadius * 1.2, 0, Math.PI*2);
     ctx.fill();
@@ -24,10 +32,11 @@ export const drawPlayer = (
     ctx.shadowBlur = 30 * maturityScale;
     ctx.shadowColor = '#fff';
     ctx.fillStyle = '#fff';
-    ctx.globalAlpha = 1; 
+    ctx.globalAlpha = blinkAlpha; 
     ctx.beginPath();
     ctx.arc(state.player.x, state.player.y, lightRadius * 0.8, 0, Math.PI*2);
     ctx.fill();
+    ctx.globalAlpha = 1;
     
     // REMOVED: Outer Aura Ring (The circle that used to be here)
 
