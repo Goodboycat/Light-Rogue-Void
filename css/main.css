@@ -1,0 +1,266 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #020617; /* slate-950 */
+  color: #e2e8f0;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  /* Use dynamic viewport units when available; fallback to standard vh/vw */
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  width: 100dvw;
+  position: fixed; /* prevents mobile URL-bar bounce from shifting layout */
+  inset: 0;
+  font-family: "Rajdhani", sans-serif;
+}
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+#root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Canvas MUST fill its parent, never inflate it. Prevents overflow on iframes (itch.io). */
+canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+}
+.font-tech {
+  font-family: "Orbitron", sans-serif;
+}
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* =====================================================
+         MOBILE / SHORT-VIEWPORT FIT FIX (all overlay screens)
+         The bundled React app uses huge Tailwind text-7xl /
+         text-9xl titles inside fullscreen overlay containers
+         (main menu, death screen "EXTINGUISHED", win screen
+         "TRANSCENDENCE", story/dialogue overlays, skill tree
+         "Constellation of Virtues"). On landscape phones and
+         short viewports these titles overflow the top and
+         action buttons (INITIALIZE / RE-IGNITE / NEW CYCLE)
+         get pushed below the fold. These rules scale the
+         overlays down and allow safe overflow scrolling
+         without touching the bundled JS.
+
+         Target selectors cover BOTH `absolute inset-0` and
+         `fixed inset-0` fullscreen overlays regardless of
+         their z-index (z-50, z-[100], z-[200], ...) so every
+         menu / result / dialogue scene is fixed, not just
+         the main menu.
+         ===================================================== */
+
+/* Allow every fullscreen overlay to scroll vertically
+         as a safety net if it ever overflows. Applies to both
+         `absolute inset-0` and `fixed inset-0` containers. */
+.absolute.inset-0.z-50,
+.fixed.inset-0[class*="z-[100]"],
+.fixed.inset-0[class*="z-[110]"],
+.fixed.inset-0[class*="z-[200]"] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Short viewports (landscape phones, small windows).
+         Roughly: any device where the visible height is 600px or
+         less. Shrink huge titles and tighten vertical rhythm so
+         each overlay fits on-screen. */
+@media (max-height: 600px) {
+  /* Any big title (text-7xl / text-9xl) inside any overlay:
+           LIGHT, EXTINGUISHED, TRANSCENDENCE, VOID, etc. */
+  .absolute.inset-0 h1.text-7xl,
+  .absolute.inset-0 h1.md\:text-9xl,
+  .fixed.inset-0 h1.text-7xl,
+  .fixed.inset-0 h1.md\:text-9xl {
+    font-size: 2.75rem !important; /* ~44px */
+    line-height: 1 !important;
+  }
+  /* VOID / smaller headline (text-6xl md:text-9xl). */
+  .absolute.inset-0 h1.text-6xl,
+  .absolute.inset-0 h1.text-6xl.md\:text-9xl,
+  .fixed.inset-0 h1.text-6xl,
+  .fixed.inset-0 h1.text-6xl.md\:text-9xl {
+    font-size: 2.5rem !important; /* ~40px */
+    line-height: 1 !important;
+  }
+  /* Story / dialogue text (text-3xl md:text-5xl). */
+  .fixed.inset-0 .text-3xl.md\:text-5xl {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+  /* Death-screen quote (text-xl md:text-2xl). */
+  .absolute.inset-0 .text-xl.md\:text-2xl {
+    font-size: 0.95rem !important;
+    line-height: 1.3 !important;
+  }
+  /* Tighten big vertical margins/paddings inside overlays. */
+  .absolute.inset-0.z-50 .mb-12,
+  .fixed.inset-0 .mb-12 {
+    margin-bottom: 1rem !important;
+  }
+  .absolute.inset-0.z-50 .mb-8,
+  .fixed.inset-0 .mb-8 {
+    margin-bottom: 0.75rem !important;
+  }
+  .absolute.inset-0.z-50 .mb-4 {
+    margin-bottom: 0.5rem !important;
+  }
+  .absolute.inset-0.z-50 .mt-8 {
+    margin-top: 1rem !important;
+  }
+  /* Compact primary action buttons (INITIALIZE, RE-IGNITE, NEW CYCLE). */
+  .absolute.inset-0.z-50 button.py-5,
+  .fixed.inset-0 button.py-5 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+  .absolute.inset-0.z-50 button.py-4,
+  .fixed.inset-0 button.py-4 {
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+    font-size: 0.95rem !important;
+  }
+  /* Reduce outer padding on flex overlays so content anchors
+           to top and the whole screen fits without clipping. */
+  .absolute.inset-0.z-50.p-4,
+  .absolute.inset-0.z-50.flex.flex-col.items-center.justify-center {
+    padding: 0.5rem !important;
+    justify-content: flex-start !important;
+    padding-top: 3.5rem !important; /* clear top-corner icons */
+  }
+  /* Death-screen respawn card: shrink padding so it fits. */
+  .absolute.inset-0 .max-w-md.p-6 {
+    padding: 0.75rem !important;
+  }
+}
+
+/* Extra-short viewports (very small landscape phones). */
+@media (max-height: 450px) {
+  .absolute.inset-0 h1.text-7xl,
+  .absolute.inset-0 h1.md\:text-9xl,
+  .fixed.inset-0 h1.text-7xl,
+  .fixed.inset-0 h1.md\:text-9xl {
+    font-size: 2rem !important; /* ~32px */
+  }
+  .absolute.inset-0 h1.text-6xl,
+  .absolute.inset-0 h1.text-6xl.md\:text-9xl,
+  .fixed.inset-0 h1.text-6xl,
+  .fixed.inset-0 h1.text-6xl.md\:text-9xl {
+    font-size: 1.75rem !important;
+  }
+  .absolute.inset-0.z-50 .mb-12,
+  .fixed.inset-0 .mb-12 {
+    margin-bottom: 0.5rem !important;
+  }
+  .absolute.inset-0.z-50 .mb-8,
+  .fixed.inset-0 .mb-8 {
+    margin-bottom: 0.4rem !important;
+  }
+  .absolute.inset-0.z-50 button.py-5,
+  .fixed.inset-0 button.py-5,
+  .absolute.inset-0.z-50 button.py-4,
+  .fixed.inset-0 button.py-4 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    font-size: 0.9rem !important;
+  }
+  .fixed.inset-0 .text-3xl.md\:text-5xl {
+    font-size: 1.05rem !important;
+  }
+}
+
+/* Narrow portrait phones: same idea, keyed on width.
+         Prevents titles from overflowing horizontally too. */
+@media (max-width: 480px) {
+  .absolute.inset-0 h1.text-7xl,
+  .fixed.inset-0 h1.text-7xl {
+    font-size: 3.5rem !important;
+  }
+  .absolute.inset-0 h1.text-6xl,
+  .fixed.inset-0 h1.text-6xl {
+    font-size: 3rem !important;
+  }
+  /* On narrow screens the death-screen respawn card and
+           main-menu block can overflow horizontally with big padding. */
+  .absolute.inset-0 .max-w-md {
+    max-width: 100% !important;
+  }
+  .absolute.inset-0 .max-w-2xl {
+    max-width: 100% !important;
+  }
+  /* Constellation of Virtues (skill tree) top-left title
+           overlaps content on narrow screens - shrink it. */
+  .absolute.inset-0.bg-slate-950\/95 h1.text-4xl {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* =====================================================
+   ACCESSIBILITY & UI TEXT SIZE SCALING RULES
+   ===================================================== */
+html.ui-size-large {
+  font-size: 112.5%; /* Scales base rem from 16px to 18px */
+}
+
+html.ui-size-huge {
+  font-size: 125%; /* Scales base rem from 16px to 20px */
+}
+
+/* Ensure arbitrary px-based font classes also scale up */
+html.ui-size-large [class*="text-["] {
+  font-size: 112.5%;
+}
+
+html.ui-size-huge [class*="text-["] {
+  font-size: 125%;
+}
+
+/* Allow modals and windows to scroll gracefully when text is enlarged */
+html.ui-size-large .max-w-md,
+html.ui-size-huge .max-w-md,
+html.ui-size-large .max-w-lg,
+html.ui-size-huge .max-w-lg,
+html.ui-size-large .max-w-xl,
+html.ui-size-huge .max-w-xl,
+html.ui-size-large .max-w-2xl,
+html.ui-size-huge .max-w-2xl,
+html.ui-size-large .max-w-3xl,
+html.ui-size-huge .max-w-3xl,
+html.ui-size-large .max-w-4xl,
+html.ui-size-huge .max-w-4xl {
+  max-height: 94vh;
+  overflow-y: auto;
+}

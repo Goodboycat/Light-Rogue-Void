@@ -1,0 +1,193 @@
+/* === Language UI === */
+.lrv-lang-pill {
+  position: fixed;
+  top: max(env(safe-area-inset-top, 0px), 10px);
+  right: max(env(safe-area-inset-right, 0px), 10px);
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  font-family: "Orbitron", "Rajdhani", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.lrv-lang-pill:hover {
+  transform: translateY(-1px);
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(148, 163, 184, 0.6);
+}
+.lrv-lang-pill .lrv-lang-icon {
+  display: inline-flex;
+  align-items: center;
+  color: #67e8f9;
+}
+.lrv-lang-pill .lrv-lang-code {
+  line-height: 1;
+}
+
+/* Section inside System Settings */
+.lrv-lang-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+}
+.lrv-lang-section .lrv-lang-label {
+  display: block;
+  font-size: 12px;
+  font-family: "Orbitron", "Rajdhani", ui-monospace, monospace;
+  color: #f472b6;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 10px;
+}
+.lrv-lang-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: #020617;
+  padding: 6px;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+}
+.lrv-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.lrv-lang-btn:hover {
+  color: #e2e8f0;
+  background: rgba(30, 41, 59, 0.6);
+}
+.lrv-lang-btn.lrv-active {
+  background: linear-gradient(
+    180deg,
+    rgba(244, 114, 182, 0.18),
+    rgba(139, 92, 246, 0.18)
+  );
+  color: #ffffff;
+  border-color: rgba(244, 114, 182, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(244, 114, 182, 0.25) inset,
+    0 0 12px rgba(244, 114, 182, 0.15);
+}
+.lrv-lang-flag {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 4px;
+  color: #cbd5e1;
+}
+.lrv-lang-btn.lrv-active .lrv-lang-flag {
+  background: rgba(244, 114, 182, 0.28);
+  color: #fff;
+}
+
+/* ==== Spanish text fit rules ====
+     Spanish translations are on average ~20-30% longer than English. To avoid
+     overflow inside menus, cards, and overlays, when <html lang="es"> we:
+     - allow long words to break
+     - slightly shrink Orbitron .font-tech uppercase titles so they still fit
+       inside the same overlay containers */
+html[lang="es"] body {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+html[lang="es"] .font-tech,
+html[lang="es"] h1,
+html[lang="es"] h2,
+html[lang="es"] h3,
+html[lang="es"] h4 {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  letter-spacing: 0.06em;
+}
+/* Scale the huge overlay titles so translated words like TRASCENDENCIA fit */
+html[lang="es"] .text-9xl {
+  font-size: clamp(3rem, 12vw, 6.5rem) !important;
+  line-height: 1.02 !important;
+}
+html[lang="es"] .text-8xl {
+  font-size: clamp(2.5rem, 10vw, 5.5rem) !important;
+  line-height: 1.05 !important;
+}
+html[lang="es"] .text-7xl {
+  font-size: clamp(2rem, 8.5vw, 4.5rem) !important;
+  line-height: 1.05 !important;
+}
+html[lang="es"] .text-6xl {
+  font-size: clamp(1.75rem, 7vw, 3.75rem) !important;
+  line-height: 1.1 !important;
+}
+html[lang="es"] .text-5xl {
+  font-size: clamp(1.5rem, 5.5vw, 3rem) !important;
+  line-height: 1.1 !important;
+}
+html[lang="es"] .text-4xl {
+  font-size: clamp(1.25rem, 4.5vw, 2.25rem) !important;
+  line-height: 1.15 !important;
+}
+html[lang="es"] .text-3xl {
+  font-size: clamp(1.05rem, 3.8vw, 1.75rem) !important;
+  line-height: 1.2 !important;
+}
+html[lang="es"] .text-2xl {
+  font-size: clamp(0.95rem, 3vw, 1.4rem) !important;
+  line-height: 1.25 !important;
+}
+
+/* Buttons often have padding + big text — keep them from overflowing */
+html[lang="es"] button,
+html[lang="es"] a {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* The pill itself: no shrinkage */
+.lrv-lang-pill,
+.lrv-lang-section {
+  letter-spacing: 0.12em;
+}
+
+/* On phones, tuck the pill under the top-right HUD */
+@media (max-width: 640px) {
+  .lrv-lang-pill {
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
