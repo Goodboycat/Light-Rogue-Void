@@ -43,3 +43,20 @@ export const chapterOf = (wave: number): ChapterDef => CHAPTERS[chapterIndexOf(w
 
 /** Boss index (0-based into BOSSES) for a wave. */
 export const bossIndexOf = (wave: number): number => chapterIndexOf(wave) - 1;
+
+// --- WAVE FLOW (2A) ---
+// Enemies are never wiped at wave end. A wave advances when the kill quota
+// is met OR the timer runs out; survivors carry over (`enemy.carried`).
+export const waveKillQuota = (w: number): number => Math.floor(8 + w * 1.5);
+export const waveTimerSec = (w: number): number => 30 + Math.min(w, 30);
+/** Crowd budget: max non-boss enemies alive at a given wave. */
+export const maxAlive = (w: number): number => Math.min(300, 40 + w * 3);
+/** Seconds after a wave starts during which spawns ramp from 0 → full rate. */
+export const WAVE_GRACE_SEC = 3;
+export const WAVE_RAMP_SEC = 10;
+/** During a boss: cap for non-boss adds (2B refines composition). */
+export const BOSS_ADD_CAP = 20;
+/** Essence bonus for enemies that survived a wave change. */
+export const CARRIED_REWARD_MULT = 1.1;
+/** If nothing is alive and quota is unmet, force a spawn this often (frames). */
+export const STARVE_SPAWN_FRAMES = 20;

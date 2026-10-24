@@ -102,7 +102,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     worldSize: WORLD_SIZE,
     seenEnemyIds: [],
     maxWaveReached: maxWaveReached,
-    bossSpawnedWave: 0
+    bossSpawnedWave: 0,
+    waveKills: 0,
+    waveStartedFrame: 0,
+    totalKills: 0
   });
 
   const [currentHealth, setCurrentHealth] = useState(playerStats.maxHealth);

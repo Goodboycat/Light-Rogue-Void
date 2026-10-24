@@ -93,6 +93,7 @@ export interface Enemy extends Entity {
     voidMineCooldown?: number; // New: Cooldown for spawning void mines
     opacity?: number; // Visual override
     isSlowImmune?: boolean; // Immunity to Ice Nova/Slows
+    carried?: boolean; // (2A) survived a wave change → bonus essence + faint ring
 }
 
 export interface Projectile extends Entity {
@@ -137,4 +138,9 @@ export interface MutableGameState {
     seenEnemyIds: string[];
     maxWaveReached: number;
     bossSpawnedWave?: number;
+    // (2A) wave flow
+    waveKills: number;          // kills since the current wave started
+    waveStartedFrame: number;   // state.frame when the current wave started
+    totalKills: number;         // kills this run
+    bossKilledWave?: number;    // set by killEnemy when a boss dies; SurvivalGame advances the wave
 }

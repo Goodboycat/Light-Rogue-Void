@@ -7,6 +7,7 @@ import { spawnEnemy as spawnEnemyLogic } from './enemies/SpawnLogic';
 import { updateBossBehavior } from './enemies/BossLogic';
 import { updateStandardBehavior } from './enemies/StandardBehavior';
 import { updateEnemyPhysics } from './enemies/PhysicsLogic';
+import { killEnemy } from './KillLogic';
 
 export const spawnEnemy = spawnEnemyLogic;
 
@@ -101,21 +102,9 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
             }
         }
 
-        // --- 5. DEATH LOGIC ---
+        // --- 5. DEATH LOGIC --- (2A) centralised in KillLogic
         if (enemy.hp <= 0) {
-            state.drops.push({ x: enemy.x, y: enemy.y, value: enemy.def.essenceReward });
-            spawnExplosion(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.def.particleEffect);
-            
-            if (enemy.def.behavior === 'SPLIT') {
-                 for(let k=0; k<2; k++) spawnEnemy(state, 1, onEnemySeen, enemy.x + Math.random()*20, enemy.y + Math.random()*20);
-            }
-            
-            if (enemy.isBoss) {
-                spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
-                spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
-                state.activeBoss = undefined;
-            }
-            state.enemies.splice(i, 1);
+            killEnemy(state, i, enemy.def.behavior === 'EXPLODE' ? 'explode' : 'other', onEnemySeen);
         }
     }
 };
