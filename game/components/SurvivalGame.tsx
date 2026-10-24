@@ -4,7 +4,7 @@ import { PlayerStats, Settings } from '../types';
 import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE } from './game/Constants';
 import { renderGame } from './game/Renderer';
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
@@ -419,8 +419,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                          return 0;
                      }
                      
-                     // Cap at Wave 60
-                     if (nextWave > 60) {
+                     // Cap at MAX_WAVE (Constants.ts)
+                     if (nextWave > MAX_WAVE) {
                          setGameWon(true);
                          return 0;
                      }

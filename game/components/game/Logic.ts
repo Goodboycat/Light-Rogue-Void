@@ -1,5 +1,6 @@
 
 import { MutableGameState, Enemy, ParticleType } from './types';
+import { isBossWave as isBossWaveFn } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
@@ -60,7 +61,7 @@ export const updateGame = (
 
     // --- SPAWNING ---
     // Boss spawning logic
-    const isBossWave = wave % 10 === 0;
+    const isBossWave = isBossWaveFn(wave);
     const bossAlreadySpawned = state.bossSpawnedWave === wave;
 
     if (isBossWave && state.enemies.filter(e => e.isBoss).length === 0 && !state.activeBoss && !bossAlreadySpawned) {

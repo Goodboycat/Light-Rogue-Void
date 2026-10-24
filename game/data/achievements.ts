@@ -1,5 +1,6 @@
 
 import { Achievement, GameState, PlayerStats } from '../types';
+import { MAX_WAVE } from '../components/game/Constants';
 import { ABILITY_TREE_DATA } from '../data';
 import { ENEMIES } from '../enemies';
 import { BOSSES } from '../bosses';
@@ -62,7 +63,7 @@ add('matter_1m', 'Void Tycoon', 'Possess 1,000,000 Dark Matter', 'Atom', (s) => 
 add('matter_10m', 'Singularity', 'Possess 10,000,000 Dark Matter', 'Orbit', (s) => s.matter >= 10000000);
 
 // 6. MATURITY / LIGHT PHRASES
-add('final_phrase', 'Enlightenment', 'Reach the final Light Phrase', 'MessageSquare', (s) => s.maxWaveReached >= 60);
+add('final_phrase', 'Enlightenment', 'Reach the final Light Phrase', 'MessageSquare', (s) => s.maxWaveReached >= MAX_WAVE);
 
 const finalMaturityIndex = MATURITY_LEVELS.length - 1;
 add('final_maturity', 'The Omega Sun', 'Reach the final Maturity Rank', 'Sun', (s) => (s.maxMaturityAchieved || 0) >= finalMaturityIndex);

@@ -1,5 +1,6 @@
 
 import { EnemyDef } from './components/game/types';
+import { bossIndexOf } from './components/game/Constants';
 import { ParticleType } from './components/game/types';
 
 export const BOSSES: EnemyDef[] = [
@@ -107,11 +108,4 @@ export const BOSSES: EnemyDef[] = [
     }
 ];
 
-export const getBossForWave = (wave: number): EnemyDef => {
-    if (wave >= 60) return BOSSES[5];
-    if (wave >= 50) return BOSSES[4];
-    if (wave >= 40) return BOSSES[3];
-    if (wave >= 30) return BOSSES[2];
-    if (wave >= 20) return BOSSES[1];
-    return BOSSES[0];
-};
+export const getBossForWave = (wave: number): EnemyDef => BOSSES[bossIndexOf(wave)];
