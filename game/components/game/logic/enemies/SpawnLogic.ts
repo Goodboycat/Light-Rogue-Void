@@ -1,9 +1,9 @@
 
-import { MutableGameState } from '../../types';
+import { EnemyDef, MutableGameState } from '../../types';
 import { WORLD_SIZE } from '../../Constants';
 import { getSpawnableEnemy } from '../../../../enemies';
 
-export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id: string) => void, x?: number, y?: number) => {
+export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id: string) => void, x?: number, y?: number, defOverride?: EnemyDef) => {
     const angle = Math.random() * Math.PI * 2;
     const dist = 700 + Math.random() * 200; 
     
@@ -13,7 +13,7 @@ export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id:
     ex = Math.max(-WORLD_SIZE/2 + 50, Math.min(WORLD_SIZE/2 - 50, ex));
     ey = Math.max(-WORLD_SIZE/2 + 50, Math.min(WORLD_SIZE/2 - 50, ey));
     
-    const def = getSpawnableEnemy(wave);
+    const def = defOverride ?? getSpawnableEnemy(wave); // (2B) boss addTable can force a def
     
     // Quadratic HP Scaling: Base + (Wave * Scaling) + (Wave^2 * 0.5)
     // This ensures enemies get much tougher past wave 40-50

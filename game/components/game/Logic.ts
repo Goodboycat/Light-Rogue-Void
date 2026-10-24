@@ -1,9 +1,9 @@
 
 import { MutableGameState, Enemy, ParticleType } from './types';
-import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, BOSS_ADD_CAP, STARVE_SPAWN_FRAMES } from './Constants';
+import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
-import { updateTelegraphs, openArena, arenaOutsideFactor } from './logic/enemies/BossKit';
+import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
 import { VOID_BURN_DPS, VOID_BURN_TICK_FRAMES } from './Constants';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
@@ -102,8 +102,8 @@ export const updateGame = (
         let shouldSpawn = false;
 
         if (state.activeBoss) {
-            // Keep a light crowd roaming during the boss (slow trickle).
-            if (aliveNonBoss < BOSS_ADD_CAP && state.frame % (baseRate * 3) === 0) shouldSpawn = true;
+            // (2B) roaming packs land at the arena edge after a telegraph — see BossKit.updateBossAdds
+            updateBossAdds(state, state.activeBoss, wave, onEnemySeen);
         } else if (sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
             const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
             const rate = Math.round(baseRate / Math.max(0.15, ramp));

@@ -19,7 +19,8 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 10,
         essenceReward: 2000,
-        particleEffect: ParticleType.SMOKE
+        particleEffect: ParticleType.SMOKE,
+        addTable: ['e1', 'e2', 'e3', 'e13'] // (2B) larvae, mites, crabs, a Hive Mother
     },
     {
         id: 'void_warden',
