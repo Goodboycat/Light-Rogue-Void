@@ -110,3 +110,7 @@ export const BOSS_ADD_PACK_MIN = 3;
 export const BOSS_ADD_PACK_MAX = 5;
 export const BOSS_ADD_WARN_FRAMES = 60;       // telegraph circle before a pack lands
 export const BOSS_ARRIVAL_FRAMES = 120;       // 2 s "NOW ARRIVING" reveal
+
+// (2B+) BigFx — cinematic explosions (components/game/BigFx.ts)
+export const BIGFX_MAX = 6;                   // live big explosions
+export const BIGFX_SHAKE_MAX = 26;            // px, heavy shake budget (White Hole / boss death)

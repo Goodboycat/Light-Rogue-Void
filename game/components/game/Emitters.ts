@@ -80,7 +80,8 @@ export const VFX = {
     // WHITE HOLE EXPLOSION - Violent Expansion
     castWhiteHoleExplosion: (state: MutableGameState, x: number, y: number) => {
         // Massive burst of white/cyan energy
-        for(let i=0; i<300; i++) {
+        // (2B+) body of the blast is BigFx.castWhiteHoleBlast; this is just the streak spray (was 300)
+        for(let i=0; i<80; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = rnd(20, 50);
             createParticle(state, x, y, ParticleType.GLOW, Math.random() > 0.5 ? '#ffffff' : '#a5f3fc', {

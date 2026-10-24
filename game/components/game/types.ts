@@ -173,4 +173,8 @@ export interface MutableGameState {
     lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)
     /** set by Logic.ts every frame: boss scripts call this from telegraph onFire to hurt the player */
     damagePlayer?: (amt: number) => void;
+    // (2B+) BigFx — see components/game/BigFx.ts
+    bigFx?: import('./BigFx').BigExplosion[];
+    screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx
+    screenFlashColor?: string;
 }

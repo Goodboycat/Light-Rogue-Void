@@ -4,6 +4,8 @@ import { onEnemyHit } from '../Feel';
 import { PlayerStats } from '../../../types';
 import { VFX } from '../Emitters';
 import { spawnExplosion, createParticle } from '../Particles';
+import { castWhiteHoleBlast } from '../BigFx';
+import { swapRemoveProjectile } from '../Pools';
 
 export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStats, w: number, h: number, maturityScale: number) => {
     const p = state.player;
@@ -199,7 +201,14 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
                 const damage = 1000 + (stats.whiteHoleLevel * 100);
                 const radius = 6000 * maturityScale;
                 
+                // (2B+) cinematic detonation: noise fireball + 3 shockwaves + heavy shake + flash
+                castWhiteHoleBlast(state, p.x, p.y, 520 * maturityScale);
                 VFX.castWhiteHoleExplosion(state, p.x, p.y);
+                // (2B+) the blast also wipes every boss projectile in range — White Hole is the finisher / panic button
+                for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                    const pr = state.projectiles[i];
+                    if (pr.isEnemy && Math.hypot(pr.x - p.x, pr.y - p.y) < radius) swapRemoveProjectile(state.projectiles, i);
+                }
                 
                 state.enemies.forEach(e => {
                     const dx = e.x - p.x;

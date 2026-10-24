@@ -4,6 +4,7 @@ import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WA
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
 import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
+import { updateBigFx } from './BigFx';
 import { VOID_BURN_DPS, VOID_BURN_TICK_FRAMES } from './Constants';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
@@ -145,6 +146,7 @@ export const updateGame = (
     if (!isCinematic) {
         updateProjectiles(state, onDamage, playerStats); // Passed playerStats for MaxHP calculation on Ultimate
         updateTelegraphs(state); // (2B) boss warn shapes fire here
+        updateBigFx(state);      // (2B+) cinematic explosions age / flash decays
     }
 
     // (2B) ARENA: leaving the ring burns VOID_BURN_DPS of max HP per second, in ticks

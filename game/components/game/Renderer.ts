@@ -9,6 +9,7 @@ import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/Floa
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
 import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
+import { drawBigFx, drawScreenFlash } from './BigFx';
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -78,12 +79,16 @@ export const renderGame = (
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
 
+    // --- BIG EXPLOSIONS (2B+, world space, additive) ---
+    drawBigFx(ctx, state);
+
     // --- DAMAGE NUMBERS (4A, world space) ---
     drawFloaters(ctx, state);
 
     ctx.restore();
 
-    // --- HURT VIGNETTE / LOW HP (4A, screen space) ---
+    // --- SCREEN FLASH (2B+) / HURT VIGNETTE / LOW HP (4A, screen space) ---
+    drawScreenFlash(ctx, state, canvasWidth, canvasHeight);
     drawHurtOverlay(ctx, state, canvasWidth, canvasHeight);
     drawArenaVignette(ctx, arenaOutsideFactor(state), canvasWidth, canvasHeight);
     if (!state.activeBoss?.state?.custom?.cinematicMode) drawBossArrival(ctx, state, canvasWidth, canvasHeight);
