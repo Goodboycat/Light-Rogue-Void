@@ -26,4 +26,6 @@ Continue **LIGHT (Light Rogue Void)**, my passion project. You may not finish ev
 4. Also give me a download link of the whole `LIGHT` folder as `LIGHT.tar.gz` (exclude `node_modules`, `dist`, `out`).
 5. Push. Then report to me in chat: what you did, what you skipped and why, and the exact prompt for the next chat (update this file `prompts/NEXT_CHAT.md` if anything about the setup changed).
 
+`npm run typecheck` has one pre-existing error in `components/ErrorBoundary.tsx` — ignore it, `npm run build` is the gate.
+
 Do not ask me to confirm the plan. Do not ask me to choose. Report, don't ask.

@@ -28,14 +28,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 1A | Build pipeline: single-file itch build, `?demo=1`, removed Gemini env, 60 → chapters constants. |
 | 1B | Seeded deterministic skill tree (mulberry32), stable ids, 6 boss constellations, lock UI, save migration + refund, `docs/TREE.md`. |
 | 2A | Wave persistence: no wave wipe, kill-quota or timer, spawn director (crowd cap, grace, starve guard), carried ring, `?wave=`, `?debug=1`, `npm run sim`. |
+| 4A | Action feel: `Feel.ts` (hit-stop, shake, flash, settings `screenShake`/`reduceFlash`), damage floaters (pool 120, crit gold), kill streaks (10/25/50 banners, +1 % essence/10, cap 20 %), `Pools.ts` + `ParticleBatcher`/`GlowSprites` (swap-remove, caps 600/400/400), player hurt (i-frames + blink, red vignette, heartbeat < 25 % HP). |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 4A 2B 2C 2D 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
+Next: 2B 2C 2D 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 4A | Action feel + object pools (port fork HitFeedback/ObjectPools/GlowSprites/ParticleBatcher): hit-stop, shake, flash, damage numbers, streaks. |
 | 2B | Boss framework: port fork BossKit telegraphs; arena, phases, enrage, roaming adds, BossBar, death hint, arrival reveal. |
 | 2C | Bosses 1–3 reworked (Hive Mind, Void Warden, Crimson Eclipse). |
 | 2D | Bosses 4–6 reworked (Neutron, Entropy Titan, Darkness) + ending. |
