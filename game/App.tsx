@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import StarBackground from './components/StarBackground';
 import SurvivalGame from './components/SurvivalGame';
+import { MAX_WAVE } from './components/game/Constants';
 import Archives from './components/Archives';
 import MainMenu from './components/MainMenu';
 import AchievementList from './components/AchievementList';
