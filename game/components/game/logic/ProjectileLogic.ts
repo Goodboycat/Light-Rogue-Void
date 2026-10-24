@@ -4,6 +4,7 @@ import { PlayerStats } from '../../../types';
 import { updateProjectileMovement } from './projectiles/MovementLogic';
 import { updateProjectileVisuals } from './projectiles/VisualsLogic';
 import { checkProjectileCollisions } from './projectiles/CollisionLogic';
+import { swapRemoveProjectile } from '../Pools';
 
 export const updateProjectiles = (state: MutableGameState, onDamage: (amt: number) => void, playerStats?: PlayerStats) => {
     for (let i = state.projectiles.length - 1; i >= 0; i--) {
@@ -36,7 +37,7 @@ export const updateProjectiles = (state: MutableGameState, onDamage: (amt: numbe
 
         // 4. Lifecycle
         if (shouldDestroy || p.life <= 0) {
-            state.projectiles.splice(i, 1);
+            swapRemoveProjectile(state.projectiles, i); // (4A) O(1), recycled
         }
     }
 };

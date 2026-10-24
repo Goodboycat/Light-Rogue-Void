@@ -6,6 +6,7 @@ import { drawOrbitals } from './renderer/OrbitalRenderer';
 import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
+import { drawParticlesBatched } from './renderer/ParticleBatcher';
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -63,33 +64,10 @@ export const renderGame = (
     // --- PARTICLES (Additive Blending) ---
     ctx.shadowBlur = 0;
     ctx.globalCompositeOperation = 'lighter'; 
-    state.particles.forEach(p => {
-        // SAFETY CHECK: Prevent crashes from corrupt particles
-        if (!Number.isFinite(p.x) || !Number.isFinite(p.y) || !Number.isFinite(p.size) || p.size <= 0) return;
-
-        // SMOKE/TRAIL TRANSPARENCY FIX
-        const baseAlpha = p.type === ParticleType.SMOKE ? 0.2 : 1.0;
-        ctx.globalAlpha = (p.alpha ?? (p.life / p.maxLife)) * baseAlpha;
-        
-        ctx.fillStyle = p.color;
-        
-        if (p.type === ParticleType.THUNDER || p.type === ParticleType.SPARK) {
-             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
-        } else if (p.type === ParticleType.RING) {
-             ctx.strokeStyle = p.color;
-             ctx.lineWidth = 2;
-             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.stroke();
-        } else if (p.type === ParticleType.GLOW) {
-             const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-             grad.addColorStop(0, p.color);
-             grad.addColorStop(1, 'transparent');
-             ctx.fillStyle = grad;
-             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
-        } else {
-             ctx.beginPath();
-             ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-             ctx.fill();
-        }
+    // (4A) batched by colour/alpha into Path2D; GLOW uses cached sprites; culled to the viewport
+    drawParticlesBatched(ctx, state.particles, {
+        centerX: state.camera.x + canvasWidth / 2, centerY: state.camera.y + canvasHeight / 2,
+        halfW: canvasWidth / 2, halfH: canvasHeight / 2, margin: 64,
     });
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';

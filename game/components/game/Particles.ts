@@ -1,4 +1,5 @@
 import { MutableGameState, ParticleType } from './types';
+import { acquireParticle, swapRemoveParticle, particleBudgetFull } from './Pools';
 
 export const createParticle = (
     state: MutableGameState, 
@@ -23,13 +24,18 @@ export const createParticle = (
     const life = options.life ?? (30 + Math.random() * 20);
     const size = options.size ?? (Math.random() * 4 + 2);
 
-    state.particles.push({
-        x, y, vx, vy, life, maxLife: life, size, color, type,
-        friction: options.friction ?? 0.95,
-        gravity: options.gravity ?? 0,
-        shrink: options.shrink ?? 0.1,
-        alpha: options.alpha ?? 1
-    });
+    // (4A) pooled: reuse a recycled particle; at the cap, recycle the oldest slot instead of growing
+    const p = acquireParticle();
+    p.x = x; p.y = y; p.vx = vx; p.vy = vy;
+    p.life = life; p.maxLife = life; p.size = size; p.color = color; p.type = type;
+    p.friction = options.friction ?? 0.95;
+    p.gravity = options.gravity ?? 0;
+    p.shrink = options.shrink ?? 0.1;
+    p.alpha = options.alpha ?? 1;
+    if (particleBudgetFull(state)) {
+        swapRemoveParticle(state.particles, 0);
+    }
+    state.particles.push(p);
 };
 
 export const spawnExplosion = (state: MutableGameState, x: number, y: number, color: string, type: ParticleType) => {
@@ -72,7 +78,7 @@ export const updateParticles = (state: MutableGameState) => {
         }
 
         if (p.life <= 0 || p.size <= 0.1) {
-            state.particles.splice(i, 1);
+            swapRemoveParticle(state.particles, i); // (4A) O(1), recycled
         }
     }
 };

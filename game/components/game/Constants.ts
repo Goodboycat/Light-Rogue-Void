@@ -84,3 +84,8 @@ export const STREAK_BANNER_FRAMES = 110;
 export const PLAYER_IFRAMES = 18;          // 0.3 s
 export const HURT_VIGNETTE_FRAMES = 14;
 export const LOW_HP_PCT = 0.25;            // heartbeat tint below this
+
+// --- POOLS (4A) --- see components/game/Pools.ts; budgets from CONVENTIONS rule 9
+export const PARTICLE_CAP = 600;
+export const PROJECTILE_CAP = 400;
+export const DROP_POOL_CAP = 400;

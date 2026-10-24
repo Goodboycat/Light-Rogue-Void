@@ -3,6 +3,7 @@ import { spawnExplosion } from '../Particles';
 import { spawnEnemy } from './enemies/SpawnLogic';
 import { CARRIED_REWARD_MULT } from '../Constants';
 import { onKillForStreak, streakEssenceMult, hitStop, shake } from '../Feel';
+import { acquireDrop, swapRemoveEnemy } from '../Pools';
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -23,7 +24,7 @@ export const killEnemy = (
     // (4A) streak first so this kill's essence already benefits from the multiplier
     onKillForStreak(state, enemy);
     const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state));
-    state.drops.push({ x: enemy.x, y: enemy.y, value: reward });
+    state.drops.push(acquireDrop(enemy.x, enemy.y, reward));
     spawnExplosion(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.def.particleEffect);
 
     if (enemy.def.behavior === 'SPLIT' && cause !== 'script') {
@@ -44,5 +45,5 @@ export const killEnemy = (
     }
     state.totalKills++;
 
-    state.enemies.splice(idx, 1);
+    swapRemoveEnemy(state.enemies, idx); // (4A) O(1); callers iterate backwards so the swapped-in enemy is already processed
 };

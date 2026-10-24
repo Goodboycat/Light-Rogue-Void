@@ -1,5 +1,6 @@
 import { MutableGameState } from '../types';
 import { PlayerStats } from '../../../types';
+import { swapRemoveDrop } from '../Pools';
 
 export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturityScale: number, onCollect: (amount: number) => void) => {
     // Removed large base constant (was 100).
@@ -22,7 +23,7 @@ export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturit
             // Collected
             const amount = drop.value * stats.essenceMultiplier;
             onCollect(amount);
-            state.drops.splice(i, 1);
+            swapRemoveDrop(state.drops, i); // (4A) O(1), recycled
         }
     }
 };
