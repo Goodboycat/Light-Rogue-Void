@@ -1,5 +1,6 @@
 
 import { MutableGameState, ParticleType } from '../types';
+import { onEnemyHit } from '../Feel';
 import { PlayerStats } from '../../../types';
 import { createParticle, spawnExplosion } from '../Particles';
 import { WORLD_SIZE } from '../Constants';
@@ -143,6 +144,7 @@ export const updatePlayer = (
                     const dist = Math.hypot(e.x - state.player.x, e.y - state.player.y);
                     if (dist < radius + e.size) {
                         e.hp -= damage;
+                        onEnemyHit(state, e, damage);
                         VFX.spark(state, e.x, e.y, '#ffffff', 5);
                         if (!e.isBoss && e.def.behavior !== 'TANK') {
                             const angle = Math.atan2(e.y - state.player.y, e.x - state.player.x);

@@ -2,6 +2,7 @@ import { MutableGameState, Enemy, ParticleType } from '../types';
 import { spawnExplosion } from '../Particles';
 import { spawnEnemy } from './enemies/SpawnLogic';
 import { CARRIED_REWARD_MULT } from '../Constants';
+import { onKillForStreak, streakEssenceMult, hitStop, shake } from '../Feel';
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -19,7 +20,9 @@ export const killEnemy = (
     const enemy: Enemy | undefined = state.enemies[idx];
     if (!enemy) return;
 
-    const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1));
+    // (4A) streak first so this kill's essence already benefits from the multiplier
+    onKillForStreak(state, enemy);
+    const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state));
     state.drops.push({ x: enemy.x, y: enemy.y, value: reward });
     spawnExplosion(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.def.particleEffect);
 
@@ -36,6 +39,8 @@ export const killEnemy = (
         state.bossKilledWave = state.bossSpawnedWave;
     } else {
         state.waveKills++;
+        // (4A) big enemies feel heavy when they pop
+        if (enemy.def.size >= 24) { hitStop(state, 2); shake(state, 3, 3); }
     }
     state.totalKills++;
 

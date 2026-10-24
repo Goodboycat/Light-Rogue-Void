@@ -78,6 +78,8 @@ export interface Settings {
     musicVolume: number;
     sfxVolume: number;
     performanceMode: 'LOW' | 'MEDIUM' | 'HIGH';
+    screenShake?: boolean;  // (4A) default on
+    reduceFlash?: boolean;  // (4A) default off
 }
 
 export interface GameState {

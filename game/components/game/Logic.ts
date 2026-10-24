@@ -14,6 +14,7 @@ import { updateOrbitals } from './logic/OrbitalLogic';
 import { updateDrops } from './logic/DropLogic';
 import { updateCamera } from './logic/CameraLogic';
 import { WORLD_SIZE } from './Constants';
+import { consumeHitStop, updateFeel, updateShake } from './Feel';
 
 export const updateGame = (
     state: MutableGameState, 
@@ -47,6 +48,9 @@ export const updateGame = (
     if(p.titanShieldTimer === undefined) p.titanShieldTimer = 0;
     if(p.titanShieldDuration === undefined) p.titanShieldDuration = 0;
     if(p.stationaryTimer === undefined) p.stationaryTimer = 0;
+
+    // (4A) hit-stop: freeze the world for ≤ 4 frames; shake still decays so it reads as impact
+    if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
     
@@ -135,6 +139,7 @@ export const updateGame = (
     updateDrops(state, playerStats, maturityScale, onCollect);
     updateParticlesSystem(state);
     updateCamera(state, canvasWidth, canvasHeight);
+    updateFeel(state);
 
     if (state.player.dashTimer > 0 && state.frame % 2 === 0) {
         VFX.castDashTrail(state, state.player.x, state.player.y, '#ffffff');

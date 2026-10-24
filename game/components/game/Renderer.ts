@@ -5,6 +5,7 @@ import { drawEnemy } from './renderer/EnemyRenderer';
 import { drawOrbitals } from './renderer/OrbitalRenderer';
 import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
+import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -18,7 +19,8 @@ export const renderGame = (
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
     ctx.save();
-    ctx.translate(-state.camera.x, -state.camera.y);
+    // (4A) camera shake offset (rounded so sprites stay crisp)
+    ctx.translate(-Math.round(state.camera.x + (state.shakeX ?? 0)), -Math.round(state.camera.y + (state.shakeY ?? 0)));
 
     // --- WORLD BOUNDARIES ---
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -92,7 +94,14 @@ export const renderGame = (
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
 
+    // --- DAMAGE NUMBERS (4A, world space) ---
+    drawFloaters(ctx, state);
+
     ctx.restore();
+
+    // --- HURT VIGNETTE / LOW HP (4A, screen space) ---
+    drawHurtOverlay(ctx, state, canvasWidth, canvasHeight);
+    drawStreakBanner(ctx, state, canvasWidth, canvasHeight);
 
     // --- CURSOR ---
     ctx.fillStyle = '#fff';

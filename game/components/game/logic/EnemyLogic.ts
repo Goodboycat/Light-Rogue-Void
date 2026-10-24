@@ -1,5 +1,6 @@
 
 import { MutableGameState, ParticleType } from '../types';
+import { onEnemyHit } from '../Feel';
 import { PlayerStats } from '../../../types';
 import { createParticle, spawnExplosion } from '../Particles';
 import { VFX } from '../Emitters';
@@ -49,6 +50,7 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
         // --- 3. DAMAGE AURA ---
         if (dist < 100 * maturityScale && stats.damageAura > 0) {
             enemy.hp -= stats.damageAura;
+            onEnemyHit(state, enemy, stats.damageAura);
             if (state.frame % 20 === 0) 
                 createParticle(state, enemy.x, enemy.y, ParticleType.FIRE, '#ef4444', { speed: 1, size: 2 });
         }
@@ -61,6 +63,7 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
             // 10 Damage x Size Scale.
             const contactDamage = 10 * maturityScale;
             enemy.hp -= contactDamage;
+            onEnemyHit(state, enemy, contactDamage);
             
             // Visual feedback for player hitting enemy
             if (state.frame % 5 === 0) {
@@ -72,6 +75,7 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
                 if (state.player.isTitanShieldActive) {
                     // Shield is up: Damage Enemy, Push Enemy (if not boss)
                     enemy.hp -= 10; 
+                    onEnemyHit(state, enemy, 10);
                     VFX.spark(state, enemy.x, enemy.y, '#fbbf24', 5);
                     
                     if (!enemy.isBoss) {
@@ -81,7 +85,8 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
                     }
                 } else {
                     // Normal Collision (Player takes damage)
-                    onDamage(1); 
+                    // (4A) one call per contact: i-frames would swallow a second onDamage, so EXPLODE adds its 2 here
+                    onDamage(enemy.def.behavior === 'EXPLODE' ? 3 : 1); 
                     const angle = Math.atan2(dy, dx);
                     
                     // Bounce Player away
@@ -91,13 +96,13 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
                     if (enemy.def.behavior === 'EXPLODE') {
                         enemy.hp = 0; 
                         spawnExplosion(state, enemy.x, enemy.y, '#f87171', ParticleType.FIRE);
-                        onDamage(2); 
                     }
                 }
 
             } else {
                 // Dashing through enemy
                 enemy.hp -= 50; 
+                onEnemyHit(state, enemy, 50);
                 spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.NORMAL);
             }
         }

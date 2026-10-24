@@ -30,7 +30,9 @@ const INITIAL_STATE: GameState = {
         masterVolume: 0.8,
         musicVolume: 0.6,
         sfxVolume: 1.0,
-        performanceMode: 'MEDIUM'
+        performanceMode: 'MEDIUM',
+        screenShake: true,
+        reduceFlash: false
     }
 };
 
@@ -56,6 +58,8 @@ export const useGameSave = () => {
                 // Ensure defaults for new fields if migration didn't cover it or fresh save
                 if (settings.showTouchControls === undefined) settings.showTouchControls = true;
                 if (settings.mouseMovementEnabled === undefined) settings.mouseMovementEnabled = true;
+                if (settings.screenShake === undefined) settings.screenShake = true; // (4A)
+                if (settings.reduceFlash === undefined) settings.reduceFlash = false; // (4A)
 
                 // (1B) Tree migration: the seeded tree has stable ids; any id from the
                 // old random tree is dropped and refunded so the save never dangles.

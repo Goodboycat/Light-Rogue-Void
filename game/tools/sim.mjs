@@ -36,7 +36,7 @@ const state = { player: { x: 0, y: 0, vx: 0, vy: 0, size: 10, dashTimer: 0, dash
   titanShieldDuration: 0, isTitanShieldActive: false }, enemies: [], projectiles: [], particles: [], drops: [], camera: { x: 0, y: 0 },
   mouse: { x: 640, y: 360 }, frame: 0, worldSize: 3500, seenEnemyIds: [], maxWaveReached: startWave, bossSpawnedWave: 0, waveKills: 0, waveStartedFrame: 0, totalKills: 0 };
 
-let wave = startWave, time = M.waveTimerSec(wave), collected = 0, dmgTaken = 0, maxAliveSeen = 0, maxFrameMs = 0;
+let wave = startWave, time = M.waveTimerSec(wave), collected = 0, dmgTaken = 0, maxAliveSeen = 0, maxFrameMs = 0, sumFrameMs = 0, frames = 0;
 const advance = () => { wave++; state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; }); state.waveKills = 0; state.waveStartedFrame = state.frame; time = M.waveTimerSec(wave); console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s cap=${M.maxAlive(wave)}`); };
 console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s cap=${M.maxAlive(wave)}`);
 
@@ -46,7 +46,7 @@ for (let sec = 0; sec < seconds; sec++) {
     M.updateGame(state, stats, input, wave, time, v => { collected += v; }, d => { dmgTaken += d; }, () => {}, 1280, 720, 1, '#fff', false);
     // Stand-in for player shooting: `dmgMult` HP/frame to the nearest enemy (the real auto-shot needs canvas input).
     if (state.enemies.length && dmgMult > 0) { let n = null, bd = 1e9; for (const e of state.enemies) { const d = Math.hypot(e.x - state.player.x, e.y - state.player.y); if (d < bd) { bd = d; n = e; } } if (n && bd < 600) n.hp -= 2 * dmgMult; }
-    maxFrameMs = Math.max(maxFrameMs, performance.now() - t0);
+    const dt = performance.now() - t0; maxFrameMs = Math.max(maxFrameMs, dt); sumFrameMs += dt; frames++;
     // player heal-cheat so the sim doesn't "die": we only measure flow here
   }
   maxAliveSeen = Math.max(maxAliveSeen, state.enemies.length);
@@ -56,4 +56,4 @@ for (let sec = 0; sec < seconds; sec++) {
   if (state.bossKilledWave !== undefined) { state.bossKilledWave = undefined; advance(); }
   if (sec % 5 === 0 || state.activeBoss) console.log(`t+${String(sec).padStart(3)}s wave=${wave} left=${time}s kills=${state.waveKills} alive=${state.enemies.length} carried=${state.enemies.filter(e => e.carried).length} boss=${state.activeBoss ? state.activeBoss.def.id + ' ' + Math.round(state.activeBoss.hp) : '-'} proj=${state.projectiles.length} part=${state.particles.length}`);
 }
-console.log(`\nSUMMARY start=${startWave} end=${wave} totalKills=${state.totalKills} essence=${Math.round(collected)} dmgTaken=${dmgTaken} maxAlive=${maxAliveSeen} worstFrame=${maxFrameMs.toFixed(2)}ms`);
+console.log(`\nSUMMARY start=${startWave} end=${wave} totalKills=${state.totalKills} essence=${Math.round(collected)} dmgTaken=${dmgTaken} maxAlive=${maxAliveSeen} worstFrame=${maxFrameMs.toFixed(2)}ms avgFrame=${(sumFrameMs/frames).toFixed(3)}ms`);

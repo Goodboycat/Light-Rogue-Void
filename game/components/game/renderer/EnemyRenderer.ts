@@ -17,7 +17,13 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
     ctx.translate(enemy.x, enemy.y);
     
     // Hit Flash
-    if (enemy.projectileImmunity > 0) {
+    if ((enemy.flashTimer ?? 0) > 0) {
+        // (4A) hit flash: solid white silhouette for a few frames
+        enemy.flashTimer!--;
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 12;
+    } else if (enemy.projectileImmunity > 0) {
         ctx.globalCompositeOperation = 'overlay';
         ctx.fillStyle = '#fff';
     } else {

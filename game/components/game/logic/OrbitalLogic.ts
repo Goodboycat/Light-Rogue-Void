@@ -1,4 +1,5 @@
 import { MutableGameState } from '../types';
+import { onEnemyHit } from '../Feel';
 import { PlayerStats } from '../../../types';
 import { VFX } from '../Emitters';
 
@@ -26,6 +27,7 @@ export const updateOrbitals = (state: MutableGameState, stats: PlayerStats, matu
             if (Math.hypot(e.x - px, e.y - py) < e.size + 10) { 
                 if (state.frame % 10 === 0) { 
                     e.hp -= 2; 
+                    onEnemyHit(state, e, 2);
                     VFX.spark(state, e.x, e.y, '#fbbf24', 2);
                 }
             }

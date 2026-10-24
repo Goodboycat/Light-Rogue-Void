@@ -94,6 +94,7 @@ export interface Enemy extends Entity {
     opacity?: number; // Visual override
     isSlowImmune?: boolean; // Immunity to Ice Nova/Slows
     carried?: boolean; // (2A) survived a wave change → bonus essence + faint ring
+    flashTimer?: number; // (4A) white hit flash frames left
 }
 
 export interface Projectile extends Entity {
@@ -143,4 +144,20 @@ export interface MutableGameState {
     waveStartedFrame: number;   // state.frame when the current wave started
     totalKills: number;         // kills this run
     bossKilledWave?: number;    // set by killEnemy when a boss dies; SurvivalGame advances the wave
+    // (4A) action feel — all optional, see Feel.ts
+    hitStopFrames?: number;
+    lastHitStopFrame?: number;
+    shakeAmp?: number;
+    shakeHold?: number;
+    shakeX?: number;
+    shakeY?: number;
+    floaters?: import('./Feel').Floater[];
+    streak?: number;
+    streakLastFrame?: number;
+    bestStreak?: number;
+    streakBanner?: import('./Feel').StreakBanner;
+    playerIFrames?: number;
+    hurtVignette?: number;
+    /** 0..1 mirror of player HP ratio, written by SurvivalGame for the low-HP tint */
+    hpRatio?: number;
 }

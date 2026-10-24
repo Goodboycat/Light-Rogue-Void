@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye } from 'lucide-react';
 import { Settings } from '../types';
 
 interface SettingsMenuProps {
@@ -62,6 +62,20 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                                 icon={<MousePointer2 size={20} />}
                                 active={settings.mouseMovementEnabled}
                                 onToggle={() => update('mouseMovementEnabled', !settings.mouseMovementEnabled)}
+                            />
+
+                            <ToggleRow 
+                                label="Screen shake"
+                                icon={<Zap size={20} />}
+                                active={settings.screenShake !== false}
+                                onToggle={() => update('screenShake', settings.screenShake === false)}
+                            />
+
+                            <ToggleRow 
+                                label="Reduce flashing"
+                                icon={<Eye size={20} />}
+                                active={!!settings.reduceFlash}
+                                onToggle={() => update('reduceFlash', !settings.reduceFlash)}
                             />
                         </div>
                     </div>

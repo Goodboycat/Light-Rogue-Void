@@ -1,5 +1,6 @@
 
 import { MutableGameState, ParticleType } from '../types';
+import { onEnemyHit } from '../Feel';
 import { PlayerStats } from '../../../types';
 import { VFX } from '../Emitters';
 import { spawnExplosion, createParticle } from '../Particles';
@@ -91,6 +92,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
                     e.speed *= 0.2; 
                 }
                 e.hp -= damage;
+                onEnemyHit(state, e, damage);
                 VFX.spark(state, e.x, e.y, '#38bdf8', 5);
             }
         });
@@ -108,6 +110,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
             
         targets.forEach(({ e }) => {
             e.hp -= damage;
+            onEnemyHit(state, e, damage);
             VFX.castThunderChain(state, p.x, p.y, e.x, e.y);
         });
         if (targets.length > 0) p.thunderChainTimer = cooldown;
@@ -203,6 +206,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
                     const dy = e.y - p.y;
                     if (Math.hypot(dx, dy) < radius) {
                         e.hp -= damage;
+                        onEnemyHit(state, e, damage);
                         const dist = Math.hypot(dx, dy);
                         if (!e.isBoss) {
                             e.vx += (dx/dist) * 50;
@@ -263,6 +267,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
             
             if (dist < radius) {
                 e.hp -= damage;
+                onEnemyHit(state, e, damage);
                 // Force Push
                 const force = 30 + stats.repulsionFieldLevel * 5;
                 if (!e.isBoss && e.def.behavior !== 'TANK') {
@@ -292,6 +297,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
              if (nearest) {
                  const damage = 40 + stats.plasmaWhipLevel * 10;
                  nearest.hp -= damage;
+                 onEnemyHit(state, nearest, damage);
                  
                  // Spawn Whip Projectile for Rendering
                  state.projectiles.push({

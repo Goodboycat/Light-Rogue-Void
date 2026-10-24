@@ -1,5 +1,6 @@
 
 import { MutableGameState, Projectile, ParticleType } from '../../../types';
+import { onEnemyHit } from '../../../Feel';
 import { spawnExplosion, createParticle } from '../../../Particles';
 import { VFX } from '../../../Emitters';
 
@@ -24,6 +25,7 @@ export const checkPlayerCollisions = (
                  // We rely on high velocity to pass through quickly.
                  if (state.frame % 5 === 0) { // Simple debounce
                     e.hp -= p.damage;
+                    onEnemyHit(state, e, p.damage);
                     VFX.spark(state, e.x, e.y, '#fef08a', 3);
                     hasHit = true;
                  }
@@ -39,6 +41,7 @@ export const checkPlayerCollisions = (
                 if (Math.hypot(e.x - p.x, e.y - p.y) < p.size + e.size + 30) {
                     if (state.frame % 10 === 0) {
                         e.hp -= p.damage;
+                        onEnemyHit(state, e, p.damage);
                         VFX.spark(state, e.x, e.y, '#fbbf24', 2);
                     }
                 }
@@ -50,6 +53,7 @@ export const checkPlayerCollisions = (
         state.enemies.forEach(e => {
                 if (Math.hypot(e.x - p.x, e.y - p.y) < p.size + e.size) {
                     e.hp -= p.damage; 
+                    onEnemyHit(state, e, p.damage);
                     VFX.spark(state, e.x, e.y, '#fff', 2);
                 }
         });
@@ -75,6 +79,7 @@ export const checkPlayerCollisions = (
                 state.enemies.forEach(e => {
                     if (Math.hypot(e.x - p.x, e.y - p.y) < 150) {
                         e.hp -= p.damage;
+                        onEnemyHit(state, e, p.damage);
                     }
                 });
                 return true;
@@ -84,6 +89,7 @@ export const checkPlayerCollisions = (
                 state.enemies.forEach(e => {
                     if (Math.hypot(e.x - p.x, e.y - p.y) < 20) {
                         e.hp -= 1; 
+                        onEnemyHit(state, e, 1);
                     }
                 });
                 return false; 
@@ -97,6 +103,7 @@ export const checkPlayerCollisions = (
                 if (Math.hypot(e.x - p.x, e.y - p.y) < p.size + e.size) {
                     if (state.frame % 10 === 0) { 
                     e.hp -= p.damage;
+                    onEnemyHit(state, e, p.damage);
                     VFX.spark(state, e.x, e.y, p.color, 2);
                     }
                 }
@@ -105,6 +112,7 @@ export const checkPlayerCollisions = (
         for(const enemy of state.enemies) {
             if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < enemy.size + p.size) {
                 enemy.hp -= p.damage;
+                onEnemyHit(state, enemy, p.damage);
                 hitCount++;
                 VFX.spark(state, p.x, p.y, p.color, 5);
                 
@@ -114,6 +122,7 @@ export const checkPlayerCollisions = (
                         state.enemies.forEach(near => {
                             if (Math.hypot(near.x - p.x, near.y - p.y) < 100) {
                                 near.hp -= p.damage * 0.5;
+                                onEnemyHit(state, near, p.damage * 0.5);
                             }
                         });
                 }

@@ -64,3 +64,23 @@ export const BOSS_ADD_CAP = 20;
 export const CARRIED_REWARD_MULT = 1.1;
 /** If nothing is alive and quota is unmet, force a spawn this often (frames). */
 export const STARVE_SPAWN_FRAMES = 20;
+
+// --- ACTION FEEL (4A) --- see components/game/Feel.ts
+export const HIT_STOP_MAX_FRAMES = 4;      // longest freeze
+export const HIT_STOP_MIN_INTERVAL = 10;   // frames between freezes
+export const SHAKE_MAX_AMP = 12;           // px budget
+export const SHAKE_DECAY = 0.82;           // per frame after hold
+export const ENEMY_FLASH_FRAMES = 4;
+export const FLOATER_POOL_SIZE = 120;
+export const FLOATER_LIFE = 34;            // frames
+export const FLOATER_GROUP_FRAMES = 6;     // hits on the same enemy within this window merge
+export const FLOATER_MIN_PCT = 0.03;       // skip chip damage below 3 % max HP (unless ≥ 5 dmg)
+export const FLOATER_CRIT_PCT = 0.25;      // ≥ 25 % max HP in one number = gold crit
+export const STREAK_WINDOW_FRAMES = 90;    // 1.5 s between kills keeps the streak
+export const STREAK_TIERS = [10, 25, 50];
+export const STREAK_ESSENCE_PER_10 = 0.01; // +1 % essence per 10 streak
+export const STREAK_ESSENCE_CAP = 0.20;    // cap +20 %
+export const STREAK_BANNER_FRAMES = 110;
+export const PLAYER_IFRAMES = 18;          // 0.3 s
+export const HURT_VIGNETTE_FRAMES = 14;
+export const LOW_HP_PCT = 0.25;            // heartbeat tint below this

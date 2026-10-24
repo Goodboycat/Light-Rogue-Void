@@ -6,6 +6,7 @@ import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
 import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG } from './game/Constants';
 import { renderGame } from './game/Renderer';
+import { onPlayerHurt, setFeelSettings } from './game/Feel';
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
 import WinGame from './WinGame';
@@ -278,6 +279,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
 
   const handleDamage = (amount: number) => {
+      // (4A) 0.3 s i-frames after any hit; also pulses the vignette + shake
+      if (!onPlayerHurt(gameStateRef.current)) return;
       let remainingDamage = amount;
       const shield = gameRefs.current.currentShield;
       
@@ -354,6 +357,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
         if (!refs.paused && !refs.gameOver && !refs.gameWon) {
             const state = gameStateRef.current;
             const wasBossActive = !!state.activeBoss;
+            // (4A) feel toggles + HP mirror for the low-HP tint
+            setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
+            state.hpRatio = refs.playerStats.maxHealth > 0 ? refs.currentHealth / refs.playerStats.maxHealth : 1;
             const bossId = state.activeBoss?.def.id;
             
             updateGame(state, refs.playerStats, input, refs.wave, refs.timeRemaining, 
