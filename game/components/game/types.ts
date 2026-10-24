@@ -43,6 +43,8 @@ export interface EnemyDef {
     minWave: number;
     essenceReward: number;
     particleEffect: ParticleType;
+    /** (2B) boss only: enemy ids a roaming add pack is drawn from; undefined → wave-appropriate pool */
+    addTable?: string[];
 }
 
 export interface Entity {
@@ -160,4 +162,13 @@ export interface MutableGameState {
     hurtVignette?: number;
     /** 0..1 mirror of player HP ratio, written by SurvivalGame for the low-HP tint */
     hpRatio?: number;
+    // (2B) boss kit — see logic/enemies/BossKit.ts
+    telegraphs?: import('./logic/enemies/BossKit').Telegraph[];
+    telegraphFlashes?: import('./logic/enemies/BossKit').TelegraphFlash[];
+    arena?: { x: number; y: number; r: number; pulse: number; color: string };
+    bossStartFrame?: number;      // state.frame when the boss became active (enrage timer)
+    bossEnraged?: boolean;
+    bossAddTimer?: number;        // frames until the next roaming pack
+    bossArrival?: { name: string; color: string; frames: number; max: number };
+    lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)
 }

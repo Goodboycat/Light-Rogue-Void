@@ -89,3 +89,24 @@ export const LOW_HP_PCT = 0.25;            // heartbeat tint below this
 export const PARTICLE_CAP = 600;
 export const PROJECTILE_CAP = 400;
 export const DROP_POOL_CAP = 400;
+
+// --- BOSS KIT (2B) --- see components/game/logic/enemies/BossKit.ts, docs/BOSSES.md
+export const TELEGRAPH_POOL_SIZE = 24;
+export const TELEGRAPH_FLASH_FRAMES = 8;      // white flash after a telegraph fires
+export const TELEGRAPH_ALPHA_MIN = 0.15;      // fill alpha at warn start
+export const TELEGRAPH_ALPHA_MAX = 0.45;      // fill alpha right before firing
+export const BOSS_PHASE_THRESHOLDS = [0.66, 0.33]; // HP fractions where phase 2 / 3 start
+export const BOSS_PHASE_SHIFT_FRAMES = 72;    // 1.2 s invulnerable + arena pulse
+export const BOSS_ENRAGE_SEC = 150;           // boss alive this long → enrage
+export const BOSS_ENRAGE_DMG_MULT = 2;
+export const BOSS_ENRAGE_WARN_MULT = 0.7;     // telegraph warn frames × this when enraged
+export const BOSS_PROJ_CAP = 48;              // live boss projectiles (hard cap, skipped not queued)
+export const BOSS_PROJ_LIFE = 360;
+export const ARENA_RADIUS = 900;
+export const VOID_BURN_DPS = 0.04;            // fraction of max HP per second outside the arena
+export const VOID_BURN_TICK_FRAMES = 30;      // damage is applied in ticks (i-frames would eat per-frame dmg)
+export const BOSS_ADD_INTERVAL_SEC = 12;
+export const BOSS_ADD_PACK_MIN = 3;
+export const BOSS_ADD_PACK_MAX = 5;
+export const BOSS_ADD_WARN_FRAMES = 60;       // telegraph circle before a pack lands
+export const BOSS_ARRIVAL_FRAMES = 120;       // 2 s "NOW ARRIVING" reveal

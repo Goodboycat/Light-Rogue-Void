@@ -3,6 +3,7 @@ import { MutableGameState, Enemy, ParticleType } from './types';
 import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, BOSS_ADD_CAP, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
+import { updateTelegraphs } from './logic/enemies/BossKit';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
 import { updatePlayer } from './logic/PlayerLogic';
@@ -134,6 +135,7 @@ export const updateGame = (
     // Freeze projectiles during cinematic
     if (!isCinematic) {
         updateProjectiles(state, onDamage, playerStats); // Passed playerStats for MaxHP calculation on Ultimate
+        updateTelegraphs(state); // (2B) boss warn shapes fire here
     }
 
     updateDrops(state, playerStats, maturityScale, onCollect);
