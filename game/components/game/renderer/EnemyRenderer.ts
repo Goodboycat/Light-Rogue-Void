@@ -29,6 +29,19 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
 
     const size = enemy.def.size;
 
+    // (2A) Carried-over survivor: faint ring so persistence is visible.
+    if (enemy.carried && !enemy.isBoss) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 0.35 + 0.15 * Math.sin(frame * 0.1);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, size + 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
     switch (enemy.def.visualType) {
         case 'HIVE':
             // Base Core (Pulsating)

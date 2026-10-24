@@ -4,7 +4,7 @@ import { PlayerStats, Settings } from '../types';
 import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec } from './game/Constants';
 import { renderGame } from './game/Renderer';
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
@@ -113,7 +113,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(30);
+  const [timeRemaining, setTimeRemaining] = useState(waveTimerSec(initialWave));
+  const [waveKills, setWaveKills] = useState(0); // (2A) mirrored from state for the HUD
   const [sessionMatter, setSessionMatter] = useState(0);
   const [currentPhrase, setCurrentPhrase] = useState(LIGHT_PHRASES[Math.min(initialWave - 1, LIGHT_PHRASES.length - 1)]);
   const [darknessPhrase, setDarknessPhrase] = useState(VOID_PHRASES[0]);
@@ -180,6 +181,35 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       };
   }, [playerStats, wave, timeRemaining, paused, gameOver, gameWon, maturity.scale, maturity.color, onEnemySeen, onUpdateMaxWave, maxWaveReached, activeCinematic, onBossDefeated, currentShield, currentHealth, settings, onTransition]);
 
+  // (2A) Single place where a wave ends. Enemies are NEVER wiped here:
+  // survivors get `carried = true` (+10 % essence, faint ring) and stay.
+  // Returns false when the run is won instead.
+  const advanceWave = (): boolean => {
+      const refs = gameRefs.current;
+      const state = gameStateRef.current;
+      const nextWave = refs.wave + 1;
+
+      if ((IS_DEMO && nextWave > DEMO_MAX_WAVE) || nextWave > MAX_WAVE) {
+          setGameWon(true);
+          setTimeRemaining(0);
+          return false;
+      }
+
+      setWave(nextWave);
+      refs.wave = nextWave; // keep the loop in sync before React re-renders
+      if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
+      setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
+
+      state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; });
+      state.waveKills = 0;
+      state.waveStartedFrame = state.frame;
+      setWaveKills(0);
+      setTimeRemaining(waveTimerSec(nextWave));
+      return true;
+  };
+  const advanceWaveRef = useRef(advanceWave);
+  advanceWaveRef.current = advanceWave;
+
   // Handle Cinematic Logic
   const handleCinematicComplete = () => {
       onTransition(() => {
@@ -191,9 +221,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           }
           
           const state = gameStateRef.current;
-          if (!state.activeBoss && !gameOver && !gameWon && cinematic !== INTRO_SCRIPT) {
-              // This ensures the wave progresses only after the boss monologue is done
-              setTimeRemaining(1);
+          if (!state.activeBoss && !gameOver && !gameWon && cinematic !== INTRO_SCRIPT && state.bossKilledWave !== undefined) {
+              // Boss outro finished → the boss wave is complete now.
+              state.bossKilledWave = undefined;
+              advanceWaveRef.current();
           }
       });
   };
@@ -333,6 +364,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 refs.settings.mouseMovementEnabled
             );
 
+            // (2A) mirror the kill counter for the HUD
+            if (state.frame % 10 === 0) setWaveKills(state.waveKills);
+
             // Boss Shout Update
             if (state.activeBoss?.state?.custom?.shout) {
                 setDarknessPhrase(state.activeBoss.state.custom.shout);
@@ -352,8 +386,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     // Darkness has no outro text, but triggers WIN immediately
                     setGameWon(true);
                 } else {
-                    // Fallback if no script (move to next wave)
-                    setTimeRemaining(1);
+                    // No outro script: boss death completes the wave immediately (2A)
+                    state.bossKilledWave = undefined;
+                    advanceWaveRef.current();
                 }
             }
             
@@ -409,42 +444,18 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             }
 
             const state = gameStateRef.current;
-            if (state.activeBoss) return;
+            if (state.activeBoss) return;               // boss waves end on boss death
+            if (state.bossKilledWave !== undefined) return; // waiting for the outro
 
+            // (2A) advance on kill quota OR timer; never wipe enemies.
+            if (state.waveKills >= waveKillQuota(refs.wave)) {
+                advanceWaveRef.current();
+                return;
+            }
             setTimeRemaining(p => {
                 if (p <= 1) {
-                     if (state.activeBoss) return p;
-
-                     const nextWave = refs.wave + 1;
-                     
-                     if (IS_DEMO && nextWave > DEMO_MAX_WAVE) {
-                         setGameWon(true);
-                         return 0;
-                     }
-                     
-                     // Cap at MAX_WAVE (Constants.ts)
-                     if (nextWave > MAX_WAVE) {
-                         setGameWon(true);
-                         return 0;
-                     }
-
-                     setWave(nextWave);
-                     
-                     if (nextWave > refs.maxWaveReached) {
-                         refs.onUpdateMaxWave(nextWave);
-                     }
-
-                     const nextIndex = Math.min(nextWave, LIGHT_PHRASES.length - 1);
-                     setCurrentPhrase(LIGHT_PHRASES[nextIndex]);
-
-                     state.enemies.forEach(e => {
-                         state.drops.push({ x: e.x, y: e.y, value: e.def.essenceReward });
-                         spawnExplosion(state, e.x, e.y, e.def.color, e.def.particleEffect || ParticleType.NORMAL);
-                     });
-                     state.enemies = [];
-                     state.projectiles = []; 
-                     
-                     return 30; 
+                    advanceWaveRef.current();
+                    return p; // advanceWave already set the new timer
                 }
                 return p - 1;
             });
@@ -482,6 +493,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             currentShield={currentShield}
             timeRemaining={timeRemaining}
             wave={wave}
+            waveKills={waveKills}
+            waveQuota={waveKillQuota(wave)}
             currentPhrase={currentPhrase}
             darknessPhrase={darknessPhrase}
             maturity={maturity}

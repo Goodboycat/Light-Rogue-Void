@@ -1,6 +1,6 @@
 
 import { MutableGameState, Enemy, ParticleType } from './types';
-import { isBossWave as isBossWaveFn } from './Constants';
+import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, BOSS_ADD_CAP, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
@@ -79,13 +79,36 @@ export const updateGame = (
         VFX.castBossSpawn(state, 0, -600, bossDef.glowColor);
         onEnemySeen(bossDef.id);
     }
-    const spawnRate = Math.max(8, 60 - wave * 3);
-    
     // Cinematic check
     const isCinematic = state.activeBoss?.state?.custom?.cinematicMode;
 
-    if (!state.activeBoss && state.frame % spawnRate === 0 && timeRemaining > 1) {
-        spawnEnemy(state, wave, onEnemySeen);
+    // --- SPAWN DIRECTOR (2A) ---
+    // Enemies persist across waves, so spawning is budgeted instead of wiped:
+    //  * crowd cap `maxAlive(wave)` (non-boss),
+    //  * 3 s grace after a wave starts, then the rate ramps up over 10 s,
+    //  * bosses keep a small roaming crowd (BOSS_ADD_CAP) — 2B refines it,
+    //  * anti-starvation: nothing alive + quota unmet → force a spawn.
+    if (!isCinematic) {
+        const aliveNonBoss = state.enemies.length - (state.activeBoss ? 1 : 0);
+        const sinceWave = (state.frame - state.waveStartedFrame) / 60; // seconds
+        const baseRate = Math.max(8, 60 - wave * 3);
+        let shouldSpawn = false;
+
+        if (state.activeBoss) {
+            // Keep a light crowd roaming during the boss (slow trickle).
+            if (aliveNonBoss < BOSS_ADD_CAP && state.frame % (baseRate * 3) === 0) shouldSpawn = true;
+        } else if (sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
+            const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
+            const rate = Math.round(baseRate / Math.max(0.15, ramp));
+            if (state.frame % rate === 0) shouldSpawn = true;
+        }
+
+        if (!state.activeBoss && aliveNonBoss === 0 && state.waveKills < waveKillQuota(wave)
+            && state.frame % STARVE_SPAWN_FRAMES === 0) {
+            shouldSpawn = true;
+        }
+
+        if (shouldSpawn) spawnEnemy(state, wave, onEnemySeen);
     }
 
     // UPDATE ENTITIES (Pass Cinematic Flag implicitly via state or logic check)

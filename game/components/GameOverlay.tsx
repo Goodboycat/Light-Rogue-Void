@@ -9,6 +9,8 @@ interface GameOverlayProps {
     currentShield: number;
     timeRemaining: number;
     wave: number;
+    waveKills?: number;
+    waveQuota?: number;
     currentPhrase: string;
     darknessPhrase?: string;
     maturity: {
@@ -24,6 +26,8 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
     currentShield,
     timeRemaining,
     wave,
+    waveKills = 0,
+    waveQuota = 0,
     currentPhrase,
     darknessPhrase,
     maturity
@@ -71,6 +75,9 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
             <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
                 <div className="text-4xl font-bold font-tech text-white tabular-nums drop-shadow-lg">{Math.ceil(timeRemaining)}</div>
                 <div className="text-[10px] tracking-[0.4em] text-purple-500 font-tech">WAVE {wave}</div>
+                <div id="wave-kills" className="text-[10px] tracking-[0.2em] text-white/50 font-tech tabular-nums">
+                    {Math.min(waveKills, waveQuota)}/{waveQuota} <span className="text-white/25">KILLS</span>
+                </div>
             </div>
 
             {/* Bottom Center: Phrases */}

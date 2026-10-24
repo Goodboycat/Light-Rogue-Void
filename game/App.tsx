@@ -29,7 +29,12 @@ const App: React.FC = () => {
   }, [migrationToast]);
 
   const [gameKey, setGameKey] = useState(0);
-  const [startWave, setStartWave] = useState(1);
+  // (2A) `?wave=N` is a dev/debug start wave for balance checks (1..MAX_WAVE).
+  const [startWave, setStartWave] = useState(() => {
+    if (typeof location === 'undefined') return 1;
+    const w = parseInt(new URLSearchParams(location.search).get('wave') || '1', 10);
+    return Number.isFinite(w) && w >= 1 ? Math.min(w, MAX_WAVE) : 1;
+  });
   const [showArchives, setShowArchives] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
