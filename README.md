@@ -27,20 +27,21 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 0B | Reset to the original, analysed the "fixed" fork, wrote PLAN/GDD/CONVENTIONS, 24 prompt files, `tools/github.sh`, `tools/next.sh`, `tools/itch.sh`. |
 | 1A | Build pipeline: single-file itch build, `?demo=1`, removed Gemini env, 60 → chapters constants. |
 | 1B | Seeded deterministic skill tree (mulberry32), stable ids, 6 boss constellations, lock UI, save migration + refund, `docs/TREE.md`. |
+| 2A | Wave persistence: no wave wipe, kill-quota or timer, spawn director (crowd cap, grace, starve guard), carried ring, `?wave=`, `?debug=1`, `npm run sim`. |
+| 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 2A 2B 2C 2D 3A 3B 4A 4B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
+Next: 4A 2B 2C 2D 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 2A | Wave persistence: enemies survive wave changes; kill-quota + timer hybrid. |
-| 2B | Boss framework: arena, telegraphs, phases, enrage, roaming adds during bosses. |
+| 4A | Action feel + object pools (port fork HitFeedback/ObjectPools/GlowSprites/ParticleBatcher): hit-stop, shake, flash, damage numbers, streaks. |
+| 2B | Boss framework: port fork BossKit telegraphs; arena, phases, enrage, roaming adds, BossBar, death hint, arrival reveal. |
 | 2C | Bosses 1–3 reworked (Hive Mind, Void Warden, Crimson Eclipse). |
 | 2D | Bosses 4–6 reworked (Neutron, Entropy Titan, Darkness) + ending. |
-| 3A | Discovery: landmarks, relics, shrines, hidden events on the 3500 map (no power picks). |
-| 3B | Story: 6 chapters, Light/Darkness/Watcher lines, bestiary lore, boss intros/outros. |
-| 4A | Action feel: hit-stop, shake, flash, damage numbers, object pools. |
-| 4B | Enemy variety: elite affixes, special waves (Elite Rush, Gauntlet, Curse, Aegis). |
+| 4B | Enemy variety: elite affixes, special waves at x5 (port fork waveFlavors), pack director, extra fork enemies. |
+| 3A | Discovery: landmarks, relics, shrines, fog minimap, found events (port fork events director) on the 3500 map (no picks). |
+| 3B | Story: 6 chapters, Light/Darkness/Watcher lines, bestiary lore, boss intros/outros, chapter time-skip, Light Burst (tree unlock). |
 | 5A | Procedural art pass + `?gallery=1` sheet that draws every entity side by side. |
 | 5B | Art extraction: screenshot the gallery → PNG sprites + atlas; optional sprite renderer. |
 | 6A | Audio manager + Ludo.ai prompt list (`docs/AUDIO_LUDO.md`), synth placeholders. |
@@ -52,6 +53,8 @@ Next: 2A 2B 2C 2D 3A 3B 4A 4B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
 | 9A | Endless mode + daily seed. |
 | 9B | Jam package: itch page copy, screenshots, trailer shot list, final README. |
 | 10 | Capacitor APK. No prompt file — not a sandbox chat. |
+
+Branches: `main` = LIGHT, `original-complete` = the boring-but-complete original, `fixed-fork` = the rejected AI roguelike (read with `bash LIGHT/game/tools/fork.sh <path>`). Next chat: read `prompts/NEXT_CHAT.md`.
 
 Unscheduled (prompt exists, not in the Next line): **0C** Foundation QA, **4C** Accessibility. Add them to the `Next:` line to run them.
 

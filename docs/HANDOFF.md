@@ -2,6 +2,16 @@
 
 Updated by every chat at the end. Newest first.
 
+## 0F (this chat) — repo re-check, fork audit landed, plan v2, no gameplay code
+State of the repo when I started: local `main` had 2A fully committed (`181cd01`) and pushed, but README still listed 2A as "Next" and six files (FORK_AUDIT, PLAN v2, prompts 2B/3A/3B/4A/4B/5A/5B, fork.sh) were sitting **uncommitted** in the tar. GitHub already had the three branches.
+- Committed + pushed the orphaned work (`f8b88a9`), added fork pointers to prompts 2C/2D/6B/8A, README Done/Next tables now match reality, `prompts/NEXT_CHAT.md` is the prompt to paste into the next chat.
+- Branches on GitHub: `main` (LIGHT, this), `original-complete` (2f2fa15, the boring complete original), `fixed-fork` (c8feb6d, the AI roguelike with blobs stripped). Nothing is merged from the fork yet.
+- Build: `npm run build` green, 1.41 MB / 326 kB gzip. `npm run typecheck` green.
+- **Next chat runs 4A** (`bash LIGHT/game/tools/next.sh`). Order after it: 2B 2C 2D 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10. Reason for 4A first: pools + hit feedback are the base every spawner (bosses, packs, events) builds on.
+- Known gaps for 4A to be aware of: 2A's `KillLogic.ts` is the single death path — hook floaters/streaks there. `?debug=1` exposes state on `window` (see `App.tsx`). `tools/sim.mjs` is a small headless sim (8B grows it).
+- Nothing half-done. No known bugs introduced (no game code touched).
+
+
 ## Chat 1B → 2A housekeeping (this chat, part 1)
 - 1B was fully committed (`a4b5c5d`) but the previous chat never updated README / PLAN / HANDOFF. Done now.
 - Fixed all path hints to the real layout: repo root `LIGHT/`, app in `LIGHT/game/`, tools `LIGHT/game/tools/*.sh`, itch output `LIGHT/out/`.
