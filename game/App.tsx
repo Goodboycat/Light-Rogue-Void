@@ -85,6 +85,9 @@ const App: React.FC = () => {
 
   // --- GAMEPLAY HANDLERS ---
   const handleStartGame = (wave: number) => {
+      // (2A) `?wave=N` debug override wins over the menu slider.
+      const debugWave = typeof location !== 'undefined' ? parseInt(new URLSearchParams(location.search).get('wave') || '', 10) : NaN;
+      if (Number.isFinite(debugWave) && debugWave >= 1) wave = Math.min(debugWave, MAX_WAVE);
       performTransition(() => {
           setStartWave(wave);
           setGameState(p => ({ ...p, isGameRunning: true, isMenuOpen: false }));

@@ -4,7 +4,7 @@ import { PlayerStats, Settings } from '../types';
 import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG } from './game/Constants';
 import { renderGame } from './game/Renderer';
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
@@ -364,8 +364,11 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 refs.settings.mouseMovementEnabled
             );
 
-            // (2A) mirror the kill counter for the HUD
-            if (state.frame % 10 === 0) setWaveKills(state.waveKills);
+            // (2A) mirror the kill counter for the HUD; expose state for `?debug=1` smoke tests
+            if (state.frame % 10 === 0) {
+                setWaveKills(state.waveKills);
+                if (DEBUG) (window as any).__LIGHT = { state, wave: refs.wave, time: refs.timeRemaining };
+            }
 
             // Boss Shout Update
             if (state.activeBoss?.state?.custom?.shout) {

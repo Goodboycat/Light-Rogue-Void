@@ -1,6 +1,6 @@
 
 import { MutableGameState, Enemy } from '../../types';
-import { PlayerStats } from '../../../types';
+import { PlayerStats } from '../../../../types';
 import { WORLD_SIZE } from '../../Constants';
 
 export const updateEnemyPhysics = (

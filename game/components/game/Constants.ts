@@ -9,6 +9,10 @@ export const IS_DEMO: boolean =
 
 export const DEMO_MAX_WAVE = 20;
 
+/** `?debug=1` exposes `window.__LIGHT = { state, wave, time }` for smoke tests. */
+export const DEBUG: boolean =
+  typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+
 // --- RUN STRUCTURE (1A) ---
 // All wave / chapter numbers live here. No magic 60s or `% 10` elsewhere.
 export const MAX_WAVE = 60;
