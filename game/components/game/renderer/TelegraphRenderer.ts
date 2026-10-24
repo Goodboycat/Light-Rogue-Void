@@ -90,3 +90,54 @@ export const drawTelegraphs = (ctx: CanvasRenderingContext2D, state: MutableGame
     }
     ctx.restore();
 };
+
+// ---------------------------------------------------------------- arena (2B)
+/** World-space ring. Pulse (0..1) widens + brightens it on phase shift / enrage. */
+export const drawArena = (ctx: CanvasRenderingContext2D, state: MutableGameState) => {
+    const a = state.arena;
+    if (!a) return;
+    ctx.save();
+    ctx.shadowBlur = 0;
+    const pulse = a.pulse;
+    // outside = dark void tint (a huge ring beyond the arena)
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.r + 4000, 0, Math.PI * 2);
+    ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2, true);
+    ctx.fillStyle = 'rgba(10, 0, 25, 0.45)';
+    ctx.fill('evenodd');
+    // ring
+    const breathe = 1 + Math.sin(state.frame * 0.05) * 0.08;
+    ctx.globalAlpha = 0.55 + pulse * 0.45;
+    ctx.lineWidth = 4 * breathe + pulse * 10;
+    ctx.strokeStyle = a.color;
+    ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 0.25 + pulse * 0.4;
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(a.x, a.y, a.r - 10 - pulse * 30, 0, Math.PI * 2); ctx.stroke();
+    // rotating ticks
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = a.color;
+    const rot = state.frame * 0.004;
+    ctx.beginPath();
+    for (let i = 0; i < 24; i++) {
+        const ang = rot + (i / 24) * Math.PI * 2;
+        ctx.moveTo(a.x + Math.cos(ang) * (a.r + 6), a.y + Math.sin(ang) * (a.r + 6));
+        ctx.lineTo(a.x + Math.cos(ang) * (a.r + 18), a.y + Math.sin(ang) * (a.r + 18));
+    }
+    ctx.stroke();
+    ctx.restore();
+};
+
+/** Screen-space purple edge vignette while the player is outside the arena. */
+export const drawArenaVignette = (ctx: CanvasRenderingContext2D, outside: number, w: number, h: number) => {
+    if (outside <= 0) return;
+    ctx.save();
+    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.25, w / 2, h / 2, Math.max(w, h) * 0.75);
+    g.addColorStop(0, 'rgba(90, 0, 160, 0)');
+    g.addColorStop(1, `rgba(90, 0, 160, ${0.75 * outside})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+};

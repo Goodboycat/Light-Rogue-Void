@@ -4,6 +4,7 @@ import { spawnEnemy } from './enemies/SpawnLogic';
 import { CARRIED_REWARD_MULT } from '../Constants';
 import { onKillForStreak, streakEssenceMult, hitStop, shake } from '../Feel';
 import { acquireDrop, swapRemoveEnemy } from '../Pools';
+import { closeArena } from './enemies/BossKit';
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -38,6 +39,7 @@ export const killEnemy = (
         spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
         state.activeBoss = undefined;
         state.bossKilledWave = state.bossSpawnedWave;
+        closeArena(state); // (2B) ring, telegraphs, boss bullets, enrage all go with the boss
     } else {
         state.waveKills++;
         // (4A) big enemies feel heavy when they pop

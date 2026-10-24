@@ -7,7 +7,8 @@ import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
-import { drawTelegraphs } from './renderer/TelegraphRenderer';
+import { drawTelegraphs, drawArena, drawArenaVignette } from './renderer/TelegraphRenderer';
+import { arenaOutsideFactor } from './logic/enemies/BossKit';
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -41,7 +42,8 @@ export const renderGame = (
     });
     ctx.shadowBlur = 0;
 
-    // --- BOSS TELEGRAPHS (2B, under enemies) ---
+    // --- BOSS ARENA + TELEGRAPHS (2B, under enemies) ---
+    drawArena(ctx, state);
     drawTelegraphs(ctx, state);
 
     // --- ENEMIES ---
@@ -83,6 +85,7 @@ export const renderGame = (
 
     // --- HURT VIGNETTE / LOW HP (4A, screen space) ---
     drawHurtOverlay(ctx, state, canvasWidth, canvasHeight);
+    drawArenaVignette(ctx, arenaOutsideFactor(state), canvasWidth, canvasHeight);
     drawStreakBanner(ctx, state, canvasWidth, canvasHeight);
 
     // --- CURSOR ---

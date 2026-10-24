@@ -3,7 +3,8 @@ import { MutableGameState, Enemy, ParticleType } from './types';
 import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, BOSS_ADD_CAP, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
-import { updateTelegraphs } from './logic/enemies/BossKit';
+import { updateTelegraphs, openArena, arenaOutsideFactor } from './logic/enemies/BossKit';
+import { VOID_BURN_DPS, VOID_BURN_TICK_FRAMES } from './Constants';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
 import { updatePlayer } from './logic/PlayerLogic';
@@ -83,6 +84,7 @@ export const updateGame = (
         state.bossSpawnedWave = wave; // Mark as spawned for this wave
         VFX.castBossSpawn(state, 0, -600, bossDef.glowColor);
         onEnemySeen(bossDef.id);
+        openArena(state, boss); // (2B) arena ring at the player, enrage clock, add timer
     }
     // Cinematic check
     const isCinematic = state.activeBoss?.state?.custom?.cinematicMode;
@@ -136,6 +138,17 @@ export const updateGame = (
     if (!isCinematic) {
         updateProjectiles(state, onDamage, playerStats); // Passed playerStats for MaxHP calculation on Ultimate
         updateTelegraphs(state); // (2B) boss warn shapes fire here
+    }
+
+    // (2B) ARENA: leaving the ring burns VOID_BURN_DPS of max HP per second, in ticks
+    if (state.arena && !isCinematic) {
+        if (state.arena.pulse > 0) state.arena.pulse = Math.max(0, state.arena.pulse - 0.03);
+        if (arenaOutsideFactor(state) > 0 && state.frame % VOID_BURN_TICK_FRAMES === 0) {
+            const dmg = Math.max(1, Math.round(playerStats.maxHealth * VOID_BURN_DPS * VOID_BURN_TICK_FRAMES / 60));
+            state.playerIFrames = 0; // the void ignores i-frames; it is a position check, not a hit
+            onDamage(dmg);
+            VFX.spark(state, state.player.x, state.player.y, '#a855f7', 6);
+        }
     }
 
     updateDrops(state, playerStats, maturityScale, onCollect);
