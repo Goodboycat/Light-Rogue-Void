@@ -7,6 +7,7 @@ import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
+import { drawTelegraphs } from './renderer/TelegraphRenderer';
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -39,6 +40,9 @@ export const renderGame = (
         ctx.shadowColor = '#d8b4fe';
     });
     ctx.shadowBlur = 0;
+
+    // --- BOSS TELEGRAPHS (2B, under enemies) ---
+    drawTelegraphs(ctx, state);
 
     // --- ENEMIES ---
     state.enemies.forEach(e => {
