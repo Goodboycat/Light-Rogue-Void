@@ -171,4 +171,6 @@ export interface MutableGameState {
     bossAddTimer?: number;        // frames until the next roaming pack
     bossArrival?: { name: string; color: string; frames: number; max: number };
     lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)
+    /** set by Logic.ts every frame: boss scripts call this from telegraph onFire to hurt the player */
+    damagePlayer?: (amt: number) => void;
 }

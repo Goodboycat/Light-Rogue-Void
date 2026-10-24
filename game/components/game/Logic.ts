@@ -55,6 +55,7 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
+    state.damagePlayer = onDamage; // (2B) boss telegraphs hurt the player through this
     
     // Virtual Aim Override for Mouse Position
     if (input.virtualAimActive) {

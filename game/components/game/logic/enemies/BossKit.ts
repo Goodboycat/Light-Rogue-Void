@@ -128,9 +128,9 @@ export const telegraphContains = (t: { kind: TelegraphKind; x: number; y: number
 };
 
 /** Convenience: if the player is inside the fired shape, damage them. Returns true on hit. */
-export const telegraphHitPlayer = (state: MutableGameState, t: Telegraph, damage: number, onDamage: (amt: number) => void): boolean => {
+export const telegraphHitPlayer = (state: MutableGameState, t: Telegraph, damage: number, onDamage?: (amt: number) => void): boolean => {
     if (!telegraphContains(t, state.player.x, state.player.y, state.player.size)) return false;
-    onDamage(bossDamage(state, damage));
+    (onDamage ?? state.damagePlayer)?.(bossDamage(state, damage));
     if (state.activeBoss) state.lastBossHit = state.activeBoss.def.id;
     shake(state, 8, 6); hitStop(state, 3);
     return true;
