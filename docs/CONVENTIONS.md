@@ -2,17 +2,19 @@
 
 ## Setup (every sandbox)
 ```bash
-git clone https://github.com/Goodboycat/Light-Rogue-Void /home/user/webapp   # or extract the tar
-cd /home/user/webapp && bash tools/github.sh <TOKEN>   # once
-npm install && npm run build
-bash tools/next.sh        # tells you which prompt to run
+# The repo root is /home/user/webapp/LIGHT (extract LIGHT.tar.gz into /home/user/webapp, or clone there)
+git clone https://github.com/Goodboycat/Light-Rogue-Void /home/user/webapp/LIGHT   # or extract the tar
+cd /home/user/webapp && bash LIGHT/game/tools/github.sh <TOKEN>   # once
+cd /home/user/webapp/LIGHT/game && npm install && npm run build
+bash /home/user/webapp/LIGHT/game/tools/next.sh   # tells you which prompt to run
 ```
+Layout: `LIGHT/README.md`, `LIGHT/docs/`, `LIGHT/prompts/` at the root; the Vite app (package.json, App.tsx, components/…) is in `LIGHT/game/`; tools in `LIGHT/game/tools/`; itch output in `LIGHT/out/`. Paths below like `components/...` are relative to `LIGHT/game/`.
 Read `docs/CONVENTIONS.md`, `docs/HANDOFF.md`, then `prompts/<ID>.md`.
 
 ## Rules
 1. **Roguelite, not roguelike.** No in-run power choice, no boon drafts, no "pick 1 of 3". All permanent power comes from the Skill Tree (`data.ts`). Run-only findings (relics, shrines) are *discovered* on the map, never offered as a menu.
 2. **Small tasks, small commits.** Each prompt lists steps; commit + `git push origin main` after every step. Message format: `<ID>: <what>` e.g. `2A: enemies persist across waves`.
-3. **Keep the build green.** `npm run build` must pass before every commit. `bash tools/itch.sh` must produce `out/light-rogue-void-itch.zip` at the end of every chat.
+3. **Keep the build green.** `npm run build` must pass before every commit. `bash LIGHT/game/tools/itch.sh` must produce `LIGHT/out/light-rogue-void-itch.zip` at the end of every chat.
 4. **No generated images or audio in the repo.** Art is procedural Canvas 2D. Audio comes from Ludo.ai later (6A/6B). Repo should stay < 5 MB without node_modules.
 5. **Credits are scarce.** Don't re-read big files you already know; don't run Playwright unless the prompt asks; don't rewrite files when an edit will do. Prefer `grep -n` + `sed -n a,bp`.
 6. **Constants in `components/game/Constants.ts`.** No magic numbers for waves, chapters, caps.
@@ -33,4 +35,4 @@ Read `docs/CONVENTIONS.md`, `docs/HANDOFF.md`, then `prompts/<ID>.md`.
 - `hooks/useGameSave.ts`, `hooks/usePlayerStats.ts`.
 
 ## Itch build
-`tools/itch.sh` → `vite build --mode itch` with `vite-plugin-singlefile` → `out/light-rogue-void-itch/index.html` → zip. Tailwind + Google fonts stay on CDN (itch allows network), everything else inline.
+`LIGHT/game/tools/itch.sh` → `vite build --mode itch` with `vite-plugin-singlefile` → `out/light-rogue-void-itch/index.html` → zip. Tailwind + Google fonts stay on CDN (itch allows network), everything else inline.
