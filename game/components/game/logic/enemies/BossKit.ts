@@ -166,9 +166,9 @@ export const countBossProjectiles = (state: MutableGameState): number => {
 export const fireBossProjectile = (state: MutableGameState, init: Partial<Projectile> & { x: number; y: number; vx: number; vy: number }): boolean => {
     if (countBossProjectiles(state) >= BOSS_PROJ_CAP) return false;
     state.projectiles.push(acquireProjectile({
-        size: 10, color: state.activeBoss?.def.glowColor ?? '#ef4444', life: BOSS_PROJ_LIFE, damage: 1, visualType: 'DEFAULT',
+        size: 10, color: state.activeBoss?.def.glowColor ?? '#ef4444', life: BOSS_PROJ_LIFE, visualType: 'DEFAULT',
         ...init,
-        damage: bossDamage(state, init.damage ?? 1),
+        damage: bossDamage(state, init.damage ?? 1), // overrides init.damage on purpose (enrage ×2)
         isEnemy: true,
         customData: { isBossProj: true, bossId: state.activeBoss?.def.id, ...(init.customData ?? {}) },
     } as Projectile));

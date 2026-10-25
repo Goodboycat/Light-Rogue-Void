@@ -65,7 +65,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'neutron_star',
         name: 'COLLAPSING NEUTRON',
         description: 'A dying star with intense gravitational pull that distorts space.',
-        baseHp: 20000,
+        baseHp: 20000,  // (2D) chapter-4 tree ≈ 400–550 DPS → headless 84 s at 480 DPS (pull keeps you in aura range)
         hpScaling: 2000,
         baseSpeed: 3.0, 
         size: 100,
@@ -83,7 +83,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'entropy_titan',
         name: 'ENTROPY TITAN',
         description: 'A colossal mechanical giant that smashes reality.',
-        baseHp: 25000,
+        baseHp: 24000,  // (2D) chapter-5 tree ≈ 500–650 DPS → 60–90 s; rocks + shrink cost ~25 % uptime
         hpScaling: 5000,
         baseSpeed: 4.0, 
         size: 120,
@@ -102,7 +102,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'darkness',
         name: 'DARKNESS',
         description: 'The end of all things. A consuming void that devours light.',
-        baseHp: 35000,
+        baseHp: 30000,  // (2D) chapter-6 tree ≈ 600–750 DPS → 70–100 s; Darkness kites at 450 px, Doppelganger steals aim
         hpScaling: 10000,
         baseSpeed: 3, 
         size: 150,

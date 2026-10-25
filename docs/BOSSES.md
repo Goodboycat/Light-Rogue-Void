@@ -46,9 +46,9 @@ Rules: no damage outside `onFire` / `fireBossProjectile` / contact; no mercy; no
 | Hive Mind | 10 | acid pools | acid circle on player, 3-way spit, 3 **spawner nodes** around the arena (kill = fewer larvae) | expanding acid **rings** with a dash gap, 5-way spit, line dash | boss **pulls** itself to the player, acid **cone** spit, closing ring | rings: stand on the gap or dash through the band | ✅ 2C |
 | Void Warden | 20 | toxic nebulas | **ricochet dash** shown 0.8 s ahead (two line legs, wall bounce), body is the hitbox, nebula at each bounce (≤ 6), 8-way volley | double dash (second leg leads the player) + 2 Phase Shades on shift, spiral volley | arena shrinks to r 650, nebulas drift, triple dash with 40 f warns, **Warden's Wall** sweeping cone laser | the line IS the dash — sidestep perpendicular; rotate with the Wall | ✅ 2C |
 | Crimson Eclipse | 30 | solar flares | 2 live rotating **beams** (`state.lasers`, `LaserRenderer`) with a wedge-ahead cone telegraph (0.7 s), 16-way ember ring, comet shot | 4 beams slower; **ECLIPSE** every 9 s = 3 s blackout (`state.eclipse`) where only hazards / telegraphs / beams / your aura / boss bullets are drawn | flare rain (1 on you + 2 around, 55 f warn) every 1.5 s, corona ring every 6 s, beams reverse spin every 4 s | move WITH the rotation, never across; in the dark trust the orange wedges | ✅ 2C |
-| Collapsing Neutron | 40 | static beams | gravity pull, orbit rings (stand inside/outside) | push-then-pull pulses | collapse: r 500, pull ×2, supernova ring | 2D |
-| Entropy Titan | 50 | rubble mud | slams (circles) leave rubble | shockwave rings | arena shrinks each slam; Iron Clad adds | 2D |
-| Darkness | 60 | void mines | mirrors ≤4 unlocked powers | Doppelganger | lights out except aura; enrage swallows the edge | 2D |
+| Collapsing Neutron | 40 | static beams | constant **gravity pull** toward the core (dash ignores it), orbit **ring bands** (cyan = stand inside, white = stand outside) | push shockwave then **pull burst** with a lethal core circle | collapse: arena r 500, pull ×2, **supernova** (r 420, 2 s signal, be outside) + ember ring | fight the pull with the dash, read the ring colour | ✅ 2D |
+| Entropy Titan | 50 | rubble | **leap slams** (line + landing circle) leave **solid rocks** (hazard kind `rock`, blocks movement, ttl), stomp walk, breakable rocket fan | expanding **shockwave rings** that shatter rocks (dash through), Iron Clad adds | arena shrinks 60/slam (floor 520), double slam leads your heading, quake craters | rocks are cover from the fan AND walls against the rings | ✅ 2D |
+| Darkness | 60 | void mines | **mirrors up to 4 of your unlocked powers** (`state.playerStatsRef`: fire fan / ice ring / thunder chain / seekers / flare / blade lines / gravity well / whip; mine fallback) on a rotation | **Doppelganger** (`BOSS_MINIONS.doppelganger`, MIMIC) on shift + every 20 s, double casts | **lights out** (eclipse held, only your aura) + Consuming Nova ring with a 120 px safe disc; enrage = arena edge swallowed inward to r 420 | it only has what you have — your own dodges work on it | ✅ 2D |
 
 ## Tuning (time-to-kill, chapter tree)
 Bosses spawn with `baseHp` only (`Logic.ts:87` ignores `hpScaling` for bosses — it is used by `hive_node` minions via
@@ -62,4 +62,16 @@ measured in gameplays (per the owner's request) and adjusted then.
 | Hive Mind | 6000 (was 2000) | 120 (dmgMult 1) | 66 s | adds + Brood Nodes steal the sim's single target ≈ 40 % of the time |
 | Void Warden | 12000 (was 10000) | 240 (dmgMult 2) | ≈ 120 s (2546 HP left at 150 s with 14000) | dashes take the boss out of the 600 px window; expect 70–100 s with real homing/orbitals |
 | Crimson Eclipse | 20000 (was 15000) | 360 (dmgMult 3) | ≈ 110 s (10154 left at 150 s with 24000) | boss holds 320–480 px; flares/adds eat sim damage |
-| Neutron / Titan / Darkness | unchanged | — | — | 2D |
+| Collapsing Neutron | 20000 (unchanged) | 480 (dmgMult 4) | 84 s | pull keeps the sim in range; best-behaved fight for the model |
+| Entropy Titan | 24000 (was 25000) | 600 (dmgMult 5) | stalls at 17720 left (sim can't move: boss holds 260–520 px, Iron Clads steal the target) | expect 60–90 s with a moving player |
+| Darkness | 30000 (was 35000) | 720 (dmgMult 6) | stalls at ~31000 (boss kites at 450 px, Doppelganger inside 600 px eats the damage) | expect 70–100 s; all under the 150 s enrage |
+
+The sim can't move or aim, so Titan/Darkness numbers are a floor, not a measurement. **Owner's call (per request): final
+HP/timing tuning happens in gameplays once the game is complete.**
+
+## Ending (2D)
+Darkness death → `SurvivalGame` sets `gameWon` → `WinGame.tsx`: `OUTRO_SCRIPT` (`data/cinematics.ts`; DARKNESS quiets,
+WATCHER speaks, LIGHT decides; visual actions `SEAM_TEAR` / `SEAM_BLOOM`) over a Seam-of-the-Void wash (violet, seam line,
+chromatic flicker, whisper lines — the fork's `patch.js` idea rebuilt in React), then **STAY** (→ menu, 9A adds endless) or
+**LEAVE** (procedural credits built from `CHAPTERS` + `BOSSES` + run stats). Both call `onEndingSeen` → `gameState.endingSeen`
+(persisted in `useGameSave`). Darkness constellation unlocks via `defeatedBosses` as before.
