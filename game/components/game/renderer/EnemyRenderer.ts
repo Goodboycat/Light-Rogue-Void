@@ -12,6 +12,56 @@ const drawHexagon = (ctx: CanvasRenderingContext2D, x: number, y: number, r: num
     ctx.stroke();
 };
 
+// (2C) Boss phase overlay: a core whose colour tracks the phase (P1 boss glow → P2 amber → P3 red-white) and a
+// deterministic crack web that opens in P3 (the body is breaking). Shift = the core flares. Drawn on top of the body.
+const PHASE_CORE = ['', '#ffffff', '#fbbf24', '#ef4444'];
+const drawBossPhaseOverlay = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number) => {
+    const phase = enemy.state.phase ?? 1;
+    const shifting = (enemy.state.custom?.phaseShiftTimer ?? 0) > 0;
+    const size = enemy.def.size;
+    const pulse = 0.5 + 0.5 * Math.sin(frame * (0.06 + phase * 0.03));
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowBlur = 0;
+    // core
+    const coreR = size * (0.22 + 0.06 * phase) * (1 + pulse * 0.15) * (shifting ? 1.6 : 1);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR * 2.2);
+    const col = phase === 1 ? enemy.def.glowColor : PHASE_CORE[phase];
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(0.35, col);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = shifting ? 0.95 : 0.55 + 0.25 * pulse;
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, coreR * 2.2, 0, Math.PI * 2); ctx.fill();
+    // P2: a thin amber seam ring; P3: cracks radiating from the core (seeded by the boss id so they don't jitter)
+    if (phase >= 2) {
+        ctx.globalAlpha = 0.45 + 0.3 * pulse;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = phase === 3 ? 2.5 : 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, size * 0.62, 0, Math.PI * 2); ctx.stroke();
+    }
+    if (phase === 3) {
+        let seed = 0; for (let i = 0; i < enemy.def.id.length; i++) seed = (seed * 31 + enemy.def.id.charCodeAt(i)) | 0;
+        const rnd = () => { seed = (seed * 1103515245 + 12345) | 0; return ((seed >>> 8) & 0xffff) / 0x10000; };
+        const hpRatio = Math.max(0, enemy.hp / Math.max(1, enemy.maxHp));
+        const spread = Math.min(1, Math.max(0, 1 - hpRatio / 0.34));  // 0 at 33 % → 1 near death
+        ctx.strokeStyle = '#ffffff';
+        ctx.globalAlpha = 0.5 + 0.4 * pulse;
+        for (let k = 0; k < 7; k++) {
+            let a = rnd() * Math.PI * 2, r = size * 0.25;
+            const len = size * (0.5 + 0.6 * spread) * (0.6 + rnd() * 0.6);
+            ctx.lineWidth = 1 + 1.5 * spread;
+            ctx.beginPath(); ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+            const segs = 3 + Math.floor(rnd() * 3);
+            for (let s = 0; s < segs; s++) { r += len / segs; a += (rnd() - 0.5) * 0.7; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+            ctx.stroke();
+            // glow behind the crack
+            ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = (3 + 4 * spread); ctx.globalAlpha = 0.25 * (0.5 + pulse * 0.5); ctx.stroke(); ctx.restore();
+        }
+    }
+    ctx.restore();
+};
+
 export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number) => {
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
@@ -435,6 +485,9 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
             ctx.stroke();
             break;
     }
+
+    // (2C) phase-coloured core + P3 cracks on every boss
+    if (enemy.isBoss && !enemy.state.custom?.cinematicMode) drawBossPhaseOverlay(ctx, enemy, frame);
     
     ctx.restore();
 };
