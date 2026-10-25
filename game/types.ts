@@ -93,5 +93,7 @@ export interface GameState {
   isGameRunning: boolean;
   isMenuOpen: boolean;
   hasSeenIntro: boolean;
+  /** (2D) Darkness beaten and the ending (Stay/Leave) was shown. 9A uses it to offer Endless. */
+  endingSeen?: boolean;
   settings: Settings;
 }

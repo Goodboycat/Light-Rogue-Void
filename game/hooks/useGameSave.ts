@@ -24,6 +24,7 @@ const INITIAL_STATE: GameState = {
     isGameRunning: false,
     isMenuOpen: false,
     hasSeenIntro: false,
+    endingSeen: false,
     settings: {
         showTouchControls: true,
         mouseMovementEnabled: true,
@@ -84,6 +85,7 @@ export const useGameSave = () => {
                     unlockedAchievementIds: parsed.unlockedAchievementIds || [],
                     defeatedBosses: parsed.defeatedBosses || [],
                     hasSeenIntro: parsed.hasSeenIntro || false,
+                    endingSeen: !!parsed.endingSeen,
                     isGameRunning: false, // Always start at menu
                     isMenuOpen: false,
                     settings: { ...INITIAL_STATE.settings, ...settings }
@@ -106,6 +108,7 @@ export const useGameSave = () => {
                 maxWaveReached: gameState.maxWaveReached,
                 maxMaturityAchieved: gameState.maxMaturityAchieved,
                 hasSeenIntro: gameState.hasSeenIntro,
+                endingSeen: !!gameState.endingSeen,
                 settings: gameState.settings
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));

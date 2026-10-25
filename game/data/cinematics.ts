@@ -1,5 +1,5 @@
 export interface CinematicLine {
-    speaker: 'DARKNESS' | 'LIGHT';
+    speaker: 'DARKNESS' | 'LIGHT' | 'WATCHER';
     text: string;
     duration: number;
     visualAction?: string;
@@ -16,10 +16,18 @@ export const INTRO_SCRIPT: CinematicLine[] = [
     { speaker: 'DARKNESS', text: "Consume it.", duration: 2000 }
 ];
 
+/** (2D) Ending — plays once Darkness falls. Emotional peak: Darkness goes quiet,
+ *  the Watcher speaks for the last time, Light chooses. WinGame then offers Stay / Leave. */
 export const OUTRO_SCRIPT: CinematicLine[] = [
-    { speaker: 'LIGHT', text: "...", duration: 2000 },
-    { speaker: 'LIGHT', text: "I triumph against darkness.", duration: 3000 },
-    { speaker: 'LIGHT', text: "Now, I will spread the light.", duration: 3500 },
-    { speaker: 'LIGHT', text: "The cycle is broken.", duration: 3000 },
-    { speaker: 'LIGHT', text: "I won.", duration: 3000 }
+    { speaker: 'DARKNESS', text: "...", duration: 2200 },
+    { speaker: 'DARKNESS', text: "So this is what it feels like.", duration: 3200 },
+    { speaker: 'DARKNESS', text: "To be seen.", duration: 2600 },
+    { speaker: 'DARKNESS', text: "Go on, then. Shine.", duration: 3000, visualAction: 'SEAM_TEAR' },
+    { speaker: 'WATCHER', text: "...the seam remembers you.", duration: 3200 },
+    { speaker: 'WATCHER', text: "Every spark that ever stood here chose.", duration: 3400 },
+    { speaker: 'WATCHER', text: "Stay, and the void keeps you company forever.", duration: 3400 },
+    { speaker: 'WATCHER', text: "Leave, and it will be dark again. But it will remember.", duration: 3800 },
+    { speaker: 'LIGHT', text: "I was a spark.", duration: 2600, visualAction: 'SEAM_BLOOM' },
+    { speaker: 'LIGHT', text: "Now I am the light.", duration: 3000 },
+    { speaker: 'LIGHT', text: "And light decides where it goes.", duration: 3400 }
 ];

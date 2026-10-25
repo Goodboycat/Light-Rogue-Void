@@ -110,6 +110,11 @@ const App: React.FC = () => {
       });
   };
 
+  /** (2D) Ending choice made (Stay → endless in 9A; Leave → credits). Persist the flag. */
+  const handleEndingSeen = (_choice: 'stay' | 'leave') => {
+      setGameState(p => ({ ...p, endingSeen: true }));
+  };
+
   const handleAddMatter = (amount: number) => {
       setGameState(p => ({ ...p, matter: p.matter + amount }));
   };
@@ -276,6 +281,7 @@ const App: React.FC = () => {
                 paused={gameState.isMenuOpen || showArchives || showAchievements || showSettings} 
                 onRestart={handleRestart}
                 onReturnToMenu={handleReturnToMenu}
+                onEndingSeen={handleEndingSeen}
                 onTogglePause={() => { setGameState(p => ({ ...p, isMenuOpen: !p.isMenuOpen })); }}
                 onEnemySeen={handleEnemySeen}
                 initialWave={startWave}

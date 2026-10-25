@@ -72,10 +72,10 @@ const CinematicOverlay: React.FC<CinematicOverlayProps> = ({ script, onComplete,
                     } as any)}
                     className="relative z-20 max-w-2xl text-center px-8 mt-24"
                 >
-                    <div className={`font-tech text-sm tracking-[0.3em] mb-4 uppercase ${line.speaker === 'DARKNESS' ? 'text-purple-900' : 'text-amber-500'}`}>
+                    <div className={`font-tech text-sm tracking-[0.3em] mb-4 uppercase ${line.speaker === 'DARKNESS' ? 'text-purple-900' : line.speaker === 'WATCHER' ? 'text-violet-400' : 'text-amber-500'}`}>
                         {line.speaker}
                     </div>
-                    <div className={`font-serif text-3xl md:text-5xl leading-relaxed ${line.speaker === 'DARKNESS' ? 'text-slate-500' : 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'}`}>
+                    <div className={`font-serif text-3xl md:text-5xl leading-relaxed ${line.speaker === 'DARKNESS' ? 'text-slate-500' : line.speaker === 'WATCHER' ? 'text-violet-200 italic drop-shadow-[0_0_14px_rgba(167,139,250,0.6)]' : 'text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]'}`}>
                         "{displayedText}"
                     </div>
                 </motion.div>

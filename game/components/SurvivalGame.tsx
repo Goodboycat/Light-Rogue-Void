@@ -33,6 +33,8 @@ interface SurvivalGameProps {
   maxWaveReached: number;
   onUpdateMaxWave: (wave: number) => void;
   onReturnToMenu: () => void;
+  /** (2D) Stay/Leave chosen on the ending screen. */
+  onEndingSeen?: (choice: 'stay' | 'leave') => void;
   onTogglePause: () => void;
   hasSeenIntro: boolean;
   onIntroComplete: () => void;
@@ -57,6 +59,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     onCollectMatter, 
     paused, 
     onRestart, 
+    onEndingSeen,
     onEnemySeen,
     initialWave,
     maxWaveReached,
@@ -542,6 +545,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           <WinGame 
             onRestart={() => onRestart(1)} 
             onReturnToMenu={onReturnToMenu}
+            onEndingSeen={onEndingSeen}
+            stats={{ kills: gameStateRef.current.totalKills || 0, wave }}
           />
       )}
     </div>
