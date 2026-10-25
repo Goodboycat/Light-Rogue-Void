@@ -31,14 +31,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 4A | Action feel: `Feel.ts` (hit-stop, shake, flash, settings `screenShake`/`reduceFlash`), damage floaters (pool 120, crit gold), kill streaks (10/25/50 banners, +1 % essence/10, cap 20 %), `Pools.ts` + `ParticleBatcher`/`GlowSprites` (swap-remove, caps 600/400/400), player hurt (i-frames + blink, red vignette, heartbeat < 25 % HP). |
 | 2B | Boss kit: `BossKit.ts` telegraphs (circle/line/cone/ring, damage only on fire), arena r 900 + void burn, phases 100/66/33 + invulnerable shift, enrage 150 s, roaming add packs, `BossBar.tsx`, death hints, arrival reveal, `BigFx.ts` cinematic explosions (simplex-noise, vendored MIT) for White Hole + boss death, Hive Mind reference, `docs/BOSSES.md`. |
 | 2C | Bosses 1–3 reworked on the kit: Hive Mind (Brood Nodes, acid rings with gap, P3 pull + cone), Void Warden (ricochet dash shown 0.8 s ahead, nebulas, Phase Shades, shrinking arena, Warden's Wall), Crimson Eclipse (live rotating lasers `state.lasers`, ECLIPSE blackout, flare rain, comets). Phase-coloured cores + P3 crack web. HP 6000/12000/20000, `docs/BOSSES.md` tuning table. |
+| 2D | Bosses 4–6 reworked on the kit: Collapsing Neutron (gravity pull, orbit ring bands inside/outside, push→pull pulses, collapse + supernova), Entropy Titan (leap slams leave solid `rock` hazards, shockwave rings shatter rocks, arena shrinks per slam, Iron Clads), Darkness (mirrors ≤ 4 of your unlocked powers, Doppelganger, lights out, enrage swallows the edge). Ending: new OUTRO (Darkness/Watcher/Light) over a Seam-of-the-Void wash, **STAY / LEAVE** choice, procedural credits, `gameState.endingSeen`. HP 20000/24000/30000. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 2D 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
+Next: 4B 3A 3B 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 2D | Bosses 4–6 reworked (Neutron, Entropy Titan, Darkness) + ending. |
 | 4B | Enemy variety: elite affixes, special waves at x5 (port fork waveFlavors), pack director, extra fork enemies. |
 | 3A | Discovery: landmarks, relics, shrines, fog minimap, found events (port fork events director) on the 3500 map (no picks). |
 | 3B | Story: 6 chapters, Light/Darkness/Watcher lines, bestiary lore, boss intros/outros, chapter time-skip, Light Burst (tree unlock). |
