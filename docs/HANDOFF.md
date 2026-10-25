@@ -2,7 +2,15 @@
 
 Updated by every chat at the end. Newest first.
 
-## 4A (this chat) — action feel + pools: DONE
+## 2C (previous chat) — bosses 1–3 reworked: DONE (docs finished by the 2D chat)
+All five steps were committed (`ff2443c` Hive Mind, `5d932fa` Void Warden, `4c9456d` Crimson Eclipse, `ef91340` visuals, `30cba16` HP) but README/HANDOFF were never updated — done at the start of the 2D chat.
+- `bosses/HiveMind.ts` — Brood Nodes = `BOSS_MINIONS.hive_node` (spawned via `SpawnLogic`), P2 ring telegraphs with `gapAngle/gapWidth`, P3 leap + acid cone. Also fixed a stack overflow in `Logic.ts` `bossTaggedDamage` (infinite recursion on every boss hit).
+- `bosses/VoidWarden.ts` — ricochet path via ray-circle reflect against `state.arena`, line telegraphs 0.8 s ahead, boss body is the hitbox in flight, `placeHazard` nebula per bounce; P3 `state.arena.r = 650`.
+- `bosses/CrimsonEclipse.ts` — `state.lasers[]` (live beams, drawn by `renderer/LaserRenderer.ts`), `state.eclipse` blackout (Renderer.ts redraws hazards/telegraphs/beams/aura on top of a black fill), flare rain in P3.
+- `renderer/EnemyRenderer.ts` `drawBossPhaseOverlay` — phase-coloured core, P2 seam ring, P3 crack web seeded per boss.
+- HP: `bosses.ts` Hive 6000 / Warden 12000 / Eclipse 20000; bosses spawn with `baseHp` only (`Logic.ts:87`). Headless TTK in `docs/BOSSES.md`.
+
+## 4A (previous chat) — action feel + pools: DONE
 Started from `0308143` (steps 1–3 committed by the previous chat) with step 4 (pools) sitting **uncommitted** in the tar and step 5 half-wired. Finished, measured, committed, pushed.
 
 **Where things live (all under `LIGHT/game/components/game/`):**
