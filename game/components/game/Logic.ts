@@ -58,9 +58,10 @@ export const updateGame = (
 
     state.frame++;
     // (2B) every damage path during a boss fight tags the boss (GameOver death hint); telegraphs call state.damagePlayer
+    const rawOnDamage = onDamage; // capture BEFORE reassigning — the wrapper must not call itself (2C fix: stack overflow)
     const bossTaggedDamage = (amt: number) => {
         if (state.activeBoss) state.lastBossHit = state.activeBoss.def.id;
-        onDamage(amt);
+        rawOnDamage(amt);
     };
     onDamage = bossTaggedDamage;
     state.damagePlayer = onDamage;

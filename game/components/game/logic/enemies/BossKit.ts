@@ -32,6 +32,8 @@ export interface TelegraphParams {
     length?: number;       // line length (from x,y along angle)
     angle?: number;        // line / cone direction (rad)
     fov?: number;          // cone spread (rad, total)
+    gapAngle?: number;     // (2C) ring: centre of a safe gap (rad)
+    gapWidth?: number;     // (2C) ring: total angular width of the gap (rad)
     color?: string;        // boss glow colour; renderer adds the white edge
 }
 
@@ -114,7 +116,15 @@ export const telegraphContains = (t: { kind: TelegraphKind; x: number; y: number
     const p = t.params;
     switch (t.kind) {
         case 'circle': return d <= (p.radius ?? 0) + pad;
-        case 'ring': return d <= (p.radius ?? 0) + pad && d >= (p.innerRadius ?? 0) - pad;
+        case 'ring': {
+            if (!(d <= (p.radius ?? 0) + pad && d >= (p.innerRadius ?? 0) - pad)) return false;
+            if (p.gapWidth) { // (2C) safe gap in the band
+                let diff = Math.abs(Math.atan2(dy, dx) - (p.gapAngle ?? 0));
+                diff = Math.min(diff, Math.PI * 2 - diff);
+                if (diff <= p.gapWidth / 2) return false;
+            }
+            return true;
+        }
         case 'cone': {
             if (d > (p.radius ?? 0) + pad) return false;
             const a = Math.atan2(dy, dx);

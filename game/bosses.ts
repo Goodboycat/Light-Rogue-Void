@@ -118,3 +118,13 @@ export const BOSSES: EnemyDef[] = [
 ];
 
 export const getBossForWave = (wave: number): EnemyDef => BOSSES[bossIndexOf(wave)];
+
+// (2C) Boss-only minions: spawnWeight 0 so the director never rolls them; boss scripts spawn them via spawnEnemy(..., def).
+export const BOSS_MINIONS: Record<string, EnemyDef> = {
+    // Hive Mind P1: stationary larva spawner. Kill it and the Hive loses a spawn source (respawns on enrage).
+    hive_node: {
+        id: 'hive_node', name: 'Brood Node', description: 'A pulsing egg sac rooted to the arena floor. Spawns larvae until destroyed.',
+        baseHp: 120, hpScaling: 25, baseSpeed: 0, size: 26, color: '#4d7c0f', glowColor: '#a3e635',
+        behavior: 'SPAWNER', visualType: 'CRAB', spawnWeight: 0, minWave: 10, essenceReward: 40, particleEffect: ParticleType.SMOKE,
+    },
+};

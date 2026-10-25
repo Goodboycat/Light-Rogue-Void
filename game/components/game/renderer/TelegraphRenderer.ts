@@ -10,10 +10,18 @@ const tracePath = (ctx: CanvasRenderingContext2D, kind: TelegraphKind, x: number
         case 'circle':
             ctx.arc(x, y, p.radius ?? 0, 0, Math.PI * 2);
             break;
-        case 'ring':
-            ctx.arc(x, y, p.radius ?? 0, 0, Math.PI * 2);
-            ctx.arc(x, y, p.innerRadius ?? 0, 0, Math.PI * 2, true);
+        case 'ring': {
+            if (p.gapWidth) { // (2C) band with a safe gap: arc from gap end to gap start
+                const g = p.gapAngle ?? 0, half = p.gapWidth / 2;
+                ctx.arc(x, y, p.radius ?? 0, g + half, g - half + Math.PI * 2);
+                ctx.arc(x, y, p.innerRadius ?? 0, g - half + Math.PI * 2, g + half, true);
+                ctx.closePath();
+            } else {
+                ctx.arc(x, y, p.radius ?? 0, 0, Math.PI * 2);
+                ctx.arc(x, y, p.innerRadius ?? 0, 0, Math.PI * 2, true);
+            }
             break;
+        }
         case 'cone': {
             const a = p.angle ?? 0, half = (p.fov ?? Math.PI / 4) / 2, r = p.radius ?? 0;
             ctx.moveTo(x, y);
