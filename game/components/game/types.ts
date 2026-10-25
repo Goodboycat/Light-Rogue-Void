@@ -182,6 +182,8 @@ export interface MutableGameState {
     lasers?: import('./logic/enemies/bosses/CrimsonEclipse').Laser[];
     eclipse?: number;              // 1 → 0 blackout strength; only telegraphs / beams / hazards / player visible
     eclipseColor?: string;
+    /** (2D) Logic.ts mirrors the current PlayerStats here so boss scripts (Darkness) can read unlocked powers */
+    playerStatsRef?: PlayerStats;
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx

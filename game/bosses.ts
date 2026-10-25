@@ -128,4 +128,10 @@ export const BOSS_MINIONS: Record<string, EnemyDef> = {
         baseHp: 120, hpScaling: 25, baseSpeed: 0, size: 26, color: '#4d7c0f', glowColor: '#a3e635',
         behavior: 'SPAWNER', visualType: 'CRAB', spawnWeight: 0, minWave: 10, essenceReward: 40, particleEffect: ParticleType.SMOKE,
     },
+    // (2D) Darkness P2: your shadow. MIMIC behaviour copies your movement vector; tougher than the wave-38 Doppelganger.
+    doppelganger: {
+        id: 'doppelganger', name: 'Shadow of the Spark', description: 'Your own silhouette, poured from the dark. It moves when you move.',
+        baseHp: 900, hpScaling: 0, baseSpeed: 4.5, size: 16, color: '#09090b', glowColor: '#a855f7',
+        behavior: 'MIMIC', visualType: 'SIMPLE', spawnWeight: 0, minWave: 60, essenceReward: 500, particleEffect: ParticleType.VOID,
+    },
 };

@@ -65,6 +65,7 @@ export const updateGame = (
     };
     onDamage = bossTaggedDamage;
     state.damagePlayer = onDamage;
+    state.playerStatsRef = playerStats; // (2D) Darkness mirrors the player's unlocked powers
     
     // Virtual Aim Override for Mouse Position
     if (input.virtualAimActive) {
