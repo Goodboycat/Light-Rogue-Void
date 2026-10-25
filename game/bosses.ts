@@ -8,7 +8,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'hive_mind',
         name: 'THE HIVE MIND',
         description: 'A pulsating organic mass that spawns swarms and spits acid.',
-        baseHp: 2000,
+        baseHp: 6000,   // (2C) TTK target 60–120 s with a chapter-1 tree (~60–100 effective DPS); bosses use baseHp only (Logic.ts:87)
         hpScaling: 500,
         baseSpeed: 1.5,
         size: 70,
@@ -27,7 +27,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'void_warden',
         name: 'THE VOID WARDEN',
         description: 'A chaotic construct that ricochets around the arena, leaving toxic nebulas in its wake.',
-        baseHp: 10000,
+        baseHp: 12000,  // (2C) chapter-2 tree ≈ 150–230 DPS → 60–95 s
         hpScaling: 1000,
         baseSpeed: 12.0, 
         size: 80,
@@ -46,7 +46,7 @@ export const BOSSES: EnemyDef[] = [
         id: 'crimson_eclipse',
         name: 'CRIMSON ECLIPSE',
         description: 'A corrupted star that burns everything with solar lasers.',
-        baseHp: 15000,
+        baseHp: 20000,  // (2C) chapter-3 tree ≈ 250–400 DPS → 60–95 s (beams keep you out of aura range ~40 % of the time)
         hpScaling: 1500,
         baseSpeed: 3.0, 
         size: 90,
