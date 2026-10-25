@@ -95,6 +95,7 @@ export const BOSSES: EnemyDef[] = [
         minWave: 50,
         essenceReward: 50000,
         particleEffect: ParticleType.THUNDER,
+        addTable: ['e22', 'e22', 'e20'], // (2D) Iron Clads march in (one Sentinel for variety)
         hazard: { kind: 'rubble', everySec: 9, max: 12, radius: 110, damage: 0, color: '#818cf8' } // (2C) rubble mud: 90 % slow, dash through
     },
     {

@@ -21,7 +21,9 @@ import { createParticle, spawnExplosion } from '../../Particles';
 import { telegraph, bossDamage } from './BossKit';
 import { HAZARD_WARN_FRAMES, HAZARD_TICK_FRAMES, HAZARD_CAP } from '../../Constants';
 
-export type HazardKind = 'acid' | 'nebula' | 'flare' | 'beam' | 'rubble' | 'void';
+export type HazardKind = 'acid' | 'nebula' | 'flare' | 'beam' | 'rubble' | 'void' | 'rock';
+// (2D) rock — SOLID obstacle left by Entropy Titan slams: blocks movement (pushes the player out), expires after `ttl`
+//            frames, shatters when the Titan's shockwave rings cross it. No damage. Dash does NOT pass through.
 
 export interface HazardDef {
     kind: HazardKind;
@@ -42,10 +44,11 @@ export interface Hazard {
     angle?: number;      // beam: 0 horizontal, PI/2 vertical
     vx?: number; vy?: number; // nebula drift
     pulse: number;       // 0..1 flash when it lands
+    ttl?: number;        // (2D) frames left (rock); undefined = permanent
 }
 
 const TICK_COLORS: Record<HazardKind, string> = {
-    acid: '#a3e635', nebula: '#10b981', flare: '#fbbf24', beam: '#f472b6', rubble: '#1e1b4b', void: '#000000',
+    acid: '#a3e635', nebula: '#10b981', flare: '#fbbf24', beam: '#f472b6', rubble: '#1e1b4b', void: '#000000', rock: '#a3a3a3',
 };
 
 export const hazardContains = (h: Hazard, px: number, py: number, pad: number): boolean => {
@@ -113,9 +116,18 @@ export const updateHazards = (state: MutableGameState, boss: Enemy | undefined, 
     const p = state.player;
     const dashing = p.dashTimer > 0;
     let inRubble = false;
-    for (let i = 0; i < list.length; i++) {
+    for (let i = list.length - 1; i >= 0; i--) {
         const h = list[i];
         if (h.pulse > 0) h.pulse = Math.max(0, h.pulse - 0.04);
+        if (h.ttl !== undefined && --h.ttl <= 0) { // (2D) rocks crumble
+            for (let k = 0; k < 8; k++) createParticle(state, h.x, h.y, ParticleType.SMOKE, '#a3a3a3', { life: 25, size: 6, speed: 3 });
+            list.splice(i, 1); continue;
+        }
+        if (h.kind === 'rock') { // solid: shove the player (and their velocity) out of the disc
+            const dx = p.x - h.x, dy = p.y - h.y, d = Math.hypot(dx, dy) || 1, min = h.radius + p.size * 0.6;
+            if (d < min) { p.x = h.x + (dx / d) * min; p.y = h.y + (dy / d) * min; const vn = p.vx * (dx / d) + p.vy * (dy / d); if (vn < 0) { p.vx -= vn * (dx / d); p.vy -= vn * (dy / d); } }
+            continue;
+        }
         if (h.vx || h.vy) {
             h.x += h.vx ?? 0; h.y += h.vy ?? 0;
             const a = state.arena;

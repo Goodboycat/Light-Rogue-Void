@@ -45,6 +45,20 @@ export const drawHazards = (ctx: CanvasRenderingContext2D, state: MutableGameSta
                 }
                 break;
             }
+            case 'rock': { // (2D) Titan slam debris: a solid grey boulder cluster, cracks as it nears expiry
+                const fade = h.ttl !== undefined && h.ttl < 60 ? h.ttl / 60 : 1;
+                ctx.fillStyle = hexA('#525252', 0.9 * fade);
+                ctx.beginPath(); ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = hexA('#d4d4d4', (0.6 + landing * 0.4) * fade); ctx.lineWidth = 4; ctx.stroke();
+                ctx.fillStyle = hexA('#737373', 0.95 * fade);
+                for (let k = 0; k < 4; k++) {
+                    const a = (k / 4) * Math.PI * 2 + i * 1.3, r = h.radius * 0.4;
+                    ctx.beginPath(); ctx.arc(h.x + Math.cos(a) * r, h.y + Math.sin(a) * r, h.radius * 0.3, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.strokeStyle = hexA('#171717', 0.8 * fade); ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(h.x - h.radius * 0.5, h.y - h.radius * 0.2); ctx.lineTo(h.x + h.radius * 0.1, h.y + h.radius * 0.1); ctx.lineTo(h.x + h.radius * 0.5, h.y - h.radius * 0.4); ctx.stroke();
+                break;
+            }
             case 'void': {
                 const g = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, h.radius);
                 g.addColorStop(0, 'rgba(0,0,0,0.95)'); g.addColorStop(0.7, 'rgba(30,27,75,0.6)'); g.addColorStop(1, 'rgba(0,0,0,0)');
