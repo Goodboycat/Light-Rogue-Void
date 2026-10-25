@@ -110,6 +110,11 @@ export const BOSS_ADD_PACK_MIN = 3;
 export const BOSS_ADD_PACK_MAX = 5;
 export const BOSS_ADD_WARN_FRAMES = 60;       // telegraph circle before a pack lands
 export const BOSS_ARRIVAL_FRAMES = 120;       // 2 s "NOW ARRIVING" reveal
+// (2C) persistent terrain hazards (BossHazards.ts)
+export const HAZARD_WARN_FRAMES = 70;         // telegraph before a hazard lands
+export const HAZARD_TICK_FRAMES = 20;         // damage tick while standing in one
+export const HAZARD_CAP = 18;                 // hard cap of live hazards (bosses set their own max ≤ this)
+export const FIREBALL_BREAKS_BOSS_PROJ = true; // player FIRE_BLAST destroys boss bullets it touches
 
 // (2B+) BigFx — cinematic explosions (components/game/BigFx.ts)
 export const BIGFX_MAX = 6;                   // live big explosions

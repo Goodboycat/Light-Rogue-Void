@@ -41,6 +41,7 @@ export const updatePlayer = (
         }
     }
 
+    if (state.playerInRubble) isInMud = true; // (2C) Entropy Titan rubble
     if (isInMud && state.player.dashTimer <= 0) {
         // "Stuck in mud" - massive slow unless dashing (90% reduction)
         speed *= 0.1; 

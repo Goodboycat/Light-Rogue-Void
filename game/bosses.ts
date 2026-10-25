@@ -20,7 +20,8 @@ export const BOSSES: EnemyDef[] = [
         minWave: 10,
         essenceReward: 2000,
         particleEffect: ParticleType.SMOKE,
-        addTable: ['e1', 'e2', 'e3', 'e13'] // (2B) larvae, mites, crabs, a Hive Mother
+        addTable: ['e1', 'e2', 'e3', 'e13'], // (2B) larvae, mites, crabs, a Hive Mother
+        hazard: { kind: 'acid', everySec: 9, max: 12, radius: 120, damage: 2, color: '#a3e635' } // (2C) acid pools pile up
     },
     {
         id: 'void_warden',
@@ -37,7 +38,9 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 20,
         essenceReward: 10000,
-        particleEffect: ParticleType.BOSS_AURA
+        particleEffect: ParticleType.BOSS_AURA,
+        addTable: ['e6', 'e9', 'e12', 'e15'],
+        hazard: { kind: 'nebula', everySec: 10, max: 8, radius: 150, damage: 2, color: '#10b981' } // (2C) toxic nebulas (drift in P3)
     },
     {
         id: 'crimson_eclipse',
@@ -54,7 +57,9 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 30,
         essenceReward: 16000,
-        particleEffect: ParticleType.FIRE
+        particleEffect: ParticleType.FIRE,
+        addTable: ['e18', 'e20', 'e22', 'e24'],
+        hazard: { kind: 'flare', everySec: 8, max: 10, radius: 140, damage: 3, color: '#fbbf24' } // (2C) solar flares burn the floor
     },
     {
         id: 'neutron_star',
@@ -71,7 +76,8 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 40,
         essenceReward: 30000,
-        particleEffect: ParticleType.ICE
+        particleEffect: ParticleType.ICE,
+        hazard: { kind: 'beam', everySec: 14, max: 6, radius: 18, damage: 3, color: '#f472b6' } // (2C) static lasers cut the arena into lanes
     },
     {
         id: 'entropy_titan',
@@ -88,7 +94,8 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 50,
         essenceReward: 50000,
-        particleEffect: ParticleType.THUNDER
+        particleEffect: ParticleType.THUNDER,
+        hazard: { kind: 'rubble', everySec: 9, max: 12, radius: 110, damage: 0, color: '#818cf8' } // (2C) rubble mud: 90 % slow, dash through
     },
     {
         id: 'darkness',
@@ -105,7 +112,8 @@ export const BOSSES: EnemyDef[] = [
         spawnWeight: 0,
         minWave: 60,
         essenceReward: 200000,
-        particleEffect: ParticleType.VOID
+        particleEffect: ParticleType.VOID,
+        hazard: { kind: 'void', everySec: 10, max: 10, radius: 120, damage: 3, color: '#000000' } // (2C) void mines: pull + burn
     }
 ];
 

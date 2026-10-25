@@ -10,6 +10,7 @@ import { VFX } from '../../Emitters';
 import { spawnExplosion } from '../../Particles';
 import { acquireProjectile, swapRemoveProjectile } from '../../Pools';
 import { spawnEnemy } from './SpawnLogic';
+import { clearHazards } from './BossHazards';
 import { ENEMIES } from '../../../../enemies';
 import { hitStop, shake } from '../../Feel';
 import {
@@ -133,6 +134,8 @@ export const telegraphContains = (t: { kind: TelegraphKind; x: number; y: number
 /** Convenience: if the player is inside the fired shape, damage them. Returns true on hit. */
 export const telegraphHitPlayer = (state: MutableGameState, t: Telegraph, damage: number, onDamage?: (amt: number) => void): boolean => {
     if (!telegraphContains(t, state.player.x, state.player.y, state.player.size)) return false;
+    // (2C) a well-timed dash (or Titan shield) dodges the hit — the dash IS the answer to telegraphs
+    if (state.player.dashTimer > 0 || state.player.isTitanShieldActive) { VFX.spark(state, state.player.x, state.player.y, '#ffffff', 6); return false; }
     (onDamage ?? state.damagePlayer)?.(bossDamage(state, damage));
     if (state.activeBoss) state.lastBossHit = state.activeBoss.def.id;
     shake(state, 8, 6); hitStop(state, 3);
@@ -253,6 +256,7 @@ export const closeArena = (state: MutableGameState) => {
     state.bossArrival = undefined;
     cancelTelegraphs(state);
     clearBossProjectiles(state);
+    clearHazards(state); // (2C) terrain hazards die with the boss
 };
 
 /** 0 inside, 1 well outside (used by the renderer vignette). */

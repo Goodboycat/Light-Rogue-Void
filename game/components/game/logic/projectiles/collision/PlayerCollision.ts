@@ -1,6 +1,8 @@
 
 import { MutableGameState, Projectile, ParticleType } from '../../../types';
-import { onEnemyHit } from '../../../Feel';
+import { onEnemyHit, shake } from '../../../Feel';
+import { swapRemoveProjectile } from '../../../Pools';
+import { FIREBALL_BREAKS_BOSS_PROJ } from '../../../Constants';
 import { spawnExplosion, createParticle } from '../../../Particles';
 import { VFX } from '../../../Emitters';
 
@@ -94,6 +96,20 @@ export const checkPlayerCollisions = (
                 });
                 return false; 
             }
+    }
+
+    // (2C) FIRE BLAST breaks boss bullets it touches — the fireball is the player's anti-projectile tool
+    if (FIREBALL_BREAKS_BOSS_PROJ && p.visualType === 'FIRE_BLAST') {
+        for (let k = state.projectiles.length - 1; k >= 0; k--) {
+            const q = state.projectiles[k];
+            if (!q.isEnemy || q.isStatic || !q.customData?.isBossProj) continue;
+            if (Math.hypot(q.x - p.x, q.y - p.y) < q.size + p.size + 6) {
+                VFX.spark(state, q.x, q.y, '#fb923c', 6);
+                createParticle(state, q.x, q.y, ParticleType.RING, '#f97316', { life: 12, size: q.size });
+                swapRemoveProjectile(state.projectiles, k);
+                shake(state, 2, 2);
+            }
+        }
     }
 
     // --- GENERIC IMPACT ---

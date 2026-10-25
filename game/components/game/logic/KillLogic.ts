@@ -5,6 +5,7 @@ import { CARRIED_REWARD_MULT } from '../Constants';
 import { onKillForStreak, streakEssenceMult, hitStop, shake } from '../Feel';
 import { acquireDrop, swapRemoveEnemy } from '../Pools';
 import { closeArena } from './enemies/BossKit';
+import { castBossDeathBlast } from '../BigFx';
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -36,7 +37,7 @@ export const killEnemy = (
 
     if (enemy.isBoss) {
         spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
-        spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
+        castBossDeathBlast(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.size * 5); // (2B+) cinematic finisher
         state.activeBoss = undefined;
         state.bossKilledWave = state.bossSpawnedWave;
         closeArena(state); // (2B) ring, telegraphs, boss bullets, enrage all go with the boss

@@ -8,6 +8,7 @@ import { drawPlayer } from './renderer/PlayerRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
 import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
+import { drawHazards } from './renderer/HazardRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
 
@@ -45,6 +46,7 @@ export const renderGame = (
 
     // --- BOSS ARENA + TELEGRAPHS (2B, under enemies) ---
     drawArena(ctx, state);
+    drawHazards(ctx, state);   // (2C) persistent terrain hazards
     drawTelegraphs(ctx, state);
 
     // --- ENEMIES ---

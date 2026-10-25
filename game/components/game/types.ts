@@ -45,6 +45,8 @@ export interface EnemyDef {
     particleEffect: ParticleType;
     /** (2B) boss only: enemy ids a roaming add pack is drawn from; undefined → wave-appropriate pool */
     addTable?: string[];
+    /** (2C) boss only: persistent terrain hazard that accumulates during the fight — see logic/enemies/BossHazards.ts */
+    hazard?: import('./logic/enemies/BossHazards').HazardDef;
 }
 
 export interface Entity {
@@ -173,6 +175,9 @@ export interface MutableGameState {
     lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)
     /** set by Logic.ts every frame: boss scripts call this from telegraph onFire to hurt the player */
     damagePlayer?: (amt: number) => void;
+    // (2C) persistent boss hazards — see logic/enemies/BossHazards.ts
+    hazards?: import('./logic/enemies/BossHazards').Hazard[];
+    playerInRubble?: boolean;      // 90 % slow this frame (PlayerLogic reads it)
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx
