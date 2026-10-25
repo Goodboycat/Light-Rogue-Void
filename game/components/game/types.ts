@@ -178,6 +178,10 @@ export interface MutableGameState {
     // (2C) persistent boss hazards — see logic/enemies/BossHazards.ts
     hazards?: import('./logic/enemies/BossHazards').Hazard[];
     playerInRubble?: boolean;      // 90 % slow this frame (PlayerLogic reads it)
+    // (2C) Crimson Eclipse — live rotating beams + blackout (renderer/LaserRenderer.ts, Renderer.ts eclipse overlay)
+    lasers?: import('./logic/enemies/bosses/CrimsonEclipse').Laser[];
+    eclipse?: number;              // 1 → 0 blackout strength; only telegraphs / beams / hazards / player visible
+    eclipseColor?: string;
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx

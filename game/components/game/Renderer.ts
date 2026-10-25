@@ -9,6 +9,7 @@ import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/Floa
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
 import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
 import { drawHazards } from './renderer/HazardRenderer';
+import { drawLasers, drawEclipse, eclipseStrength } from './renderer/LaserRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
 
@@ -54,6 +55,9 @@ export const renderGame = (
         drawEnemy(ctx, e, state.frame);
     });
 
+    // --- CRIMSON ECLIPSE BEAMS (2C, above the boss body) ---
+    drawLasers(ctx, state);
+
     // --- PROJECTILES ---
     renderProjectiles(ctx, state);
 
@@ -86,6 +90,36 @@ export const renderGame = (
 
     // --- DAMAGE NUMBERS (4A, world space) ---
     drawFloaters(ctx, state);
+
+    // --- ECLIPSE (2C): black out the world, then redraw only what must stay readable in the dark ---
+    const ecl = eclipseStrength(state);
+    if (ecl > 0) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        drawEclipse(ctx, state, canvasWidth, canvasHeight);
+        ctx.restore();
+        drawHazards(ctx, state);
+        drawTelegraphs(ctx, state);
+        drawLasers(ctx, state);
+        // the spark itself: a faint aura so you never lose yourself
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.55 * ecl;
+        ctx.fillStyle = currentStageColor;
+        ctx.beginPath(); ctx.arc(state.player.x, state.player.y, state.player.size * 1.6, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 0.9 * ecl;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(state.player.x, state.player.y, state.player.size * 0.6, 0, Math.PI * 2); ctx.fill();
+        // the boss projectiles that are flying at you stay visible too (they're telegraphed danger)
+        ctx.globalAlpha = 0.8 * ecl;
+        for (let i = 0; i < state.projectiles.length; i++) {
+            const p = state.projectiles[i];
+            if (!p.customData?.isBossProj) continue;
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 0.7, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+    }
 
     ctx.restore();
 

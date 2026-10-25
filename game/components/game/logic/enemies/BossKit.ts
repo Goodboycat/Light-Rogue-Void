@@ -267,6 +267,7 @@ export const closeArena = (state: MutableGameState) => {
     cancelTelegraphs(state);
     clearBossProjectiles(state);
     clearHazards(state); // (2C) terrain hazards die with the boss
+    state.lasers = undefined; state.eclipse = 0; // (2C) Crimson Eclipse beams / blackout
 };
 
 /** 0 inside, 1 well outside (used by the renderer vignette). */
