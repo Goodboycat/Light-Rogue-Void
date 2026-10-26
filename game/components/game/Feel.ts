@@ -10,6 +10,7 @@ import {
     STREAK_ESSENCE_PER_10, STREAK_ESSENCE_CAP, STREAK_BANNER_FRAMES,
     PLAYER_IFRAMES, HURT_VIGNETTE_FRAMES,
 } from './Constants';
+import { ARMORED_DMG_TAKEN } from '../../data/affixes';
 
 export interface FeelSettings { screenShake: boolean; reduceFlash: boolean }
 export const DEFAULT_FEEL: FeelSettings = { screenShake: true, reduceFlash: false };
@@ -141,6 +142,19 @@ export const updateFloaters = (state: MutableGameState) => {
  */
 export const onEnemyHit = (state: MutableGameState, enemy: Enemy, damage: number) => {
     if (!(damage > 0)) return;
+    // (4B) mitigation lives here because every damage path does `hp -= dmg; onEnemyHit(...)` before the death check:
+    // we refund part of the hit. AEGIS TRIAL shield + SHIELDED affix block the whole hit; ARMORED refunds 30 %.
+    if (enemy.aegisShielded && !enemy.isBoss) {
+        enemy.hp += damage; enemy.shieldPopFrames = 6; return;
+    }
+    if ((enemy.shieldHits ?? 0) > 0) {
+        enemy.hp += damage; enemy.shieldHits!--; enemy.shieldPopFrames = enemy.shieldHits === 0 ? 14 : 6;
+        return;
+    }
+    if (enemy.affixes && enemy.affixes.indexOf('ARMORED') >= 0) {
+        const refund = damage * (1 - ARMORED_DMG_TAKEN);
+        enemy.hp += refund; damage -= refund;
+    }
     flash(enemy);
     spawnFloater(state, enemy, damage);
     if (enemy.isBoss && damage >= enemy.maxHp * 0.02) shake(state, 2, 3);

@@ -1,9 +1,35 @@
 
-import { EnemyDef, MutableGameState } from '../../types';
+import { EnemyDef, Enemy, MutableGameState } from '../../types';
 import { WORLD_SIZE } from '../../Constants';
 import { getSpawnableEnemy } from '../../../../enemies';
+import { AffixId, rollAffixes, HASTED_SPEED_MULT, ARMORED_SPEED_MULT, SHIELDED_HITS, ELITE_HP_MULT } from '../../../../data/affixes';
 
-export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id: string) => void, x?: number, y?: number, defOverride?: EnemyDef) => {
+export interface SpawnOpts {
+    /** (4B) force elite (Elite Rush / director elite packs) */
+    elite?: boolean;
+    /** (4B) exact affixes instead of a roll */
+    affixes?: AffixId[];
+    /** (4B) skip the affix roll entirely (SPLIT minis, Brood Nodes, Shades…) */
+    noAffix?: boolean;
+    /** (4B) hp / size multipliers (SPLITTING minis) */
+    hpMult?: number;
+    sizeMult?: number;
+}
+
+/** (4B) Apply affix stat effects to a freshly built enemy. Exported so flavors can tag existing enemies. */
+export const applyAffixes = (enemy: Enemy, affixes: AffixId[]) => {
+    if (!affixes.length) return;
+    enemy.affixes = affixes;
+    enemy.maxHp = Math.round(enemy.maxHp * ELITE_HP_MULT);
+    enemy.hp = enemy.maxHp;
+    for (const a of affixes) {
+        if (a === 'HASTED') { enemy.speed *= HASTED_SPEED_MULT; enemy.spawnSpeed = enemy.speed; }
+        if (a === 'ARMORED') { enemy.speed *= ARMORED_SPEED_MULT; enemy.spawnSpeed = enemy.speed; }
+        if (a === 'SHIELDED') enemy.shieldHits = SHIELDED_HITS;
+    }
+};
+
+export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id: string) => void, x?: number, y?: number, defOverride?: EnemyDef, opts?: SpawnOpts): Enemy => {
     const angle = Math.random() * Math.PI * 2;
     const dist = 700 + Math.random() * 200; 
     
@@ -17,25 +43,34 @@ export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id:
     
     // Quadratic HP Scaling: Base + (Wave * Scaling) + (Wave^2 * 0.5)
     // This ensures enemies get much tougher past wave 40-50
-    const hp = def.baseHp + (wave * def.hpScaling) + (wave * wave * 0.5);
+    const hp = Math.max(1, Math.round((def.baseHp + (wave * def.hpScaling) + (wave * wave * 0.5)) * (opts?.hpMult ?? 1)));
     
     // Speed also scales slightly
     const speed = def.baseSpeed + (wave * 0.05);
 
-    state.enemies.push({
+    const enemy: Enemy = {
         x: ex, y: ey,
         vx: 0, vy: 0,
         hp, maxHp: hp,
         def,
         speed,
         spawnSpeed: speed, // Store initial speed for cleansing logic
-        size: def.size,
+        size: def.size * (opts?.sizeMult ?? 1),
         color: def.color,
         projectileImmunity: 0,
         state: { timer: Math.floor(Math.random() * 100) } 
-    });
+    };
+
+    // (4B) elite roll — bosses' scripted minions and SPLIT minis opt out
+    if (!opts?.noAffix) {
+        const affixes = opts?.affixes ?? rollAffixes(wave, !!opts?.elite);
+        applyAffixes(enemy, affixes);
+    }
+
+    state.enemies.push(enemy);
 
     if (onSpawn) {
         onSpawn(def.id);
     }
+    return enemy;
 };

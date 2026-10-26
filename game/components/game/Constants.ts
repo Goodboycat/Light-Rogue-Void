@@ -119,3 +119,16 @@ export const FIREBALL_BREAKS_BOSS_PROJ = true; // player FIRE_BLAST destroys bos
 // (2B+) BigFx — cinematic explosions (components/game/BigFx.ts)
 export const BIGFX_MAX = 6;                   // live big explosions
 export const BIGFX_SHAKE_MAX = 26;            // px, heavy shake budget (White Hole / boss death)
+
+// --- ENEMY VARIETY (4B) --- see data/affixes.ts, logic/Director.ts, components/game/waveFlavors.ts, docs/ENEMIES.md
+export const AFFIX_BASE_CHANCE = 0.05;        // elite chance at wave 0
+export const AFFIX_PER_WAVE = 0.004;          // +0.4 % per wave
+export const AFFIX_CHANCE_CAP = 0.30;
+export const AFFIX_DOUBLE_WAVE = 30;          // from this wave an elite may roll a second affix (25 %)
+export const PACK_MIN = 3;                    // director pack size
+export const PACK_MAX = 8;
+export const PACK_WARN_FRAMES = 36;           // 0.6 s spawn telegraph before a pack lands
+export const PACK_INTERVAL_SEC = 7;           // seconds between packs (scaled down by wave, floor 3.5)
+export const PACK_SPAWN_DIST = 760;           // packs land this far from the player (just off screen)
+export const ENEMY_SHOT_WARN_FRAMES = 24;     // 0.4 s glow before a SNIPER / SHOOT_* enemy fires
+export const ENEMY_PROJ_CAP = 400;            // hard cap on live projectiles (enemy shots are skipped above it)

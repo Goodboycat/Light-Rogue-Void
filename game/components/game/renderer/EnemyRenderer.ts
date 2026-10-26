@@ -1,5 +1,7 @@
 
 import { Enemy } from '../types';
+import { AFFIX_BY_ID } from '../../../data/affixes';
+import { ENEMY_SHOT_WARN_FRAMES } from '../Constants';
 
 const drawHexagon = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number) => {
     ctx.beginPath();
@@ -62,6 +64,67 @@ const drawBossPhaseOverlay = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame
     ctx.restore();
 };
 
+const drawAffixRing = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number, size: number) => {
+    const affixes = enemy.affixes!;
+    const r = size + 7;
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 8;
+    ctx.lineWidth = 2.5;
+    const n = affixes.length;
+    for (let i = 0; i < n; i++) {
+        const def = AFFIX_BY_ID[affixes[i]];
+        ctx.strokeStyle = def.color;
+        ctx.shadowColor = def.color;
+        ctx.globalAlpha = 0.75 + 0.25 * Math.sin(frame * 0.12 + i);
+        const a0 = frame * 0.02 + (i / n) * Math.PI * 2;
+        ctx.beginPath(); ctx.arc(0, 0, r, a0, a0 + (Math.PI * 2) / n - 0.25); ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.font = `bold ${Math.max(10, Math.min(16, size * 0.7))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+        const def = AFFIX_BY_ID[affixes[i]];
+        ctx.fillStyle = def.color;
+        ctx.fillText(def.glyph, (i - (n - 1) / 2) * 14, -r - 9);
+    }
+    ctx.restore();
+};
+
+const drawShieldShell = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number, size: number) => {
+    const pop = enemy.shieldPopFrames ?? 0;
+    if (pop > 0) enemy.shieldPopFrames = pop - 1;
+    const alive = (enemy.shieldHits ?? 0) > 0 || !!enemy.aegisShielded;
+    const r = size + 4 + (alive ? 0 : pop * 1.2);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = enemy.aegisShielded ? '#c084fc' : '#38bdf8';
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.lineWidth = alive ? 1.5 + pop * 0.3 : 2;
+    ctx.globalAlpha = alive ? 0.35 + 0.25 * Math.sin(frame * 0.15) + pop * 0.05 : pop / 14;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) { const a = (Math.PI / 3) * i + frame * 0.01; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+    ctx.closePath(); ctx.stroke();
+    if (alive) { ctx.globalAlpha *= 0.25; ctx.fill(); }
+    ctx.restore();
+};
+
+const drawShinerHalo = (ctx: CanvasRenderingContext2D, frame: number, size: number) => {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const pulse = 0.5 + 0.5 * Math.sin(frame * 0.2);
+    const r = size + 10 + pulse * 4;
+    const g = ctx.createRadialGradient(0, 0, size * 0.3, 0, 0, r);
+    g.addColorStop(0, 'rgba(253,224,71,0.55)');
+    g.addColorStop(1, 'rgba(253,224,71,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#fde047'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6 + 0.4 * pulse;
+    for (let i = 0; i < 4; i++) { const a = frame * 0.05 + i * Math.PI / 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (r - 3), Math.sin(a) * (r - 3)); ctx.lineTo(Math.cos(a) * (r + 6), Math.sin(a) * (r + 6)); ctx.stroke(); }
+    ctx.restore();
+};
+
 export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number) => {
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
@@ -95,6 +158,21 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
         ctx.beginPath();
         ctx.arc(0, 0, size + 6, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.restore();
+    }
+
+    // (4B) Elite affixes: coloured ring outline (one arc per affix) + glyph above; SHIELDED / AEGIS shows a hex shell.
+    if (enemy.affixes && enemy.affixes.length && !enemy.isBoss) drawAffixRing(ctx, enemy, frame, size);
+    if (((enemy.shieldHits ?? 0) > 0 || enemy.aegisShielded || (enemy.shieldPopFrames ?? 0) > 0) && !enemy.isBoss) drawShieldShell(ctx, enemy, frame, size);
+    if (enemy.isShiner && !enemy.isBoss) drawShinerHalo(ctx, frame, size);
+    // (4B) shooter telegraph: a growing glow the 0.4 s before a shot
+    if ((enemy.shotWarn ?? 0) > 0) {
+        const t = 1 - enemy.shotWarn! / ENEMY_SHOT_WARN_FRAMES;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.25 + 0.55 * t;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(0, 0, size * (0.35 + 0.45 * t), 0, Math.PI * 2); ctx.fill();
         ctx.restore();
     }
 

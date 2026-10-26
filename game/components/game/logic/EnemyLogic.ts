@@ -9,6 +9,7 @@ import { updateBossBehavior } from './enemies/BossLogic';
 import { updateStandardBehavior } from './enemies/StandardBehavior';
 import { updateEnemyPhysics } from './enemies/PhysicsLogic';
 import { killEnemy } from './KillLogic';
+import { VAMPIRIC_RADIUS, VAMPIRIC_HEAL_PCT } from '../../../data/affixes';
 
 export const spawnEnemy = spawnEnemyLogic;
 
@@ -88,6 +89,20 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
                     // (4A) one call per contact: i-frames would swallow a second onDamage, so EXPLODE adds its 2 here
                     onDamage(enemy.def.behavior === 'EXPLODE' ? 3 : 1); 
                     const angle = Math.atan2(dy, dx);
+                    // (4B) VAMPIRIC: a landed touch heals allies within VAMPIRIC_RADIUS
+                    if (enemy.affixes && enemy.affixes.indexOf('VAMPIRIC') >= 0 && state.frame - (enemy.state.custom?.lastVamp ?? -999) > 30) {
+                        enemy.state.custom = enemy.state.custom || {};
+                        enemy.state.custom.lastVamp = state.frame;
+                        for (let j = 0; j < state.enemies.length; j++) {
+                            const o = state.enemies[j];
+                            if (o === enemy || o.isBoss || o.hp >= o.maxHp) continue;
+                            if (Math.hypot(o.x - enemy.x, o.y - enemy.y) < VAMPIRIC_RADIUS) {
+                                o.hp = Math.min(o.maxHp, o.hp + o.maxHp * VAMPIRIC_HEAL_PCT);
+                                createParticle(state, o.x, o.y, ParticleType.HEAL, '#f43f5e', { speed: 1, size: 3 });
+                            }
+                        }
+                        VFX.castShockwave(state, enemy.x, enemy.y, '#f43f5e');
+                    }
                     
                     // Bounce Player away
                     state.player.vx += Math.cos(angle) * 15;

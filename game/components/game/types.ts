@@ -99,6 +99,15 @@ export interface Enemy extends Entity {
     isSlowImmune?: boolean; // Immunity to Ice Nova/Slows
     carried?: boolean; // (2A) survived a wave change → bonus essence + faint ring
     flashTimer?: number; // (4A) white hit flash frames left
+    // (4B) elite affixes — data/affixes.ts
+    affixes?: import('../../data/affixes').AffixId[];
+    shieldHits?: number;      // SHIELDED: hits left before the shield breaks
+    shieldPopFrames?: number; // SHIELDED: frames of break flash
+    shotWarn?: number;        // (4B) frames until this shooter fires (0.4 s glow telegraph)
+    // (4B) special waves — components/game/waveFlavors.ts
+    aegisShielded?: boolean;  // AEGIS TRIAL: immune until a Shiner dies nearby
+    isShiner?: boolean;       // AEGIS TRIAL: kill to break shields in 200 px
+    aegisBrokenTimer?: number;
 }
 
 export interface Projectile extends Entity {
@@ -184,6 +193,17 @@ export interface MutableGameState {
     eclipseColor?: string;
     /** (2D) Logic.ts mirrors the current PlayerStats here so boss scripts (Darkness) can read unlocked powers */
     playerStatsRef?: PlayerStats;
+    // (4B) enemy variety — logic/Director.ts + waveFlavors.ts
+    currentWave?: number;          // mirrored by Logic.ts each frame (KillLogic needs it for SPLITTING minis)
+    packTimer?: number;            // frames until the director's next pack
+    packPending?: number;          // packs currently telegraphed but not yet landed
+    flavor?: import('./waveFlavors').WaveFlavorId;   // active special wave (set on wave start)
+    flavorBanner?: { banner: string; caption: string; color: string; frames: number; max: number };
+    flavorEssenceMult?: number;    // CURSE clean bonus → 1.1 for the wave
+    curseMarks?: import('./waveFlavors').CurseMark[];
+    curseDamagedInWave?: boolean;
+    gauntletTimer?: number;
+    aegisCounter?: number;
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx

@@ -57,6 +57,7 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
+    state.currentWave = wave; // (4B) KillLogic / flavors read the wave without threading it through
     // (2B) every damage path during a boss fight tags the boss (GameOver death hint); telegraphs call state.damagePlayer
     const rawOnDamage = onDamage; // capture BEFORE reassigning — the wrapper must not call itself (2C fix: stack overflow)
     const bossTaggedDamage = (amt: number) => {
