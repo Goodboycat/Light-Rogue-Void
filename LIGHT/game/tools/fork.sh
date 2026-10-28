@@ -4,7 +4,8 @@
 #        bash LIGHT/game/tools/fork.sh --ls [dir]               list files
 #        bash LIGHT/game/tools/fork.sh --orig <path>            same, from the original-complete branch
 set -e
-cd "$(dirname "$0")/../.."
+cd "$(dirname "$0")/../.."   # LIGHT/
+cd "$(git rev-parse --show-toplevel)"   # repo root (LIGHT/ lives inside it)
 BR=origin/fixed-fork
 if [ "$1" = "--orig" ]; then BR=origin/original-complete; shift; fi
 git rev-parse -q --verify "$BR" >/dev/null 2>&1 || git fetch -q origin fixed-fork original-complete

@@ -1,0 +1,19 @@
+# deps / build
+game/node_modules
+game/dist
+game/dist-ssr
+game/out
+out
+*.local
+# logs
+logs
+*.log
+npm-debug.log*
+# editor / os
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+core
+core.*

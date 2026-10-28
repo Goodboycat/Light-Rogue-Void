@@ -1,19 +1,9 @@
-# deps / build
-game/node_modules
-game/dist
-game/dist-ssr
-game/out
-out
-*.local
-# logs
-logs
+# repo root: everything lives in LIGHT/ (see LIGHT/README.md)
+node_modules
+LIGHT/game/node_modules
+LIGHT/game/dist
+LIGHT/out
 *.log
-npm-debug.log*
-# editor / os
-.vscode/*
-!.vscode/extensions.json
-.idea
 .DS_Store
-*.sw?
 core
 core.*
