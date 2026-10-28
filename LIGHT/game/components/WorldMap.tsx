@@ -8,6 +8,7 @@
 import React, { useEffect, useRef } from 'react';
 import { CHAPTERS, WAVES_PER_CHAPTER, IS_DEMO, DEMO_MAX_WAVE } from './game/Constants';
 import { mulberry32 } from '../utils/rng';
+import { sfx } from '../audio/hooks';
 
 export const MAP_W = 1024;
 export const MAP_H = 683;
@@ -346,6 +347,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ maxWaveReached, defeatedBosses, cur
       if (!h) return;
       if ('treasure' in h && h.treasure) {
         burstRef.current = { x: h.treasure.x, y: h.treasure.y, t: performance.now(), label: `+${h.treasure.matter} MATTER` };
+        sfx('pickup_relic', 0.9);
         p.onTreasure?.(h.treasure.id, h.treasure.matter);
       } else if ('place' in h && h.place !== undefined && isChapterUnlocked(h.place, p.maxWaveReached)) {
         p.onSelect?.(h.place);
