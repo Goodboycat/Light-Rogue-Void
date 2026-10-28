@@ -6,6 +6,7 @@ import { createParticle, spawnExplosion } from '../Particles';
 import { WORLD_SIZE } from '../Constants';
 import { InputHandler } from '../Input';
 import { VFX } from '../Emitters';
+import { sfx } from '../../../audio/hooks'; // (6B)
 
 export const updatePlayer = (
     state: MutableGameState, 
@@ -159,6 +160,7 @@ export const updatePlayer = (
             }
 
             state.player.dashTimer = 10 + stats.dashDuration;
+            sfx('player_dash'); // (6B)
             // (3A) Mirror Shard: extra charges skip the cooldown; they refill when a normal cooldown completes
             if ((state.dashChargesLeft ?? 0) > 0) {
                 state.dashChargesLeft!--;

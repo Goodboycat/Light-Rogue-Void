@@ -6,6 +6,7 @@ import { VFX } from '../Emitters';
 import { spawnExplosion, createParticle } from '../Particles';
 import { castWhiteHoleBlast } from '../BigFx';
 import { swapRemoveProjectile } from '../Pools';
+import { sfx } from '../../../audio/hooks'; // (6B)
 
 export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStats, w: number, h: number, maturityScale: number) => {
     const p = state.player;
@@ -56,6 +57,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
         const count = stats.fireBlastLevel >= 3 ? 3 : 1;
         for(let i=0; i<count; i++) {
             const spread = (i - (count-1)/2) * 0.2;
+            sfx('player_shot', undefined, 0.1); // (6B)
             state.projectiles.push({
                 x: p.x, y: p.y, vx: Math.cos(angle + spread) * 12, vy: Math.sin(angle + spread) * 12,
                 size: 15 * maturityScale, color: '#f97316', life: 60, damage, isEnemy: false, visualType: 'FIRE_BLAST' 
@@ -72,6 +74,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
         const damage = 20 + (stats.fireflyLevel * 5);
         
         if (activeFireflies < maxFireflies && p.fireflyTimer <= 0) {
+            sfx('player_shot', undefined, 0.1); // (6B)
             state.projectiles.push({
                 x: p.x, y: p.y, vx: 0, vy: 0,
                 size: 6 * maturityScale, color: '#fef08a', 
@@ -121,6 +124,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
     // 5. HOMING MISSILE
     if (stats.homingMissileLevel > 0 && p.homingMissileTimer <= 0) {
         const damage = 60 + (stats.homingMissileLevel * 15);
+        sfx('player_shot', undefined, 0.1); // (6B)
         state.projectiles.push({
             x: p.x, y: p.y, 
             vx: Math.cos(angle) * 2, vy: Math.sin(angle) * 2, 
@@ -140,6 +144,8 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
         const sx = p.x - Math.cos(angle) * dist;
         const sy = p.y - Math.sin(angle) * dist;
 
+        sfx('player_shot', undefined, 0.1); // (6B)
+
         state.projectiles.push({
             x: sx, y: sy, vx: 0, vy: 0,
             size: 20 * maturityScale, color: '#000', 
@@ -155,6 +161,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
 
     // 7. NEBULA TRAIL (Now Stardust Trail)
     if (stats.nebulaTrailLevel > 0 && p.nebulaTrailTimer <= 0) {
+        sfx('player_shot', undefined, 0.1); // (6B)
         state.projectiles.push({
             x: p.x, y: p.y, vx: 0, vy: 0,
             size: 30 * maturityScale, color: '#ffffff', life: 60, damage: 5 + stats.nebulaTrailLevel, isEnemy: false, isStatic: true,
@@ -166,6 +173,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
 
     // 9. SOLAR FLARE
     if (stats.solarFlareLevel > 0 && p.solarFlareTimer <= 0) {
+        sfx('player_shot', undefined, 0.1); // (6B)
         state.projectiles.push({
             x: p.x, y: p.y, vx: 0, vy: 0, 
             size: 25 * maturityScale, color: '#fbbf24', 
@@ -241,6 +249,8 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
              const spread = (Math.PI * 2) / count;
              const bladeAngle = angle + (i * spread) + (state.frame * 0.1);
              
+             sfx('player_shot', undefined, 0.1); // (6B)
+             
              state.projectiles.push({
                  x: p.x, y: p.y, 
                  vx: Math.cos(bladeAngle) * 15, 
@@ -309,6 +319,7 @@ export const updatePlayerAbilities = (state: MutableGameState, stats: PlayerStat
                  onEnemyHit(state, nearest, damage);
                  
                  // Spawn Whip Projectile for Rendering
+                 sfx('player_shot', undefined, 0.1); // (6B)
                  state.projectiles.push({
                      x: p.x, y: p.y, vx: 0, vy: 0,
                      life: 15, // Visible duration

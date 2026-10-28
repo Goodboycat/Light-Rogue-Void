@@ -32,6 +32,8 @@ import { MATURITY_LEVELS } from '../data/maturity';
 import { LIGHT_PHRASES } from '../data/lightPhrases';
 import { VOID_PHRASES } from '../data/phrases';
 import { VFX } from './game/Emitters';
+import { Audio } from '../audio/AudioManager'; // (6B)
+import { sfx } from '../audio/hooks';
 
 interface SurvivalGameProps {
   playerStats: PlayerStats;
@@ -351,6 +353,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
               const st = gameStateRef.current;
               const b = st.activeBoss;
               setDeathBoss(b && st.lastBossHit === b.def.id ? { name: b.def.name, hint: bossHint(b.def.id) } : null);
+              sfx('player_death', 1, 0); Audio.music(null, 1500); // (6B)
               setGameOver(true);
           }
       }
@@ -442,6 +445,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 setRelics([...state.world.relics]);
             }
             state.hpRatio = refs.playerStats.maxHealth > 0 ? refs.currentHealth / refs.playerStats.maxHealth : 1;
+            if (state.hpRatio < 0.25 && state.hpRatio > 0 && state.frame % 54 === 0) sfx('player_low_hp', 1, 0); // (6B) heartbeat ~0.9 s
             const bossId = state.activeBoss?.def.id;
             
             updateGame(state, runStats, input, refs.wave, refs.timeRemaining, 

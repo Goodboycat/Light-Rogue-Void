@@ -15,6 +15,7 @@ import { spawnBigExplosion, screenFlash } from '../BigFx';
 import { VFX } from '../Emitters';
 import { createParticle } from '../Particles';
 import {
+import { sfx } from '../../../audio/hooks'; // (6B)
     BURST_RADIUS, BURST_DMG_PER_WAVE, BURST_STUN_FRAMES, BURST_FILL_PER_KILL,
     BURST_FILL_PER_ESSENCE, BURST_LEVEL_DMG_MULT, BURST_LEVEL_FILL_MULT, BURST_KNOCKBACK,
 } from '../Constants';
@@ -54,7 +55,7 @@ export const onBurstEssence = (state: MutableGameState, value: number) => {
 const addMeter = (b: BurstState, amt: number) => {
     const was = b.meter;
     b.meter = Math.min(1, b.meter + amt);
-    if (was < 1 && b.meter >= 1) b.flashFrames = 30;
+    if (was < 1 && b.meter >= 1) { b.flashFrames = 30; sfx('burst_charge', 1, 0); } // (6B)
 };
 
 let prevFirePressed = false;
@@ -85,6 +86,7 @@ export const fireLightBurst = (state: MutableGameState, wave: number) => {
     const dmg = burstDamage(wave, b.level);
     b.meter = 0;
     b.fired++;
+    sfx('burst_fire', 1, 0); // (6B)
     b.lastFireFrame = state.frame;
 
     // VFX: big white/gold shockwave + flash + shake + hit-stop

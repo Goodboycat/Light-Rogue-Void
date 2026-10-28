@@ -12,6 +12,7 @@ import { castBossDeathBlast } from '../BigFx';
 import { ELITE_ESSENCE_MULT, SPLIT_MINI_HP, SPLIT_MINI_SIZE } from '../../../data/affixes';
 import { onFlavorKill } from '../waveFlavors';
 import { onBurstKill } from './LightBurst';
+import { sfxAt } from '../../../audio/hooks'; // (6B)
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -57,6 +58,13 @@ export const killEnemy = (
         }
     }
     if (!enemy.isBoss) onFlavorKill(state, enemy); // (4B) special waves: curse marks, aegis shield breaks
+
+    // (6B) death SFX: boss / elite / big / small
+    if (enemy.isBoss) sfxAt(state, 'boss_die', enemy.x, enemy.y, 1, 0);
+    else if (enemy.affixes && enemy.affixes.length) sfxAt(state, 'elite_die', enemy.x, enemy.y);
+    else if (enemy.def.size >= 24) sfxAt(state, 'enemy_die_big', enemy.x, enemy.y);
+    else sfxAt(state, 'enemy_die_small', enemy.x, enemy.y, undefined, 0.15);
+    if (enemy.isGoldenMite) sfxAt(state, 'golden_mite', enemy.x, enemy.y, 1);
 
     if (enemy.isBoss) {
         spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);

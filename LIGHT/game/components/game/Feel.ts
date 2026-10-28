@@ -11,6 +11,7 @@ import {
     PLAYER_IFRAMES, HURT_VIGNETTE_FRAMES,
 } from './Constants';
 import { ARMORED_DMG_TAKEN } from '../../data/affixes';
+import { sfx, sfxAt } from '../../audio/hooks'; // (6B)
 
 export interface FeelSettings { screenShake: boolean; reduceFlash: boolean }
 export const DEFAULT_FEEL: FeelSettings = { screenShake: true, reduceFlash: false };
@@ -145,8 +146,9 @@ export const onEnemyHit = (state: MutableGameState, enemy: Enemy, damage: number
     // (4B) mitigation lives here because every damage path does `hp -= dmg; onEnemyHit(...)` before the death check:
     // we refund part of the hit. AEGIS TRIAL shield + SHIELDED affix block the whole hit; ARMORED refunds 30 %.
     if (enemy.aegisShielded && !enemy.isBoss) {
-        enemy.hp += damage; enemy.shieldPopFrames = 6; return;
+        enemy.hp += damage; enemy.shieldPopFrames = 6; sfxAt(state, 'affix_shield_break', enemy.x, enemy.y, 0.6); return;
     }
+    sfxAt(state, 'enemy_hit', enemy.x, enemy.y, undefined, 0.2); // (6B) throttled 50 ms
     if ((enemy.shieldHits ?? 0) > 0) {
         enemy.hp += damage; enemy.shieldHits!--; enemy.shieldPopFrames = enemy.shieldHits === 0 ? 14 : 6;
         return;
@@ -188,6 +190,7 @@ export const onKillForStreak = (state: MutableGameState, enemy: Enemy) => {
         if (state.streak === tier) {
             const lines = STREAK_LINES[tier] || STREAK_LINES[10];
             state.streakBanner = { tier, text: lines[Math.floor(Math.random() * lines.length)], frames: STREAK_BANNER_FRAMES };
+            sfx(tier >= 50 ? 'streak_50' : tier >= 25 ? 'streak_25' : 'streak_10', 1, 0); // (6B)
             shake(state, 3 + tier / 10, 4);
             hitStop(state, tier >= 50 ? 4 : 2);
         }
@@ -213,6 +216,7 @@ export const onPlayerHurt = (state: MutableGameState): boolean => {
     if ((state.playerIFrames ?? 0) > 0) return false;
     state.playerIFrames = PLAYER_IFRAMES;
     state.hurtVignette = HURT_VIGNETTE_FRAMES;
+    sfx('player_hurt', 1, 0.05); // (6B)
     shake(state, 6, 5);
     hitStop(state, 2);
     return true;

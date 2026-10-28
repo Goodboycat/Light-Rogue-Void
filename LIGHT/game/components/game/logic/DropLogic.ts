@@ -3,6 +3,7 @@ import { onBurstEssence } from './LightBurst';
 import { PlayerStats } from '../../../types';
 import { swapRemoveDrop } from '../Pools';
 import { collectRelic } from './WorldInteract';
+import { sfx } from '../../../audio/hooks'; // (6B)
 
 export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturityScale: number, onCollect: (amount: number) => void) => {
     // Removed large base constant (was 100).
@@ -23,7 +24,8 @@ export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturit
 
         if (dist < state.player.size + 20) {
             // Collected
-            if (drop.relicId) { collectRelic(state, drop.relicId); swapRemoveDrop(state.drops, i); continue; } // (3A)
+            if (drop.relicId) { collectRelic(state, drop.relicId); sfx('pickup_relic', 1, 0); swapRemoveDrop(state.drops, i); continue; } // (3A)
+            sfx('pickup_essence', undefined, 0.12); // (6B) throttled 45 ms in sfxIds
             const amount = drop.value * stats.essenceMultiplier * (1 + (state.runModifiers?.essenceMult ?? 0)); // (3A) Greed / Crown
             onCollect(amount);
             onBurstEssence(state, drop.value); // (3B step 6)
