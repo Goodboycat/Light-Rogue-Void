@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X } from 'lucide-react';
+import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X, RotateCcw } from 'lucide-react';
 import { AbilityNodeData, AbilityType, GameState } from '../types';
 import { ABILITY_TREE_DATA, BOSS_DISPLAY_NAMES } from '../data';
+import { RESPEC_TAX } from './game/Constants';
 import Connection from './Connection';
 import SkillNode from './SkillNode';
 
@@ -11,6 +12,7 @@ interface EvolutionMatrixProps {
     gameState: GameState;
     onUnlock: (id: string) => void;
     onBatchUnlock: (ids: string[]) => void;
+    onRespec: () => void;
     onOpenBestiary: () => void;
     onOpenAchievements: () => void;
     onOpenSettings: () => void;
@@ -65,6 +67,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     gameState, 
     onUnlock, 
     onBatchUnlock,
+    onRespec,
     onOpenBestiary, 
     onOpenAchievements,
     onOpenSettings,
@@ -81,6 +84,12 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     const [isPinching, setIsPinching] = useState(false);
     // (7A) search + path preview
     const [query, setQuery] = useState('');
+    const [respecOpen, setRespecOpen] = useState(false); // (7A) confirm dialog
+    const respecInfo = useMemo(() => {
+        const ids = gameState.unlockedAbilityIds.filter(id => id !== 'spark');
+        const spent = ids.reduce((s, id) => s + (NODE_BY_ID[id]?.cost ?? 0), 0);
+        return { count: ids.length, spent, refund: Math.floor(spent * (1 - RESPEC_TAX)) };
+    }, [gameState.unlockedAbilityIds]);
     const [previewId, setPreviewId] = useState<string | null>(null);
     const matchIds = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -318,6 +327,16 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 </button>
                 <div className="w-px h-10 bg-slate-700 mx-2" />
                 <button 
+                    id="respec-button"
+                    onClick={() => setRespecOpen(true)}
+                    disabled={respecInfo.count === 0}
+                    title={`Refund all nodes (−${Math.round(RESPEC_TAX * 100)} % tax)`}
+                    className="flex items-center gap-2 px-4 py-3 bg-slate-800 hover:bg-amber-900/60 border border-slate-600 hover:border-amber-400 rounded-lg text-white transition-all font-tech text-xs tracking-wider shadow-lg disabled:opacity-40 disabled:hover:bg-slate-800 disabled:hover:border-slate-600"
+                >
+                    <RotateCcw size={16} />
+                    RESPEC
+                </button>
+                <button 
                     onClick={onOpenSettings}
                     className="flex items-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all font-tech text-xs tracking-wider shadow-lg"
                 >
@@ -332,6 +351,26 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                     MAIN MENU
                 </button>
             </div>
+
+            {/* (7A) Respec confirm dialog */}
+            {respecOpen && (
+                <div id="respec-dialog" className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto p-4" onClick={() => setRespecOpen(false)}>
+                    <div className="w-full max-w-sm bg-slate-900 border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(251,191,36,0.15)]" onClick={e => e.stopPropagation()}>
+                        <h2 className="font-tech text-xl text-amber-300 tracking-widest mb-3">REDRAW THE CONSTELLATION</h2>
+                        <p className="text-slate-300 text-sm font-mono leading-relaxed">
+                            Refund <span className="text-white">{respecInfo.count}</span> nodes worth <span className="text-white">{respecInfo.spent}</span> matter.
+                            The void keeps <span className="text-amber-300">{Math.round(RESPEC_TAX * 100)} %</span> — you receive
+                            <span className="text-emerald-300 font-bold"> +{respecInfo.refund} </span>matter. Only the Spark stays lit.
+                        </p>
+                        <div className="flex gap-3 mt-6">
+                            <button data-sfx="back" onClick={() => setRespecOpen(false)}
+                                className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white font-tech text-xs tracking-wider">CANCEL</button>
+                            <button onClick={() => { setRespecOpen(false); onRespec(); setPreviewId(null); }}
+                                className="flex-1 px-4 py-3 bg-amber-600 hover:bg-amber-500 border border-amber-400/60 rounded-lg text-white font-tech font-bold text-xs tracking-wider">REFUND ALL</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Navigation Arrows for Buyable Nodes */}
             {buyableNodes.length > 0 && (

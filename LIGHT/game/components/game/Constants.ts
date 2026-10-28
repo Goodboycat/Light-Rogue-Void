@@ -165,3 +165,6 @@ export const BURST_FILL_PER_ESSENCE = 0.0005; // per raw essence point picked up
 export const BURST_LEVEL_DMG_MULT = 0.35;     // +35 % damage per level above 1
 export const BURST_LEVEL_FILL_MULT = 0.25;    // +25 % fill speed per level above 1
 export const BURST_KNOCKBACK = 14;
+
+// (7A) Respec: refund every unlocked node except `spark`, minus this tax.
+export const RESPEC_TAX = 0.2;

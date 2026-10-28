@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StarBackground from './components/StarBackground';
 import SurvivalGame from './components/SurvivalGame';
 import { Audio } from './audio/AudioManager';
-import { MAX_WAVE } from './components/game/Constants';
+import { MAX_WAVE, RESPEC_TAX } from './components/game/Constants';
 import Archives from './components/Archives';
 import MainMenu from './components/MainMenu';
 import AchievementList from './components/AchievementList';
@@ -198,6 +198,18 @@ const App: React.FC = () => {
       });
   };
 
+  /** (7A) Respec: refund every unlocked node except `spark`, minus RESPEC_TAX. */
+  const handleRespec = () => {
+      setGameState(p => {
+          const ids = p.unlockedAbilityIds.filter(id => id !== 'spark');
+          if (ids.length === 0) { Audio.play('ui_error', { vol: 0.8 }); return p; }
+          const spent = ids.reduce((sum, id) => sum + (ABILITY_TREE_DATA.find(n => n.id === id)?.cost ?? 0), 0);
+          const refund = Math.floor(spent * (1 - RESPEC_TAX));
+          Audio.play('ui_unlock');
+          return { ...p, matter: p.matter + refund, unlockedAbilityIds: ['spark'] };
+      });
+  };
+
   const handleUnlockAll = () => {
       setGameState(p => ({
           ...p,
@@ -378,6 +390,7 @@ const App: React.FC = () => {
                         gameState={gameState}
                         onUnlock={handleUnlock}
                         onBatchUnlock={handleBatchUnlock}
+                        onRespec={handleRespec}
                         onOpenBestiary={() => { setShowArchives(true); }}
                         onOpenAchievements={() => { setShowAchievements(true); }}
                         onOpenSettings={() => { setShowSettings(true); }}
