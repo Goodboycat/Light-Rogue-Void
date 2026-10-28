@@ -2,7 +2,7 @@
 import { Enemy } from '../types';
 import { AFFIX_BY_ID } from '../../../data/affixes';
 import { ENEMY_SHOT_WARN_FRAMES } from '../Constants';
-import { enemyPalette, mix, type ChapterPalette } from './Palette';
+import { enemyPalette, mix, phaseColor, type ChapterPalette } from './Palette';
 import type { EnemyDef } from '../types';
 
 // (5A) Per-def tint cache: every enemy keeps its own hue but is pulled 25 % toward its chapter accent so a wave
@@ -40,6 +40,16 @@ const drawBossPhaseOverlay = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.shadowBlur = 0;
+    // (5A) enrage: a fast red heartbeat ring expanding from the body edge (every 0.5 s) + red rim
+    if (enemy.state.bossEnraged) {
+        const t = ((frame % 30) / 30);
+        ctx.globalAlpha = (1 - t) * 0.7;
+        ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3 + 3 * (1 - t);
+        ctx.beginPath(); ctx.arc(0, 0, size * (1.05 + t * 0.6), 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 0.5 + 0.3 * Math.sin(frame * 0.4);
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, size * 1.02, 0, Math.PI * 2); ctx.stroke();
+    }
     // core
     const coreR = size * (0.22 + 0.06 * phase) * (1 + pulse * 0.15) * (shifting ? 1.6 : 1);
     const g = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR * 2.2);
@@ -158,7 +168,8 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
         ctx.fillStyle = enemy.isBoss ? enemy.def.color : enemyTint(enemy.def).fill;
     }
     
-    ctx.strokeStyle = enemy.isBoss ? enemy.def.glowColor : enemyTint(enemy.def).glow;
+    // (5A) boss body stroke follows the phase: P1 chapter glow, P2 hotter amber, P3 white
+    ctx.strokeStyle = enemy.isBoss ? phaseColor(enemy.def.glowColor, enemy.state.phase ?? 1) : enemyTint(enemy.def).glow;
     ctx.lineWidth = 2;
 
     const size = enemy.def.size;
