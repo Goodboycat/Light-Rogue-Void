@@ -6,6 +6,7 @@ import { getBossForWave } from '../../bosses';
 import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
 import { updateHazards } from './logic/enemies/BossHazards';
 import { updateBigFx } from './BigFx';
+import { updateDirector } from './logic/Director';
 import { VOID_BURN_DPS, VOID_BURN_TICK_FRAMES } from './Constants';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
@@ -116,10 +117,14 @@ export const updateGame = (
         if (state.activeBoss) {
             // (2B) roaming packs land at the arena edge after a telegraph — see BossKit.updateBossAdds
             updateBossAdds(state, state.activeBoss, wave, onEnemySeen);
-        } else if (sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
-            const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
-            const rate = Math.round(baseRate / Math.max(0.15, ramp));
-            if (state.frame % rate === 0) shouldSpawn = true;
+        } else {
+            // (4B) packs land after a 0.6 s telegraph; the trickle below runs at half speed around a pack
+            const trickleMult = updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
+            if (sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
+                const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
+                const rate = Math.round(baseRate * trickleMult / Math.max(0.15, ramp));
+                if (state.frame % rate === 0) shouldSpawn = true;
+            }
         }
 
         if (!state.activeBoss && aliveNonBoss === 0 && state.waveKills < waveKillQuota(wave)

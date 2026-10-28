@@ -4,6 +4,8 @@ import { PlayerStats, Settings } from '../types';
 import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
+import { resetDirector } from './game/logic/Director';
+import { startWaveFlavor } from './game/waveFlavors';
 import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG } from './game/Constants';
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
@@ -212,6 +214,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; });
       state.waveKills = 0;
       state.waveStartedFrame = state.frame;
+      resetDirector(state);          // (4B) a pack lands early in every wave
+      startWaveFlavor(state, nextWave); // (4B) special wave at x5 (banner + rules), clears the old one
       setWaveKills(0);
       setTimeRemaining(waveTimerSec(nextWave));
       return true;
