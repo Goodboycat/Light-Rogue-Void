@@ -12,6 +12,7 @@ import { drawHazards, drawCurseMarks } from './renderer/HazardRenderer';
 import { drawLasers, drawEclipse, eclipseStrength } from './renderer/LaserRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
+import { drawWorldPoints, drawWorldArrow, drawWorldCard } from './renderer/WorldRenderer'; // (3A)
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -44,6 +45,9 @@ export const renderGame = (
         ctx.shadowColor = '#d8b4fe';
     });
     ctx.shadowBlur = 0;
+
+    // --- WORLD POINTS (3A, under everything but the border) ---
+    drawWorldPoints(ctx, state, canvasWidth, canvasHeight);
 
     // --- BOSS ARENA + TELEGRAPHS (2B, under enemies) ---
     drawArena(ctx, state);
@@ -131,6 +135,8 @@ export const renderGame = (
     if (!state.activeBoss?.state?.custom?.cinematicMode) drawBossArrival(ctx, state, canvasWidth, canvasHeight);
     drawStreakBanner(ctx, state, canvasWidth, canvasHeight);
     drawFlavorBanner(ctx, state, canvasWidth, canvasHeight); // (4B) special wave banner
+    drawWorldArrow(ctx, state, canvasWidth, canvasHeight);   // (3A) off-screen hint, chapters 1–2
+    drawWorldCard(ctx, state, canvasWidth, canvasHeight);    // (3A) lore card / shrine toast
 
     // --- CURSOR ---
     ctx.fillStyle = '#fff';
