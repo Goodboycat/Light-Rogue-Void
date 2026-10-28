@@ -616,7 +616,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
       {/* (3B step 6) Light Burst meter — only drawn when the tree node is owned */}
       {!activeCinematic && !gameOver && !gameWon && burstHud && (
-          <div id="burst-meter" className="fixed top-28 right-8 z-40 w-40 select-none pointer-events-none">
+          <div id="burst-meter" className="fixed top-[72px] right-3 md:top-28 md:right-8 z-40 w-28 md:w-40 select-none pointer-events-none"
+               style={{ marginTop: 'env(safe-area-inset-top, 0px)', marginRight: 'env(safe-area-inset-right, 0px)' }}>
               <div className={`flex justify-between text-[10px] font-tech tracking-[0.25em] mb-1 ${burstHud.ready ? 'text-amber-200 animate-pulse' : 'text-white/40'}`}>
                   <span>LIGHT BURST{burstHud.level > 1 ? ` ·${burstHud.level}` : ''}</span>
                   <span>{burstHud.ready ? (settings.showTouchControls ? 'TAP ☀' : 'SPACE / E') : `${Math.floor(burstHud.meter * 100)}%`}</span>
@@ -650,6 +651,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             waveQuota={waveKillQuota(wave)}
             currentPhrase={currentPhrase}
             darknessPhrase={darknessPhrase}
+            touch={!!settings.showTouchControls}
+            bossActive={!!bossInfo}
             maturity={maturity}
           />
       )}

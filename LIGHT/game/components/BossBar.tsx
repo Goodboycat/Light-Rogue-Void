@@ -21,7 +21,8 @@ const BossBar: React.FC<{ info: BossBarInfo }> = ({ info }) => {
     const mm = Math.floor(info.enrageIn / 60);
     const ss = Math.floor(info.enrageIn % 60).toString().padStart(2, '0');
     return (
-        <section id="boss-bar" className="absolute left-1/2 -translate-x-1/2 top-9 w-[min(600px,92vw)] pointer-events-none select-none z-20">
+        <section id="boss-bar" className="absolute left-1/2 -translate-x-1/2 top-[68px] md:top-[92px] w-[min(600px,56vw)] md:w-[min(600px,70vw)] pointer-events-none select-none z-20"
+                 style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
             <div className="flex items-end justify-between px-1 mb-1">
                 <span className="font-tech text-sm md:text-lg tracking-[0.2em] text-white drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]">
                     {info.name}

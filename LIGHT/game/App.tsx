@@ -380,7 +380,7 @@ const App: React.FC = () => {
             
             {/* HUD */}
             {!gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && !isPauseBlocked && !isTransitioning && (
-                <GameHUD matter={gameState.matter} />
+                <GameHUD matter={gameState.matter} touch={!!gameState.settings.showTouchControls} />
             )}
 
             {/* EVOLUTION MATRIX */}
