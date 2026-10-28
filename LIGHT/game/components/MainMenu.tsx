@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Settings, MessageSquare, X, Mail } from 'lucide-react';
-import { IS_DEMO, DEMO_MAX_WAVE, CHAPTERS, WAVES_PER_CHAPTER } from './game/Constants';
+import { CHAPTERS, WAVES_PER_CHAPTER } from './game/Constants';
+import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
 
 interface MainMenuProps {
     onStart: (wave: number) => void;
@@ -12,6 +13,11 @@ interface MainMenuProps {
     currentMatter: number;
     onUnlockAll: () => void;
     hasSeenIntro: boolean;
+    // (7C) world map
+    defeatedBosses?: string[];
+    treasuresOpened?: string[];
+    onTreasure?: (id: string, matter: number) => void;
+    reduceFlash?: boolean;
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({ 
@@ -21,14 +27,17 @@ const MainMenu: React.FC<MainMenuProps> = ({
     // Props kept for interface compatibility but unused in UI now
     onAddMatter,
     onUnlockAll,
-    hasSeenIntro
+    hasSeenIntro,
+    defeatedBosses = [],
+    treasuresOpened = [],
+    onTreasure,
+    reduceFlash = false,
 }) => {
     const [showNote, setShowNote] = useState(false);
     // (3B) chapter time-skip: a chapter is unlocked once you've reached its first wave.
     const [chapterIdx, setChapterIdx] = useState(0);
     const chapterFirstWave = (i: number) => i * WAVES_PER_CHAPTER + 1;
-    const chapterUnlocked = (i: number) =>
-        maxWaveReached >= chapterFirstWave(i) && (!IS_DEMO || chapterFirstWave(i) <= DEMO_MAX_WAVE);
+    const chapterUnlocked = (i: number) => isChapterUnlocked(i, maxWaveReached);
     const startWave = chapterFirstWave(chapterIdx);
     
     const handleStart = () => {
@@ -129,42 +138,27 @@ const MainMenu: React.FC<MainMenuProps> = ({
                     animate: { opacity: 1, y: 0 },
                     transition: { delay: 0.5 }
                 } as any)}
-                className="relative z-10 mt-4 flex flex-col items-center gap-6 w-full max-w-md"
+                className="relative z-10 mt-4 flex flex-col items-center gap-4 w-full max-w-md md:max-w-2xl"
             >
-                {/* (3B) CHAPTER SELECTION — replaces the free wave slider */}
+                {/* (7C) WORLD MAP — chapter select (replaces the 3B cards) */}
                 {maxWaveReached > 1 && (
-                    <section id="chapter-select" className="w-full bg-slate-900/80 p-3 rounded-xl border border-slate-700 backdrop-blur-sm shadow-xl">
-                        <label className="text-[10px] text-slate-400 font-tech mb-2 block uppercase tracking-[0.2em] text-center border-b border-slate-800 pb-2">
-                            Select Chapter
+                    <section id="chapter-select" className="w-full bg-slate-900/70 p-2 rounded-xl border border-slate-700 backdrop-blur-sm shadow-xl">
+                        <label className="text-[10px] text-slate-400 font-tech mb-1 block uppercase tracking-[0.2em] text-center">
+                            Star Chart — pick a place · 10 waves each, boss at the 10th
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {CHAPTERS.map((ch, i) => {
-                                const unlocked = chapterUnlocked(i);
-                                const selected = chapterIdx === i;
-                                return (
-                                    <button
-                                        key={ch.id}
-                                        disabled={!unlocked}
-                                        onClick={() => setChapterIdx(i)}
-                                        className={`chapter-card relative rounded-lg px-2 py-2 text-left border transition-all ${
-                                            selected ? 'scale-[1.03]' : 'hover:scale-[1.02]'
-                                        } ${unlocked ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}
-                                        style={{
-                                            borderColor: selected ? ch.color : 'rgba(51,65,85,0.8)',
-                                            background: selected ? `${ch.color}22` : 'rgba(15,23,42,0.6)',
-                                            boxShadow: selected ? `0 0 18px ${ch.color}55` : undefined,
-                                        }}
-                                    >
-                                        <div className="font-mono text-[10px]" style={{ color: ch.color }}>
-                                            {String(ch.id).padStart(2, '0')} · W{chapterFirstWave(i)}–{ch.bossWave}
-                                        </div>
-                                        <div className="text-[11px] leading-tight text-white font-tech truncate">{ch.name}</div>
-                                        {!unlocked && (
-                                            <div className="absolute top-1 right-1 text-[9px] text-slate-400 font-mono">LOCKED</div>
-                                        )}
-                                    </button>
-                                );
-                            })}
+                        <div className="w-full" style={{ aspectRatio: '1024 / 683' }}>
+                            <WorldMap
+                                maxWaveReached={maxWaveReached}
+                                defeatedBosses={defeatedBosses}
+                                current={chapterIdx}
+                                onSelect={(i) => { if (chapterUnlocked(i)) setChapterIdx(i); }}
+                                treasuresOpened={treasuresOpened}
+                                onTreasure={onTreasure}
+                                reduceFlash={reduceFlash}
+                            />
+                        </div>
+                        <div className="mt-1 font-mono text-[10px]" style={{ color: CHAPTERS[chapterIdx].color }}>
+                            {String(CHAPTERS[chapterIdx].id).padStart(2, '0')} · {CHAPTERS[chapterIdx].name.toUpperCase()} · WAVES {startWave}–{CHAPTERS[chapterIdx].bossWave}
                         </div>
                     </section>
                 )}

@@ -122,6 +122,15 @@ const App: React.FC = () => {
       setGameState(p => ({ ...p, endingSeen: true }));
   };
 
+  /** (7C) World-map treasure cache opened: grant matter once, remember the id. */
+  const handleMapTreasure = useCallback((id: string, matter: number) => {
+      setGameState(p => {
+          const opened = p.mapTreasuresOpened ?? [];
+          if (opened.includes(id)) return p;
+          return { ...p, matter: p.matter + matter, mapTreasuresOpened: [...opened, id] };
+      });
+  }, [setGameState]);
+
   const handleAddMatter = (amount: number) => {
       setGameState(p => ({ ...p, matter: p.matter + amount }));
   };
@@ -319,6 +328,10 @@ const App: React.FC = () => {
              currentMatter={gameState.matter}
              onUnlockAll={handleUnlockAll}
              hasSeenIntro={gameState.hasSeenIntro}
+             defeatedBosses={gameState.defeatedBosses}
+             treasuresOpened={gameState.mapTreasuresOpened ?? []}
+             onTreasure={handleMapTreasure}
+             reduceFlash={!!gameState.settings.reduceFlash}
           />
       )}
 

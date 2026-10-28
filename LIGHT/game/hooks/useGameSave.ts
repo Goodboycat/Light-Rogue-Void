@@ -27,6 +27,7 @@ const INITIAL_STATE: GameState = {
     endingSeen: false,
     landmarksSeen: [],
     killCounts: {}, // (3B)
+    mapTreasuresOpened: [], // (7C)
     settings: {
         showTouchControls: true,
         mouseMovementEnabled: true,
@@ -98,6 +99,7 @@ export const useGameSave = () => {
                     hasSeenIntro: parsed.hasSeenIntro || false,
                     endingSeen: !!parsed.endingSeen,
                     landmarksSeen: Array.isArray(parsed.landmarksSeen) ? parsed.landmarksSeen : [], // (3A)
+                    mapTreasuresOpened: Array.isArray(parsed.mapTreasuresOpened) ? parsed.mapTreasuresOpened : [], // (7C)
                     killCounts: parsed.killCounts && typeof parsed.killCounts === 'object' ? parsed.killCounts : {}, // (3B)
                     isGameRunning: false, // Always start at menu
                     isMenuOpen: false,
@@ -124,6 +126,7 @@ export const useGameSave = () => {
                 endingSeen: !!gameState.endingSeen,
                 landmarksSeen: gameState.landmarksSeen ?? [], // (3A)
                 killCounts: gameState.killCounts ?? {}, // (3B)
+                mapTreasuresOpened: gameState.mapTreasuresOpened ?? [], // (7C)
                 settings: gameState.settings
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));

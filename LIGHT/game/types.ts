@@ -104,5 +104,7 @@ export interface GameState {
   landmarksSeen?: string[];
   /** (3B) lifetime kills per EnemyDef.id — Bestiary shows lore at LORE_KILLS */
   killCounts?: Record<string, number>;
+  /** (7C) ids of world-map treasure caches already opened. */
+  mapTreasuresOpened?: string[];
   settings: Settings;
 }
