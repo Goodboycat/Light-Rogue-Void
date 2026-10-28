@@ -13,7 +13,7 @@ Top-down auto-attack action **roguelite** (Canvas 2D, mobile + desktop, itch.io 
 ## What changes vs the original
 | Original | LIGHT |
 |---|---|
-| Wave = 30 s timer; all enemies deleted at wave end | Wave = kill quota **and** timer; survivors carry over; crowd budget caps total (2A) |
+| Wave = 30 s timer; all enemies deleted at wave end | Wave = kill quota **and** timer; survivors carry over; **no crowd cap** — the director only paces by spawn rate, counts are unbounded (2A/4B) |
 | Bosses: chase + big HP | Framework: arena, telegraphs, 3 phases, enrage, adds (2B) |
 | Empty world | Landmarks, shrines, relics, events, fog of discovery (3A) |
 | Random tree per device | Seeded constellation tree, identical everywhere (1B) |
@@ -42,7 +42,7 @@ Top-down auto-attack action **roguelite** (Canvas 2D, mobile + desktop, itch.io 
 - Respec: refund 80 % (7A).
 
 ## Waves (2A)
-- Wave N needs `quota(N) = 8 + N*1.5` kills **or** `timer(N) = 30 + min(N,30)` seconds; whichever first. Survivors stay. Crowd budget `maxAlive(N) = 40 + N*3` (cap 300); director pauses spawning when full.
+- Wave N needs `quota(N) = 8 + N*1.5` kills **or** `timer(N) = 30 + min(N,30)` seconds; whichever first. Survivors stay. **There is no crowd cap**: the director never pauses because "too many are alive"; waves escalate by spawn *rate* (`PACK_INTERVAL_SEC` shrinks with the wave, trickle rate rises). Feeling overwhelmed is the design; the engine keeps up with batching, pools, culling and spatial hashing (CONVENTIONS rule 9).
 - Elite affixes (4B): Hasted, Armored, Splitting, Vampiric, Shielded. Shown by an outline ring.
 - Special waves at x5: Elite Rush, Gauntlet, Curse, Aegis Trial (mechanics from the fork, re-implemented clean).
 

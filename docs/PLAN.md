@@ -16,7 +16,7 @@ Here's the order, taken from the README's "Done" and "Next" tables. Each line gi
 - **0D / 0E:** Moved the game into `LIGHT/game`, docs + prompts at `LIGHT/` root, HANDOFF, path fixes.
 - **1A:** Build pipeline: single-file itch build, `?demo=1`, `MAX_WAVE` + chapter constants, Gemini env removed.
 - **1B:** Seeded deterministic skill tree (mulberry32), 6 boss constellations, lock UI, save migration, `docs/TREE.md`.
-- **2A:** Wave persistence: no wave wipe, kill-quota **or** timer, spawn director with crowd cap, carried-enemy ring, `?wave=`, `?debug=1`, headless `npm run sim`.
+- **2A:** Wave persistence: no wave wipe, kill-quota **or** timer, spawn director (crowd cap later removed — no caps, see CONVENTIONS rule 9), carried-enemy ring, `?wave=`, `?debug=1`, headless `npm run sim`.
 - **0F:** (this chat) Pushed `original-complete` and `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2, prompt files 5A–9B, `tools/fork.sh`.
 
 **Next, in order**

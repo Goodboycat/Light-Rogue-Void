@@ -11,10 +11,10 @@ HP is the only thing that differs between chapters for *difficulty scaling*; the
 | `updateBossKit(state, boss)` → `shifting` | call first every frame. Detects phase (100/66/33 → `boss.state.phase`), starts the 72 f invulnerable phase shift (clears bullets + telegraphs, arena pulse), triggers enrage at `BOSS_ENRAGE_SEC` (150 s). Return `true` = stand still, skip attacks. |
 | `telegraph(state, kind, x, y, params, warnFrames, onFire)` | kind `circle` `{radius}`, `ring` `{radius, innerRadius}`, `line` `{angle, length, width}` (from x,y along angle), `cone` `{angle, fov, radius}`. `params.color` = boss colour. Pool of `TELEGRAPH_POOL_SIZE`; enrage multiplies warn by `BOSS_ENRAGE_WARN_MULT` (0.7). |
 | `telegraphHitPlayer(state, t, dmg)` | in `onFire`: hurts the player if inside the shape. **Dashing / Titan shield = dodge** (white spark, no damage). Applies `bossDamage` (×2 enraged), tags `lastBossHit`, shake + hit-stop. |
-| `fireBossProjectile(state, {x,y,vx,vy,…})` | pooled bullet tagged `customData.isBossProj`; capped at `BOSS_PROJ_CAP`; cleared on phase shift / death; breakable by FIRE_BLAST; wiped by White Hole. |
+| `fireBossProjectile(state, {x,y,vx,vy,…})` | pooled bullet tagged `customData.isBossProj`; **uncapped** (rule 9: no projectile cap — pooled + batched instead); cleared on phase shift / death; breakable by FIRE_BLAST; wiped by White Hole. |
 | `phaseOf(boss)`, `isPhaseShifting(boss)`, `startPhaseShift`, `enrage`, `enrageCountdown` | phase helpers. |
 | `openArena` / `closeArena` / `arenaEdgePoint(state, scale)` / `arenaOutsideFactor` | `state.arena {x,y,r}` opened at the player (r `ARENA_RADIUS` 900) on boss spawn; outside = `VOID_BURN_DPS` 4 %/s + vignette. Bosses may shrink `state.arena.r`. |
-| `updateBossAdds` | roaming pack of 3–5 every `BOSS_ADD_INTERVAL_SEC` (12 s) at the arena edge, cap 20, from `def.addTable`. Called by Logic.ts. |
+| `updateBossAdds` | roaming pack of 3–5 every `BOSS_ADD_INTERVAL_SEC` (12 s) at the arena edge, **no alive cap** (pack count only), from `def.addTable`. Called by Logic.ts. |
 
 ### Hazards (`logic/enemies/BossHazards.ts`, drawn by `renderer/HazardRenderer.ts`)
 Each boss owns ONE persistent terrain hazard (`bosses.ts` → `hazard: {kind, everySec, max, radius, damage, color}`).

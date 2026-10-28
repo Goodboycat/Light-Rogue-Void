@@ -20,7 +20,12 @@ Read `docs/CONVENTIONS.md`, `docs/HANDOFF.md`, then `prompts/<ID>.md`.
 6. **Constants in `components/game/Constants.ts`.** No magic numbers for waves, chapters, caps.
 7. **Save compatibility.** Never break `useGameSave`; add fields with defaults; bump `SAVE_VERSION` when shape changes (8A owns migrations, others only add optional fields).
 8. **Mobile first.** Everything must work with touch; test the layout at 390×844 and 844×390 mentally; never rely on hover.
-9. **Performance budget.** 60 fps desktop, 30+ fps mid phone, ≤ 300 enemies, ≤ 600 particles, ≤ 400 projectiles. Use pools (4A) for anything spawned per frame.
+9. **No caps — overwhelm, then optimise.** LIGHT must feel overwhelming: there is **no particle cap, no projectile cap, no enemy/entity spawn cap, no crowd budget**. Never add a hard cap, a "skip spawn when full" guard or a "recycle oldest" rule to make a frame cheaper. Pacing comes from *spawn rate* (director intervals, wave curves), never from counts. Performance comes from technique instead:
+   - **Batching**: one `Path2D`/`fill` per (shape, colour, alpha) bucket for particles, projectiles and simple enemies (`renderer/ParticleBatcher.ts`); pre-rendered glow sprites instead of `shadowBlur`; no per-entity `save/restore` in hot loops.
+   - **Pools + swap-remove**: free lists for everything spawned per frame (`Pools.ts`), backwards loops, no `splice`, no per-frame allocations in update.
+   - **Culling**: skip drawing anything outside the viewport + 64 px; cheap LOD when counts are large (smaller glow, no outlines) — quantity stays, detail drops.
+   - **Spatial hashing** for enemy↔projectile / enemy↔enemy checks once counts pass a few hundred (uniform grid, rebuilt per frame).
+   - **Budget targets** (goals to *measure*, not limits to *enforce*): 60 fps desktop with 500+ enemies and 2000+ particles on screen; 30+ fps mid phone via quality profiles (7B) that lower *detail* (glow, DPR, floaters), never *counts*.
 10. **Finish the chat properly:** update README "Done"/"Next" tables, write `docs/HANDOFF.md` (what's done, what's half-done, exact file/line pointers, known bugs), build the itch zip, upload it as `light-rogue-void-itch`, push.
 
 ## Code map (original engine)
