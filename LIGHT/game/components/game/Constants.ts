@@ -150,3 +150,8 @@ export const WORLD_SPARK_KINDLE_SEC = 8;      // seconds inside the radius neede
 export const WORLD_STAR_SHARD_EVERY = 30;     // frames between Collapsing Star shards
 export const WORLD_STAR_SHARD_R = 70;         // shard impact radius
 export const WORLD_STAR_SHARD_DMG = 0.12;     // fraction of max HP per shard hit
+
+// --- STORY (3B) ---
+export const STORY_CAPTION_CPS = 30;          // typewriter chars per second
+export const STORY_CAPTION_HOLD_MS = 4000;    // hold after the line is fully typed
+export const CHAPTER_CARD_MS = 2000;          // chapter title card wash on chapter entry

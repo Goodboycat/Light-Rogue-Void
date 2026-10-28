@@ -21,6 +21,8 @@ import BossBar, { BossBarInfo } from './BossBar';
 import { isPhaseShifting, enrageCountdown } from './game/logic/enemies/BossKit';
 import { INTRO_SCRIPT, CinematicLine } from '../data/cinematics';
 import { BOSS_SCRIPTS } from '../data/bossCinematics';
+import { storyLinesForWave, StoryLine } from '../data/story';
+import StoryCaption from './StoryCaption';
 import { MATURITY_LEVELS } from '../data/maturity';
 import { LIGHT_PHRASES } from '../data/lightPhrases';
 import { VOID_PHRASES } from '../data/phrases';
@@ -84,6 +86,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   
   // Initialize state with props
   const [wave, setWave] = useState(initialWave);
+  // (3B) non-pausing story caption: lines for the wave that just started
+  const [storyLines, setStoryLines] = useState<StoryLine[] | null>(
+      initialWave === 1 && !hasSeenIntro ? null : storyLinesForWave(initialWave) // intro case: set when the intro ends
+  );
   
   // --- CINEMATIC STATE MANAGEMENT ---
   // We use a generic 'activeCinematic' state to hold the script currently playing.
@@ -215,6 +221,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       refs.wave = nextWave; // keep the loop in sync before React re-renders
       if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
       setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
+      setStoryLines(storyLinesForWave(nextWave)); // (3B) null on waves without a beat
 
       state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; });
       state.waveKills = 0;
@@ -236,6 +243,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
           if (cinematic === INTRO_SCRIPT) {
               onIntroComplete();
+              setStoryLines(storyLinesForWave(gameRefs.current.wave)); // (3B) chapter 1 opener after the intro
           }
           
           const state = gameStateRef.current;
@@ -547,6 +555,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       )}
 
       {!activeCinematic && !gameOver && !gameWon && bossInfo && <BossBar info={bossInfo} />}
+
+      {!activeCinematic && !gameOver && !gameWon && (
+          <StoryCaption lines={storyLines} seq={wave} raised={!!settings.showTouchControls} />
+      )}
 
       {!activeCinematic && !gameOver && !gameWon && (
           <GameOverlay 
