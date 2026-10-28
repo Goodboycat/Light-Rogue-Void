@@ -41,6 +41,7 @@ interface SurvivalGameProps {
   /** (2D) Stay/Leave chosen on the ending screen. */
   onEndingSeen?: (choice: 'stay' | 'leave') => void;
   onLandmarkSeen?: (id: string) => void; // (3A) → gameState.landmarksSeen
+  onKills?: (counts: Record<string, number>) => void; // (3B) → gameState.killCounts
   onTogglePause: () => void;
   hasSeenIntro: boolean;
   onIntroComplete: () => void;
@@ -67,6 +68,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     onRestart, 
     onEndingSeen,
     onLandmarkSeen,
+    onKills,
     onEnemySeen,
     initialWave,
     maxWaveReached,
@@ -407,6 +409,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             if (state.landmarkSeenQueue?.length) {
                 for (const id of state.landmarkSeenQueue) onLandmarkSeen?.(id);
                 state.landmarkSeenQueue = undefined;
+            }
+            if (state.killCountQueue && state.frame % 60 === 0) { // (3B) flush once a second, not per kill
+                onKills?.(state.killCountQueue);
+                state.killCountQueue = undefined;
             }
             if (state.world?.relics && relicsRef.current !== state.world.relics.length) {
                 relicsRef.current = state.world.relics.length;

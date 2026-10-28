@@ -6,10 +6,13 @@ import { BOSSES } from '../bosses';
 import { X, HelpCircle, Lock } from 'lucide-react';
 import { drawEnemy } from './game/renderer/EnemyRenderer';
 import { Enemy, EnemyDef } from './game/types';
+import { loreFor, LORE_KILLS } from '../data/lore';
 
 interface ArchivesProps {
     onClose: () => void;
     maxWave: number;
+    /** (3B) lifetime kills per enemy id; lore unlocks at LORE_KILLS */
+    killCounts?: Record<string, number>;
 }
 
 const EnemyPreviewCanvas: React.FC<{ def: EnemyDef }> = ({ def }) => {
@@ -71,7 +74,7 @@ const EnemyPreviewCanvas: React.FC<{ def: EnemyDef }> = ({ def }) => {
     return <canvas ref={canvasRef} width={300} height={300} className="w-full h-full object-contain" />;
 };
 
-const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave }) => {
+const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {} }) => {
     const allEnemies = [...ENEMIES, ...BOSSES].sort((a,b) => a.minWave - b.minWave);
     
     // Filter unique enemies by ID
@@ -176,9 +179,25 @@ const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave }) => {
                                     <Badge label={`WAVE ${selectedEnemy.minWave}+`} color="text-purple-400 border-purple-900 bg-purple-900/10" />
                                 </div>
 
-                                <p className="text-slate-400 italic text-center max-w-lg mb-12 leading-relaxed">
+                                <p className="text-slate-400 italic text-center max-w-lg mb-4 leading-relaxed">
                                     "{selectedEnemy.description}"
                                 </p>
+
+                                {/* (3B) FIELD NOTES — lore unlocks after LORE_KILLS kills */}
+                                {(() => {
+                                    const k = killCounts[selectedEnemy.id] ?? 0;
+                                    const unlocked = k >= LORE_KILLS;
+                                    return (
+                                        <section id="archives-lore" className="w-full max-w-lg mb-10 text-center">
+                                            <div className="text-[9px] font-mono tracking-[0.3em] text-slate-500 mb-1">
+                                                FIELD NOTES · {Math.min(k, LORE_KILLS)}/{LORE_KILLS} KILLS
+                                            </div>
+                                            <p className="text-xs leading-relaxed px-2" style={{ color: unlocked ? '#cbd5e1' : '#475569', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+                                                {unlocked ? (loreFor(selectedEnemy.id) ?? '???') : '???'}
+                                            </p>
+                                        </section>
+                                    );
+                                })()}
 
                                 {/* STATS GRID */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-3xl">

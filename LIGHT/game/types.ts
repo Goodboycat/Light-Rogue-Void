@@ -98,5 +98,7 @@ export interface GameState {
   endingSeen?: boolean;
   /** (3A) landmark ids discovered across all runs (Archives / lore). */
   landmarksSeen?: string[];
+  /** (3B) lifetime kills per EnemyDef.id — Bestiary shows lore at LORE_KILLS */
+  killCounts?: Record<string, number>;
   settings: Settings;
 }

@@ -173,6 +173,15 @@ const App: React.FC = () => {
       });
   }, []);
 
+  // (3B) merge per-run kill counts into the persistent bestiary counter
+  const handleKills = useCallback((counts: Record<string, number>) => {
+      setGameState(p => {
+          const next = { ...(p.killCounts ?? {}) };
+          for (const id in counts) next[id] = (next[id] ?? 0) + counts[id];
+          return { ...p, killCounts: next };
+      });
+  }, [setGameState]);
+
   const handleEnemySeen = useCallback((id: string) => {
       setGameState(p => {
           if (p.seenEnemyIds.includes(id)) return p;
@@ -294,6 +303,7 @@ const App: React.FC = () => {
                 onTogglePause={() => { setGameState(p => ({ ...p, isMenuOpen: !p.isMenuOpen })); }}
                 onEnemySeen={handleEnemySeen}
                 onLandmarkSeen={handleLandmarkSeen}
+                onKills={handleKills}
                 initialWave={startWave}
                 maxWaveReached={gameState.maxWaveReached || 1}
                 onUpdateMaxWave={handleUpdateMaxWave}
@@ -340,7 +350,7 @@ const App: React.FC = () => {
                   } as any)}
                   className="fixed inset-0 z-[60]"
               >
-                  <Archives onClose={() => { setShowArchives(false); }} maxWave={gameState.maxWaveReached || 1} />
+                  <Archives onClose={() => { setShowArchives(false); }} maxWave={gameState.maxWaveReached || 1} killCounts={gameState.killCounts ?? {}} />
               </motion.div>
           )}
       </AnimatePresence>

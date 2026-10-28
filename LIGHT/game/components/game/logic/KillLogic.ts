@@ -68,6 +68,9 @@ export const killEnemy = (
         if (enemy.def.size >= 24) { hitStop(state, 2); shake(state, 3, 3); }
     }
     state.totalKills++;
+    // (3B) bestiary lore counter, drained by SurvivalGame into gameState.killCounts
+    const kq = state.killCountQueue ?? (state.killCountQueue = {});
+    kq[enemy.def.id] = (kq[enemy.def.id] ?? 0) + 1;
 
     swapRemoveEnemy(state.enemies, idx); // (4A) O(1); callers iterate backwards so the swapped-in enemy is already processed
 };

@@ -227,6 +227,8 @@ export interface MutableGameState {
     foundEvents?: import('./logic/FoundEvents').FoundEventState;
     /** landmark ids discovered this frame batch; SurvivalGame drains into gameState.landmarksSeen */
     landmarkSeenQueue?: string[];
+    /** (3B) kills per EnemyDef.id this frame batch; SurvivalGame drains into gameState.killCounts */
+    killCountQueue?: Record<string, number>;
     /** mirrored from settings.showMinimap each frame (SurvivalGame); MinimapRenderer reads */
     showMinimap?: boolean;
     // (2B+) BigFx — see components/game/BigFx.ts

@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ENEMIES } from '../enemies';
 import { BOSSES } from '../bosses';
+import { loreFor, LORE_KILLS } from '../data/lore';
 import { drawEnemy } from './game/renderer/EnemyRenderer';
 import { Enemy, EnemyDef } from './game/types';
 import { X, Lock, HelpCircle } from 'lucide-react';
@@ -10,6 +11,8 @@ import { X, Lock, HelpCircle } from 'lucide-react';
 interface BestiaryProps {
     onClose: () => void;
     maxWave: number;
+    /** (3B) lifetime kills per enemy id; lore unlocks at LORE_KILLS */
+    killCounts?: Record<string, number>;
 }
 
 const EnemyPreview: React.FC<{ def: EnemyDef }> = ({ def }) => {
@@ -63,7 +66,7 @@ const EnemyPreview: React.FC<{ def: EnemyDef }> = ({ def }) => {
     );
 };
 
-const Bestiary: React.FC<BestiaryProps> = ({ onClose, maxWave }) => {
+const Bestiary: React.FC<BestiaryProps> = ({ onClose, maxWave, killCounts = {} }) => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const allEnemies = [...ENEMIES, ...BOSSES].sort((a,b) => a.minWave - b.minWave);
     
@@ -191,9 +194,18 @@ const Bestiary: React.FC<BestiaryProps> = ({ onClose, maxWave }) => {
                                     </span>
                                 </div>
 
-                                <p className="text-slate-400 italic text-sm mb-8 text-center px-4">
+                                <p className="text-slate-400 italic text-sm mb-3 text-center px-4">
                                     "{selectedEnemy.description}"
                                 </p>
+                                {/* (3B) lore after LORE_KILLS kills */}
+                                <section id="bestiary-lore" className="w-full mb-6 px-4">
+                                    <div className="text-[9px] font-mono tracking-[0.3em] text-slate-500 text-center mb-1">
+                                        FIELD NOTES · {Math.min(killCounts[selectedEnemy.id] ?? 0, LORE_KILLS)}/{LORE_KILLS}
+                                    </div>
+                                    <p className="text-xs text-center leading-relaxed" style={{ color: (killCounts[selectedEnemy.id] ?? 0) >= LORE_KILLS ? '#cbd5e1' : '#475569', fontFamily: 'ui-monospace, monospace' }}>
+                                        {(killCounts[selectedEnemy.id] ?? 0) >= LORE_KILLS ? (loreFor(selectedEnemy.id) ?? '???') : '???'}
+                                    </p>
+                                </section>
 
                                 <div className="space-y-4 w-full mt-auto bg-slate-950/50 p-4 rounded-lg">
                                     <StatRow label="Base Health" value={selectedEnemy.baseHp} max={1000} color="bg-red-500" />
