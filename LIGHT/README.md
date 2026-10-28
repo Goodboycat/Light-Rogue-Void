@@ -36,14 +36,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 3A | Discovery: `data/world.ts` (6 landmarks, 4 shrines, 6 relics, 3 placed events, `RunModifiers`), seeded placement (3+2+1+1–2 points, `?seed=`), `WorldInteract.ts` (shrine touch, relic alcove with 8 elite guards, 4 s lore cards, Ambush / Lost Spark / Collapsing Star), `WorldRenderer.ts` (silhouettes, glow pulse, off-screen arrow ch. 1–2), fog minimap (`settings.showMinimap`), `RunStats.ts` run layer + relic HUD chips, `FoundEvents.ts` (Golden Mite, Essence Tide, Treasure Pylon, Ambush Ring, Meteor Shower — found, never chosen, ≥ 25 s cooldown), `docs/WORLD.md`. |
 | 3B | Story: `data/story.ts` (6 chapters × opener/mid/preBoss/bossIntro/bossOutro, LIGHT/DARKNESS/WATCHER, WATCHER only at x9 + ending), `StoryCaption.tsx` non-pausing typewriter captions, chapter cards in the main menu replace the wave slider (unlock at `maxWaveReached >= firstWave`), `data/lore.ts` bestiary FIELD NOTES after 10 kills (`gameState.killCounts`), `ChapterCard.tsx` title card + `StarBackground` tint, **Light Burst** (`logic/LightBurst.ts`, tree nodes `burst_unlock/2/3` on the Utility spine, meter by kills, Space/E/touch ☀), WATCHER whispers single-sourced, `docs/STORY.md` (`npm run story`). |
 | 5A | Art pass: `renderer/Palette.ts` (per-chapter base/glow/outline/accent, enemies tinted 25 % toward chapter), readable 32 px silhouettes for the 9 visual types, boss phase stroke + enrage heartbeat, spark 6 maturity stages + dash trail + burst ring, essence orbs 3 sizes + relic gem, `?gallery=1[&scale=N]` static sheet (`components/Gallery.tsx`, 151 cells), `docs/ART.md` (style rules + cell order for 5B). |
+| 5B | Art extraction: `tools/extract-art.mjs` (Playwright devDep, `npm run art`) screenshots `?gallery=1&sheet=1` → `public/sprites/<id>.png` (148, ~1.0 MB) + `atlas.json`; `renderer/SpriteRenderer.ts` (atlas preload, `drawSprite`, 64-entry tint cache); `?sprites=1` / Settings "Sprite mode (faster)" (`settings.spriteMode`) swaps enemy + projectile drawing for blits with procedural fallback; itch zip ships `sprites/` next to `index.html`; `docs/ART.md` sprite section, CONVENTIONS rule 4 exception. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
+Next: 6A 6B 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 5B | Art extraction: screenshot the gallery → PNG sprites + atlas; optional sprite renderer. |
 | 6A | Audio manager + Ludo.ai prompt list (`docs/AUDIO_LUDO.md`), synth placeholders. |
 | 6B | Audio integration: SFX hooks, music per chapter, ducking, settings. |
 | 7A | UI polish: HUD, skill-tree UX (pan/zoom/search/path preview), run summary. |
