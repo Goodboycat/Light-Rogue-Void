@@ -164,6 +164,15 @@ const App: React.FC = () => {
       }));
   };
   
+  /** (3A) Landmark lore card shown → remember it across runs. */
+  const handleLandmarkSeen = useCallback((id: string) => {
+      setGameState(p => {
+          const seen = p.landmarksSeen ?? [];
+          if (seen.includes(id)) return p;
+          return { ...p, landmarksSeen: [...seen, id] };
+      });
+  }, []);
+
   const handleEnemySeen = useCallback((id: string) => {
       setGameState(p => {
           if (p.seenEnemyIds.includes(id)) return p;
@@ -284,6 +293,7 @@ const App: React.FC = () => {
                 onEndingSeen={handleEndingSeen}
                 onTogglePause={() => { setGameState(p => ({ ...p, isMenuOpen: !p.isMenuOpen })); }}
                 onEnemySeen={handleEnemySeen}
+                onLandmarkSeen={handleLandmarkSeen}
                 initialWave={startWave}
                 maxWaveReached={gameState.maxWaveReached || 1}
                 onUpdateMaxWave={handleUpdateMaxWave}

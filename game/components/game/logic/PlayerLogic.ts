@@ -159,7 +159,14 @@ export const updatePlayer = (
             }
 
             state.player.dashTimer = 10 + stats.dashDuration;
-            state.player.dashCooldownTimer = 60 + stats.dashCooldown;
+            // (3A) Mirror Shard: extra charges skip the cooldown; they refill when a normal cooldown completes
+            if ((state.dashChargesLeft ?? 0) > 0) {
+                state.dashChargesLeft!--;
+                state.player.dashCooldownTimer = 12; // tiny gap so one press ≠ two dashes
+            } else {
+                state.player.dashCooldownTimer = 60 + stats.dashCooldown;
+                if (state.runModifiers?.dashCharges) state.dashChargesLeft = state.runModifiers.dashCharges;
+            }
             state.player.vx = dx * 15;
             state.player.vy = dy * 15;
         }

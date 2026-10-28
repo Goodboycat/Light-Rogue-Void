@@ -2,11 +2,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlayerStats } from '../types';
+import { relicById } from '../data/world'; // (3A) relic HUD icons
 
 interface GameOverlayProps {
     playerStats: PlayerStats;
     currentHealth: number;
     currentShield: number;
+    relics?: string[]; // (3A) relic ids held this run
     timeRemaining: number;
     wave: number;
     waveKills?: number;
@@ -24,6 +26,7 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
     playerStats,
     currentHealth,
     currentShield,
+    relics = [],
     timeRemaining,
     wave,
     waveKills = 0,
@@ -68,6 +71,22 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
                         );
                     })}
                 </div>
+                {/* (3A) Relics held this run — small glyph chips, hover/long-press shows the effect */}
+                {relics.length > 0 && (
+                    <div id="relic-hud" className="flex gap-1.5 flex-wrap max-w-[260px]">
+                        {relics.map(id => {
+                            const r = relicById(id); if (!r) return null;
+                            return (
+                                <motion.div key={id} title={`${r.name} — ${r.desc}`}
+                                    {...({ initial: { scale: 0, opacity: 0 }, animate: { scale: 1, opacity: 1 } } as any)}
+                                    className="w-7 h-7 rounded-md border flex items-center justify-center font-mono text-sm font-bold select-none"
+                                    style={{ color: r.color, borderColor: r.color + '88', background: r.color + '1a', boxShadow: `0 0 10px ${r.color}55` }}>
+                                    {r.glyph}
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                )}
                 <div className="font-tech text-[10px] tracking-[0.3em] text-white/40 uppercase">Light integrity cells</div>
             </div>
 

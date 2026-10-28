@@ -96,5 +96,7 @@ export interface GameState {
   hasSeenIntro: boolean;
   /** (2D) Darkness beaten and the ending (Stay/Leave) was shown. 9A uses it to offer Endless. */
   endingSeen?: boolean;
+  /** (3A) landmark ids discovered across all runs (Archives / lore). */
+  landmarksSeen?: string[];
   settings: Settings;
 }

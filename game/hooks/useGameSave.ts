@@ -25,6 +25,7 @@ const INITIAL_STATE: GameState = {
     isMenuOpen: false,
     hasSeenIntro: false,
     endingSeen: false,
+    landmarksSeen: [],
     settings: {
         showTouchControls: true,
         mouseMovementEnabled: true,
@@ -88,6 +89,7 @@ export const useGameSave = () => {
                     defeatedBosses: parsed.defeatedBosses || [],
                     hasSeenIntro: parsed.hasSeenIntro || false,
                     endingSeen: !!parsed.endingSeen,
+                    landmarksSeen: Array.isArray(parsed.landmarksSeen) ? parsed.landmarksSeen : [], // (3A)
                     isGameRunning: false, // Always start at menu
                     isMenuOpen: false,
                     settings: { ...INITIAL_STATE.settings, ...settings }
@@ -111,6 +113,7 @@ export const useGameSave = () => {
                 maxMaturityAchieved: gameState.maxMaturityAchieved,
                 hasSeenIntro: gameState.hasSeenIntro,
                 endingSeen: !!gameState.endingSeen,
+                landmarksSeen: gameState.landmarksSeen ?? [], // (3A)
                 settings: gameState.settings
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
