@@ -32,6 +32,7 @@ Here's the order, taken from the README's "Done" and "Next" tables. Each line gi
 10. **6A:** Audio manager (port the fork's Web Audio engine, synth placeholders) + the Ludo.ai prompt list in `docs/AUDIO_LUDO.md`.
 11. **6B:** Audio integration: SFX hooks everywhere, music per chapter with cross-fade + ducking, volume settings, `public/audio/` drop-in loader.
 12. **7A:** UI polish: HUD, skill-tree UX (pan/zoom/search/path preview, respec with matter tax), run summary, guidebook.
+13a. **7D:** Owner request: fog-of-war mystery on the world map + epic place-reveal cinematic; storyline cinematics (chapter openers, boss intro/outro, ending) = dialogue that continues into camera/actor movement (`docs/GDD.md` → Cinematics, `prompts/7D.md`).
 13. **7B:** Mobile QA: touch, safe areas, quality profiles (port Quality.ts + haptics + mobile css), 30+ fps on mid phones, portrait + landscape.
 13b. **7C (owner request, done before 7A):** World Map: procedural star chart as menu chapter select + breather after every boss (1–10 waves per place, boss at 10), hidden treasure caches.
 14. **8A:** Save v2: versioned migrations, export/import code, run stats, achievements v2.

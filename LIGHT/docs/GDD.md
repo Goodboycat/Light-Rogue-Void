@@ -77,6 +77,12 @@ Top-down auto-attack action **roguelite** (Canvas 2D, mobile + desktop, itch.io 
 - **Every place = one chapter = waves 1–10 of that place, wave 10 = its boss.** (`WAVES_PER_CHAPTER = 10`, `isBossWave`.) Places unlock at `maxWaveReached >= firstWave`, a ✓ ring marks a cleared boss (`defeatedBosses`).
 - **Breather rule:** after bosses 1–5 the run freezes on the map (`MapBreather.tsx`): the next place lights up, **CONTINUE** → chapter card → wave N+1, **RETURN TO MENU** ends the run keeping essence. Boss 6 goes to the ending instead. The map is also the chapter select in the main menu.
 - **Hidden treasure caches:** 6 side paths (`MAP_TREASURES`), one per place, revealed when that place's boss is dead; tapping one grants matter once (`gameState.mapTreasuresOpened`). Discovery, never a draft — roguelite rule holds.
+- **Feel (owner request, 7D):** the map must carry **mystery — a fog of war**: places you have not reached are hidden or barely visible under fog/nebula, revealed only as you reach them; the path ahead is suggested, never spelled out. **Discovering a new place is epic cinema**: when a place is reached for the first time the map pans/zooms to it, fog burns away, the name is revealed with a title treatment and a music sting before control returns. Clearing a boss also plays as a reveal (the next place lights up), not as a UI state flip.
+
+## Cinematics (owner request, 7D)
+- **Storyline cinematics are no longer dialogue-only.** A storyline cinematic = dialogue lines **that continue into cinematic movement**: scripted camera (pan/zoom/hold), scripted actors (spark, boss, lights) and effects, running after/alongside the lines — not a caption box over a frozen frame.
+- **Applies to:** chapter openers, pre-boss lines, **boss spawns (intro)**, **victory over bosses (outro)**, and the ending. **Does not apply to:** mid-wave lines, bestiary FIELD NOTES, whispers, shrine/relic/landmark lore cards — those stay as non-pausing captions (`StoryCaption.tsx`).
+- The run is frozen during a storyline cinematic (like `MapBreather`), skippable with one press after 1 s; `reduceFlash` tones down flashes but keeps the movement. Script data lives in `data/cinematics.ts` (a line list becomes a *shot list*: `{ speaker, text, camera, actors, fx, holdMs }`).
 
 ## Platforms
 - itch.io HTML (single file + CDN tailwind/fonts), Android APK via Capacitor (10). Desktop keyboard/mouse, mobile joystick + dash button. Pointer-aim optional.

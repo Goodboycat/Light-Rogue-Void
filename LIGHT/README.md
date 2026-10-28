@@ -43,11 +43,12 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 7A 7B 8A 8B 9A 9B 10
+Next: 7A 7D 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
 | 7A | UI polish: HUD, skill-tree UX (pan/zoom/search/path preview), run summary. |
+| 7D | Map mystery: fog of war on the world map, epic place-reveal cinematic; storyline cinematics (openers, boss intro/outro, ending) become dialogue + camera/actor movement (owner request, `docs/GDD.md` Cinematics). |
 | 7B | Mobile QA: touch, safe areas, performance mode, 60 fps on mid phones. |
 | 8A | Save v2: migrations, export/import, run stats, achievements v2. |
 | 8B | Balance: headless sim (`npm run sim`), curves for 60 waves + endless. |
