@@ -14,8 +14,8 @@ import { onEnemyHit, hitStop, shake } from '../Feel';
 import { spawnBigExplosion, screenFlash } from '../BigFx';
 import { VFX } from '../Emitters';
 import { createParticle } from '../Particles';
-import {
 import { sfx } from '../../../audio/hooks'; // (6B)
+import {
     BURST_RADIUS, BURST_DMG_PER_WAVE, BURST_STUN_FRAMES, BURST_FILL_PER_KILL,
     BURST_FILL_PER_ESSENCE, BURST_LEVEL_DMG_MULT, BURST_LEVEL_FILL_MULT, BURST_KNOCKBACK,
 } from '../Constants';
