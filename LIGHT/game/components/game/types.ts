@@ -100,6 +100,8 @@ export interface Enemy extends Entity {
     carried?: boolean; // (2A) survived a wave change → bonus essence + faint ring
     flashTimer?: number; // (4A) white hit flash frames left
     worldGuardOf?: string; // (3A) relic id this elite guards — KillLogic → WorldInteract.onWorldGuardKilled
+    isGoldenMite?: boolean;    // (3A step 7) found event: flees, ×25 essence, blinks away after 6 s
+    isTreasurePylon?: boolean; // (3A step 7) found event: static, break within 12 s
     // (4B) elite affixes — data/affixes.ts
     affixes?: import('../../data/affixes').AffixId[];
     shieldHits?: number;      // SHIELDED: hits left before the shield breaks
@@ -221,6 +223,8 @@ export interface MutableGameState {
     shieldRequest?: number;    // shield points
     /** found-event in progress → Director pauses (Logic.ts gate) */
     worldEventActive?: boolean;
+    /** (3A step 7) found-events director — logic/FoundEvents.ts (Golden Mite, Essence Tide, Treasure Pylon, Ambush Ring, Meteor Shower) */
+    foundEvents?: import('./logic/FoundEvents').FoundEventState;
     /** landmark ids discovered this frame batch; SurvivalGame drains into gameState.landmarksSeen */
     landmarkSeenQueue?: string[];
     /** mirrored from settings.showMinimap each frame (SurvivalGame); MinimapRenderer reads */

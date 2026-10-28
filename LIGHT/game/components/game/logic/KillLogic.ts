@@ -1,3 +1,5 @@
+import { FOUND_EVENTS, foundEssenceMult, onPylonKilled } from './FoundEvents';
+import { showCard } from './WorldInteract';
 import { MutableGameState, Enemy, ParticleType } from '../types';
 import { spawnExplosion } from '../Particles';
 import { spawnEnemy } from './enemies/SpawnLogic';
@@ -30,7 +32,11 @@ export const killEnemy = (
     onKillForStreak(state, enemy);
     if (enemy.worldGuardOf) onWorldGuardKilled(state, enemy); // (3A) relic alcove guards
     const eliteMult = enemy.affixes && enemy.affixes.length ? ELITE_ESSENCE_MULT : 1; // (4B)
-    const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state) * eliteMult * (state.flavorEssenceMult ?? 1));
+    // (3A step 7) found events: Golden Mite ×25, Essence Tide ×2, pylon pays its own burst
+    const miteMult = enemy.isGoldenMite ? FOUND_EVENTS.miteEssenceMult : 1;
+    const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state) * eliteMult * (state.flavorEssenceMult ?? 1) * miteMult * foundEssenceMult(state));
+    if (enemy.isTreasurePylon) onPylonKilled(state, enemy);
+    if (enemy.isGoldenMite) showCard(state, 'Golden Mite caught', '×25 essence.', '#fbbf24', 'Fast enough.', 120);
     state.drops.push(acquireDrop(enemy.x, enemy.y, reward));
     spawnExplosion(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.def.particleEffect);
 

@@ -1,4 +1,5 @@
 
+import { updateGoldenMite } from '../FoundEvents';
 import { MutableGameState, Enemy, ParticleType } from '../../types';
 import { createParticle, spawnExplosion } from '../../Particles';
 import { spawnEnemy } from './SpawnLogic';
@@ -31,6 +32,10 @@ export const updateStandardBehavior = (
     let moveX = dx;
     let moveY = dy;
     let moveSpeed = enemy.speed;
+    // (3A step 7) found events: Treasure Pylon never moves; Golden Mite flees and blinks away
+    if (enemy.isTreasurePylon) return { moveX: 0, moveY: 0, moveSpeed: 0 };
+    const mite = updateGoldenMite(state, enemy, i, dx, dy, dist);
+    if (mite) return mite;
 
     // Reset visuals if needed
     enemy.opacity = 1.0;

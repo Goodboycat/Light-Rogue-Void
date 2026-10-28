@@ -24,6 +24,7 @@ import { WORLD_SIZE } from './Constants';
 import { consumeHitStop, updateFeel, updateShake } from './Feel';
 import { initWorld, markFog } from './logic/WorldLogic';
 import { updateWorld } from './logic/WorldInteract';
+import { updateFoundEvents } from './logic/FoundEvents';
 
 export const updateGame = (
     state: MutableGameState, 
@@ -184,6 +185,7 @@ export const updateGame = (
     }
 
     if (!isCinematic) updateWorld(state, onEnemySeen); // (3A) touch shrines / alcoves / landmarks / events
+    if (!isCinematic) updateFoundEvents(state, wave, onEnemySeen); // (3A step 7) Golden Mite / Essence Tide / Pylon / Ambush Ring / Meteor Shower
     updateDrops(state, playerStats, maturityScale, onCollect);
     updateParticlesSystem(state);
     updateCamera(state, canvasWidth, canvasHeight);

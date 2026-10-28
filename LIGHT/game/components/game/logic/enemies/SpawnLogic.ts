@@ -1,4 +1,5 @@
 
+import { tryMakeGoldenMite, applyGoldenMite } from '../FoundEvents';
 import { EnemyDef, Enemy, MutableGameState } from '../../types';
 import { WORLD_SIZE } from '../../Constants';
 import { getSpawnableEnemy } from '../../../../enemies';
@@ -68,6 +69,8 @@ export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id:
     }
 
     state.enemies.push(enemy);
+    // (3A step 7) Golden Mite: 4 % from wave 3, max 1 alive — only on director/trickle spawns (no override, no opts)
+    if (!defOverride && !opts && tryMakeGoldenMite(state, wave)) applyGoldenMite(state, enemy);
 
     if (onSpawn) {
         onSpawn(def.id);
