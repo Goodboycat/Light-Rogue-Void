@@ -82,6 +82,7 @@ export interface Settings {
     performanceMode: 'LOW' | 'MEDIUM' | 'HIGH';
     screenShake?: boolean;  // (4A) default on
     reduceFlash?: boolean;  // (4A) default off
+    spriteMode?: boolean;   // (5B) default off — blit extracted PNGs instead of procedural drawing
     showMinimap?: boolean;  // (3A) default on
 }
 

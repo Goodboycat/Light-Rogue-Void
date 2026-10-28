@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye, Map } from 'lucide-react';
+import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye, Map, Image } from 'lucide-react';
 import { Settings } from '../types';
 
 interface SettingsMenuProps {
@@ -76,6 +76,13 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                                 icon={<Eye size={20} />}
                                 active={!!settings.reduceFlash}
                                 onToggle={() => update('reduceFlash', !settings.reduceFlash)}
+                            />
+
+                            <ToggleRow 
+                                label="Sprite mode (faster)"
+                                icon={<Image size={20} />}
+                                active={!!settings.spriteMode}
+                                onToggle={() => update('spriteMode', !settings.spriteMode)}
                             />
 
                             <ToggleRow 

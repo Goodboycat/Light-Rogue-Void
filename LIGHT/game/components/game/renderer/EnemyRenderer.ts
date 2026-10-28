@@ -4,6 +4,38 @@ import { AFFIX_BY_ID } from '../../../data/affixes';
 import { ENEMY_SHOT_WARN_FRAMES } from '../Constants';
 import { enemyPalette, mix, phaseColor, type ChapterPalette } from './Palette';
 import type { EnemyDef } from '../types';
+import { isSpriteMode, drawSprite, spriteId } from './SpriteRenderer';
+
+// (5B) sprite id for an enemy: enemies/minions = def.id, bosses = `<id> P<phase>` (gallery cell labels).
+const enemySpriteId = (enemy: Enemy) => enemy.isBoss ? spriteId(`${enemy.def.id} P${enemy.state.phase ?? 1}`) : spriteId(enemy.def.id);
+
+/** (5B) Sprite-mode body: blit the gallery PNG (white-tinted on hit flash). Returns false → caller draws procedurally. */
+const drawEnemySprite = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number): boolean => {
+    const id = enemySpriteId(enemy);
+    const flashing = (enemy.flashTimer ?? 0) > 0;
+    const prevA = ctx.globalAlpha;
+    if (enemy.projectileImmunity > 0) ctx.globalAlpha = prevA * 0.6;
+    const ok = drawSprite(ctx, id, enemy.x, enemy.y, 0, 1, flashing ? '#ffffff' : undefined);
+    ctx.globalAlpha = prevA;
+    if (!ok) return false;
+    if (flashing) enemy.flashTimer!--;
+    // dynamic overlays stay procedural (cheap strokes): carried ring, affixes, shields, shot warn, boss phase cracks
+    ctx.save();
+    ctx.translate(enemy.x, enemy.y);
+    const size = enemy.def.size;
+    if (enemy.affixes && enemy.affixes.length && !enemy.isBoss) drawAffixRing(ctx, enemy, frame, size);
+    if (((enemy.shieldHits ?? 0) > 0 || enemy.aegisShielded || (enemy.shieldPopFrames ?? 0) > 0) && !enemy.isBoss) drawShieldShell(ctx, enemy, frame, size);
+    if (enemy.isShiner && !enemy.isBoss) drawShinerHalo(ctx, frame, size);
+    if ((enemy.shotWarn ?? 0) > 0) {
+        const t = 1 - enemy.shotWarn! / ENEMY_SHOT_WARN_FRAMES;
+        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.25 + 0.55 * t; ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(0, 0, size * (0.35 + 0.45 * t), 0, Math.PI * 2); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    }
+    if (enemy.isBoss && !enemy.state.custom?.cinematicMode) drawBossPhaseOverlay(ctx, enemy, frame);
+    ctx.restore();
+    return true;
+};
 
 // (5A) Per-def tint cache: every enemy keeps its own hue but is pulled 25 % toward its chapter accent so a wave
 // reads as one palette; the outline is the chapter's dark outline. Bosses keep their own colours (phase overlay rules).
@@ -151,6 +183,8 @@ const drawShinerHalo = (ctx: CanvasRenderingContext2D, frame: number, size: numb
 };
 
 export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: number) => {
+    // (5B) sprite mode first; procedural fallback when the PNG is missing / not loaded
+    if (isSpriteMode() && drawEnemySprite(ctx, enemy, frame)) return;
     ctx.save();
     ctx.translate(enemy.x, enemy.y);
     

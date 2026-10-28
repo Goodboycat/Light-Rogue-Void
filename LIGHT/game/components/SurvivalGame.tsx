@@ -11,6 +11,9 @@ import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerS
 import ChapterCard from './ChapterCard';
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
+import { setSpriteMode } from './game/renderer/SpriteRenderer';
+// (5B) `?sprites=1` forces sprite mode regardless of the setting
+const SPRITES_FLAG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('sprites') === '1';
 import { applyRunModifiers, incomingDamageMult } from './game/logic/RunStats'; // (3A)
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
@@ -410,6 +413,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             const wasBossActive = !!state.activeBoss;
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
+            setSpriteMode(SPRITES_FLAG || !!refs.settings.spriteMode); // (5B)
             state.showMinimap = refs.settings.showMinimap !== false; // (3A)
             // (3A) run layer: tree stats × shrine/relic modifiers → what every system reads this frame
             const runStats = applyRunModifiers(refs.playerStats, state.runModifiers);

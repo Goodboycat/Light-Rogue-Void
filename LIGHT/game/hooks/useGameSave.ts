@@ -36,6 +36,7 @@ const INITIAL_STATE: GameState = {
         performanceMode: 'MEDIUM',
         screenShake: true,
         reduceFlash: false,
+        spriteMode: false,
         showMinimap: true
     }
 };
@@ -64,6 +65,7 @@ export const useGameSave = () => {
                 if (settings.mouseMovementEnabled === undefined) settings.mouseMovementEnabled = true;
                 if (settings.screenShake === undefined) settings.screenShake = true; // (4A)
                 if (settings.reduceFlash === undefined) settings.reduceFlash = false; // (4A)
+                if (settings.spriteMode === undefined) settings.spriteMode = false; // (5B)
                 if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
 
                 // (1B) Tree migration: the seeded tree has stable ids; any id from the
