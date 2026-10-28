@@ -1,0 +1,24 @@
+# Publishing on itch.io
+
+The itch build is **one file**: `out/light-rogue-void-itch/index.html` (all JS/CSS inlined by `vite-plugin-singlefile`; Tailwind + Google Fonts stay on CDN, which itch allows). Zip root = `index.html` — that is what itch requires.
+
+```bash
+bash LIGHT/game/tools/itch.sh      # -> LIGHT/out/light-rogue-void-itch.zip
+```
+
+## itch project settings (do these exactly — last upload failed on settings, not on the zip)
+1. **Kind of project:** `HTML`.
+2. Upload `light-rogue-void-itch.zip`, tick **"This file will be played in the browser"**.
+3. **Embed options:** *Click to launch in fullscreen* or *Embed in page* with **Viewport 960 × 600** (any size; the game is responsive) and **Mobile friendly** ✓, **Fullscreen button** ✓.
+4. **Frame options:** leave *SharedArrayBuffer support* off (not needed), *Orientation* = Landscape.
+5. Save → **View page** — it must show the menu within ~3 s on a 4G phone (zip is 352 kB, 1.48 MB inflated).
+
+## Checks done in the 4B chat (2026-10-28)
+- `unzip -l` → exactly one entry `index.html` (1 479 882 bytes). No `assets/` folder, no absolute `/` paths (`base: './'`).
+- Served from a static server and opened with Playwright over HTTPS: page title *Light Rogue Void* renders, **zero JS errors**, only the expected `cdn.tailwindcss.com should not be used in production` warning.
+- `localStorage` access is wrapped in `try/catch` (`hooks/useGameSave.ts:42,101,121`) so itch's sandboxed iframe (third-party storage blocked in some browsers) cannot crash the menu.
+
+## Known soft spots
+- If itch shows a blank page: open devtools; the only plausible causes are CDN blocked (Tailwind) → page loads unstyled but works, or a `?debug=1` left in the URL.
+- Fonts come from Google Fonts; offline/blocked → falls back to sans-serif.
+- 7B (mobile QA) should re-upload and test on a real phone inside the itch iframe (touch joystick + `touch-action: none`).
