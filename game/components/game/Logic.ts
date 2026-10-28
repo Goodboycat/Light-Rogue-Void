@@ -23,6 +23,7 @@ import { updateCamera } from './logic/CameraLogic';
 import { WORLD_SIZE } from './Constants';
 import { consumeHitStop, updateFeel, updateShake } from './Feel';
 import { initWorld, markFog } from './logic/WorldLogic';
+import { updateWorld } from './logic/WorldInteract';
 
 export const updateGame = (
     state: MutableGameState, 
@@ -129,8 +130,9 @@ export const updateGame = (
             // (4B) special wave rules (banner, Gauntlet walls, Curse marks, Aegis tagging); Gauntlet owns spawning
             const suppress = updateWaveFlavor(state, wave, onEnemySeen);
             // (4B) packs land after a 0.6 s telegraph; the trickle below runs at half speed around a pack
-            const trickleMult = suppress ? 1 : updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
-            if (!suppress && sinceWave >= WAVE_GRACE_SEC) {
+            // (3A) director is PAUSED (not capped) while a found event / relic alcove is running
+            const trickleMult = (suppress || state.worldEventActive) ? 1 : updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
+            if (!suppress && !state.worldEventActive && sinceWave >= WAVE_GRACE_SEC) {
                 const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
                 const rate = Math.round(baseRate * trickleMult / Math.max(0.15, ramp));
                 if (state.frame % rate === 0) shouldSpawn = true;
@@ -181,6 +183,7 @@ export const updateGame = (
         }
     }
 
+    if (!isCinematic) updateWorld(state, onEnemySeen); // (3A) touch shrines / alcoves / landmarks / events
     updateDrops(state, playerStats, maturityScale, onCollect);
     updateParticlesSystem(state);
     updateCamera(state, canvasWidth, canvasHeight);

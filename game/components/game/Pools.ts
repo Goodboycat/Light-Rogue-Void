@@ -64,7 +64,7 @@ const DROP_FREE: Drop[] = [];
 
 export const acquireDrop = (x: number, y: number, value: number): Drop => {
     const d = DROP_FREE.pop() ?? ({} as Drop);
-    d.x = x; d.y = y; d.value = value;
+    d.x = x; d.y = y; d.value = value; d.relicId = undefined; // (3A) recycled slot must not keep a relic
     return d;
 };
 

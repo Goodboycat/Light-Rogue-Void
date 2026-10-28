@@ -3,6 +3,7 @@ import { spawnExplosion } from '../Particles';
 import { spawnEnemy } from './enemies/SpawnLogic';
 import { CARRIED_REWARD_MULT } from '../Constants';
 import { onKillForStreak, streakEssenceMult, hitStop, shake } from '../Feel';
+import { onWorldGuardKilled } from './WorldInteract';
 import { acquireDrop, swapRemoveEnemy } from '../Pools';
 import { closeArena } from './enemies/BossKit';
 import { castBossDeathBlast } from '../BigFx';
@@ -27,6 +28,7 @@ export const killEnemy = (
 
     // (4A) streak first so this kill's essence already benefits from the multiplier
     onKillForStreak(state, enemy);
+    if (enemy.worldGuardOf) onWorldGuardKilled(state, enemy); // (3A) relic alcove guards
     const eliteMult = enemy.affixes && enemy.affixes.length ? ELITE_ESSENCE_MULT : 1; // (4B)
     const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state) * eliteMult * (state.flavorEssenceMult ?? 1));
     state.drops.push(acquireDrop(enemy.x, enemy.y, reward));

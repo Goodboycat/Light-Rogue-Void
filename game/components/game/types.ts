@@ -99,6 +99,7 @@ export interface Enemy extends Entity {
     isSlowImmune?: boolean; // Immunity to Ice Nova/Slows
     carried?: boolean; // (2A) survived a wave change → bonus essence + faint ring
     flashTimer?: number; // (4A) white hit flash frames left
+    worldGuardOf?: string; // (3A) relic id this elite guards — KillLogic → WorldInteract.onWorldGuardKilled
     // (4B) elite affixes — data/affixes.ts
     affixes?: import('../../data/affixes').AffixId[];
     shieldHits?: number;      // SHIELDED: hits left before the shield breaks
@@ -136,6 +137,8 @@ export interface Drop {
     x: number;
     y: number;
     value: number;
+    /** (3A) relic drop — DropLogic calls collectRelic instead of onCollect */
+    relicId?: string;
 }
 
 export interface MutableGameState {
@@ -218,6 +221,8 @@ export interface MutableGameState {
     shieldRequest?: number;    // shield points
     /** found-event in progress → Director pauses (Logic.ts gate) */
     worldEventActive?: boolean;
+    /** landmark ids discovered this frame batch; SurvivalGame drains into gameState.landmarksSeen */
+    landmarkSeenQueue?: string[];
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx

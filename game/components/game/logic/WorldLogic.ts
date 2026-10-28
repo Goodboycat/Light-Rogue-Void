@@ -27,6 +27,9 @@ export interface WorldPoint {
     consumed?: boolean;
     /** ambient pulse phase so points don't all throb in sync */
     phase: number;
+    /** Lost Spark: frames spent inside the radius */
+    sparkProgress?: number;
+    coreDropped?: boolean;
 }
 
 export interface WorldState {
