@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { WATCHER_WHISPERS } from '../data/story';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home } from 'lucide-react';
 import CinematicOverlay from './CinematicOverlay';
@@ -24,10 +25,7 @@ interface WinGameProps {
 
 type Stage = 'outro' | 'choice' | 'credits';
 
-const WHISPERS = [
-  'the seam remembers', 'a spark stood here', 'it was never silent', 'light decides',
-  'the void keeps company', 'you were seen', 'every cycle ends', 'begin again, or not',
-];
+const WHISPERS = WATCHER_WHISPERS; // (3B step 7) single source in data/story.ts
 
 const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSeen, stats }) => {
   const [stage, setStage] = useState<Stage>(IS_DEMO ? 'choice' : 'outro');

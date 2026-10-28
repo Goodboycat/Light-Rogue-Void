@@ -41,7 +41,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("Something old is scratching its way up from under the fields."),
-            W("...the small one keeps refusing. They always do, at first..."),
+            W("...another spark that will not go out. We have counted so many. We stopped counting..."),
         ],
         bossIntro: [
             D("Do you hear the scratching? The swarm hungers for your warmth."),
@@ -65,7 +65,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("The Warden walks the lines. You are standing on one."),
-            W("...someone else is counting its steps. It is not me..."),
+            W("...it moves like it has somewhere to be. Nothing here has anywhere to be..."),
         ],
         bossIntro: [
             D("The Warden will return you to the quiet."),
@@ -89,7 +89,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("The Eclipse is turning. When it blinks, so will you."),
-            W("...the depths kept a copy of each of them. They are not sure about you..."),
+            W("...the depths file every spark that drowns. Yours has no folder yet..."),
         ],
         bossIntro: [
             D("Crimson light. Corrupted light. Light that learned to hate."),
@@ -113,7 +113,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("A star is collapsing in the engine room. Do not look at it too long."),
-            W("...it was never supposed to reach the machine. Nothing here is fair. That is the point..."),
+            W("...the star was built to be the end of the road. Someone forgot to tell the road..."),
         ],
         bossIntro: [
             D("Everything falls into the Neutron. Even light. Especially light."),
@@ -137,7 +137,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("The Titan is the last thing I made. I made it to end arguments."),
-            W("...it is quieter now. That frightens them more than your light does..."),
+            W("...it has stopped answering the dark. Silence from a spark is a louder thing..."),
         ],
         bossIntro: [
             D("Entropy. The slow answer to every question. Here is the fast one."),
@@ -161,7 +161,7 @@ export const STORY: ChapterStory[] = [
         ],
         preBoss: [
             D("Come, then. No more voices. Only us."),
-            W("...you are the wrong answer to a very old question. The story does not know what to do with you..."),
+            W("...the question was asked before light existed. You were not among the answers..."),
         ],
         bossIntro: [
             D("Let us see which of us the seam remembers."),
@@ -196,6 +196,24 @@ export const storyLinesForWave = (wave: number): StoryLine[] | null => {
     if (offset === STORY_BEAT_WAVES.preBoss) return s.preBoss;
     return null;
 };
+
+/**
+ * (3B step 7) WATCHER whispers for the ending seam (WinGame outro). Rewritten from the fork's
+ * patch.js SEAM_WHISPERS idea — same voice, new words. Short, lowercase, no punctuation: they crawl
+ * in from the screen edges, they are not captions.
+ */
+export const WATCHER_WHISPERS: string[] = [
+    'the seam keeps what refuses to end',
+    'a spark stood where the question was asked',
+    'it was never silent here, only unheard',
+    'the dark called you a lesson',
+    'you were the lesson it did not want',
+    'even here you burn',
+    'every cycle is a door left open',
+    'stay and be kept, leave and be remembered',
+    'nothing here is fair and that was the point',
+    'it is quieter now and that frightens them',
+];
 
 /** Voice colours (also used by StoryCaption + docs). */
 export const STORY_VOICE_COLOR: Record<StoryVoice, string> = {
