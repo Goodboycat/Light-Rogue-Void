@@ -35,14 +35,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 4B | Enemy variety: `data/affixes.ts` (Hasted/Armored/Splitting/Vampiric/Shielded, 5 %+0.4 %/wave cap 30 %, 2nd affix ≥ w30), `logic/Director.ts` packs 3–8 with 0.6 s telegraph, special waves 5/15/25/35/45/55 (Elite Rush / Gauntlet / Curse / Aegis Trial, ported `waveFlavors.ts`), 0.4 s shot-warn on every shooter, **no caps anywhere** (rule 9) + `SpatialHash.ts` + batched bullets, fork enemies audited (identical 59 ids), `docs/ENEMIES.md` (`npm run enemies`). |
 | 3A | Discovery: `data/world.ts` (6 landmarks, 4 shrines, 6 relics, 3 placed events, `RunModifiers`), seeded placement (3+2+1+1–2 points, `?seed=`), `WorldInteract.ts` (shrine touch, relic alcove with 8 elite guards, 4 s lore cards, Ambush / Lost Spark / Collapsing Star), `WorldRenderer.ts` (silhouettes, glow pulse, off-screen arrow ch. 1–2), fog minimap (`settings.showMinimap`), `RunStats.ts` run layer + relic HUD chips, `FoundEvents.ts` (Golden Mite, Essence Tide, Treasure Pylon, Ambush Ring, Meteor Shower — found, never chosen, ≥ 25 s cooldown), `docs/WORLD.md`. |
 | 3B | Story: `data/story.ts` (6 chapters × opener/mid/preBoss/bossIntro/bossOutro, LIGHT/DARKNESS/WATCHER, WATCHER only at x9 + ending), `StoryCaption.tsx` non-pausing typewriter captions, chapter cards in the main menu replace the wave slider (unlock at `maxWaveReached >= firstWave`), `data/lore.ts` bestiary FIELD NOTES after 10 kills (`gameState.killCounts`), `ChapterCard.tsx` title card + `StarBackground` tint, **Light Burst** (`logic/LightBurst.ts`, tree nodes `burst_unlock/2/3` on the Utility spine, meter by kills, Space/E/touch ☀), WATCHER whispers single-sourced, `docs/STORY.md` (`npm run story`). |
+| 5A | Art pass: `renderer/Palette.ts` (per-chapter base/glow/outline/accent, enemies tinted 25 % toward chapter), readable 32 px silhouettes for the 9 visual types, boss phase stroke + enrage heartbeat, spark 6 maturity stages + dash trail + burst ring, essence orbs 3 sizes + relic gem, `?gallery=1[&scale=N]` static sheet (`components/Gallery.tsx`, 151 cells), `docs/ART.md` (style rules + cell order for 5B). |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 5A 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
+Next: 5B 6A 6B 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 5A | Procedural art pass + `?gallery=1` sheet that draws every entity side by side. |
 | 5B | Art extraction: screenshot the gallery → PNG sprites + atlas; optional sprite renderer. |
 | 6A | Audio manager + Ludo.ai prompt list (`docs/AUDIO_LUDO.md`), synth placeholders. |
 | 6B | Audio integration: SFX hooks, music per chapter, ducking, settings. |
