@@ -117,7 +117,7 @@ export const updateDarkness = (
             spawnExplosion(state, enemy.x, enemy.y, VOID, ParticleType.BOSS_AURA);
             heavyShake(state, 12, 16);
             if (phase === 2) { // your shadow steps out of you
-                spawnEnemy(state, state.bossSpawnedWave ?? 60, onEnemySeen, state.player.x + 120, state.player.y, BOSS_MINIONS.doppelganger);
+                spawnEnemy(state, state.bossSpawnedWave ?? 60, onEnemySeen, state.player.x + 120, state.player.y, BOSS_MINIONS.doppelganger, { noAffix: true });
                 c.nextDoppel = t + DOPPEL_EVERY;
                 screenFlash(state, 0.4, VOID);
             }
@@ -155,7 +155,7 @@ export const updateDarkness = (
     if (phase === 2 && c.nextDoppel !== undefined && t >= c.nextDoppel) {
         c.nextDoppel = t + DOPPEL_EVERY;
         const a = Math.random() * Math.PI * 2;
-        spawnEnemy(state, state.bossSpawnedWave ?? 60, onEnemySeen, state.player.x + Math.cos(a) * 200, state.player.y + Math.sin(a) * 200, BOSS_MINIONS.doppelganger);
+        spawnEnemy(state, state.bossSpawnedWave ?? 60, onEnemySeen, state.player.x + Math.cos(a) * 200, state.player.y + Math.sin(a) * 200, BOSS_MINIONS.doppelganger, { noAffix: true });
         VFX.castShockwave(state, state.player.x, state.player.y, VOID);
     }
 

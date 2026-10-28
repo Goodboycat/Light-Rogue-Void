@@ -89,7 +89,7 @@ export const updateVoidWarden = (
                 const shade = ENEMIES.find(e => e.id === 'e5');
                 for (let k = 0; k < 2; k++) {
                     const a = toPlayer + (k ? Math.PI / 2 : -Math.PI / 2);
-                    spawnEnemy(state, state.bossSpawnedWave ?? 20, onEnemySeen, state.player.x + Math.cos(a) * 260, state.player.y + Math.sin(a) * 260, shade);
+                    spawnEnemy(state, state.bossSpawnedWave ?? 20, onEnemySeen, state.player.x + Math.cos(a) * 260, state.player.y + Math.sin(a) * 260, shade, { noAffix: true });
                 }
             }
             if (phase === 3 && state.arena) { // the arena closes in

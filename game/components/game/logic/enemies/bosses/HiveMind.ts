@@ -48,7 +48,7 @@ const plantNodes = (state: MutableGameState, boss: Enemy, onEnemySeen: (id: stri
         const a = base + (k / NODE_COUNT) * Math.PI * 2;
         const x = cx + Math.cos(a) * NODE_RING, y = cy + Math.sin(a) * NODE_RING;
         telegraph(state, 'circle', x, y, { radius: 60, color: ACID_DARK }, 50, (st) => {
-            spawnEnemy(st, st.bossSpawnedWave ?? 10, onEnemySeen, x, y, BOSS_MINIONS.hive_node);
+            spawnEnemy(st, st.bossSpawnedWave ?? 10, onEnemySeen, x, y, BOSS_MINIONS.hive_node, { noAffix: true });
             spawnExplosion(st, x, y, ACID, ParticleType.SMOKE);
         });
     }
