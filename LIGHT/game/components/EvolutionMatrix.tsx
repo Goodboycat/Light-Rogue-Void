@@ -87,6 +87,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     // (7A) search + path preview
     const [query, setQuery] = useState('');
     const [respecOpen, setRespecOpen] = useState(false); // (7A) confirm dialog
+    const [abandonOpen, setAbandonOpen] = useState(false); // (7A step 6) abandon-run confirm
     const respecInfo = useMemo(() => {
         const ids = gameState.unlockedAbilityIds.filter(id => id !== 'spark');
         const spent = ids.reduce((s, id) => s + (NODE_BY_ID[id]?.cost ?? 0), 0);
@@ -354,13 +355,32 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                     SETTINGS
                 </button>
                 <button 
-                    onClick={onReturnToMenu}
+                    id="abandon-button"
+                    onClick={() => setAbandonOpen(true)}
                     className="flex items-center gap-2 px-4 py-3 bg-red-950/50 hover:bg-red-900 border border-red-900 hover:border-red-500 rounded-lg text-red-200 hover:text-white transition-all font-tech text-xs tracking-wider group shadow-lg"
                 >
                     <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    MAIN MENU
+                    ABANDON RUN
                 </button>
             </div>
+
+            {/* (7A step 6) Abandon run confirm dialog */}
+            {abandonOpen && (
+                <div id="abandon-dialog" className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto p-4" onClick={() => setAbandonOpen(false)}>
+                    <div className="w-full max-w-sm bg-slate-900 border border-red-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.15)]" onClick={e => e.stopPropagation()}>
+                        <h2 className="font-tech text-xl text-red-300 tracking-widest mb-3">ABANDON THE RUN?</h2>
+                        <p className="text-slate-300 text-sm font-mono leading-relaxed">
+                            The run ends here. Essence already collected is kept as matter; the wave progress of this run is lost.
+                        </p>
+                        <div className="flex gap-3 mt-6">
+                            <button data-sfx="back" onClick={() => setAbandonOpen(false)}
+                                className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white font-tech text-xs tracking-wider">KEEP FIGHTING</button>
+                            <button onClick={() => { setAbandonOpen(false); onReturnToMenu(); }}
+                                className="flex-1 px-4 py-3 bg-red-700 hover:bg-red-600 border border-red-400/60 rounded-lg text-white font-tech font-bold text-xs tracking-wider">ABANDON</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* (7A) Respec confirm dialog */}
             {respecOpen && (
