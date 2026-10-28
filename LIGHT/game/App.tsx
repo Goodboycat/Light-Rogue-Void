@@ -361,6 +361,9 @@ const App: React.FC = () => {
                 onBossDefeated={handleBossDefeated}
                 onBlockPauseMenu={setIsPauseBlocked}
                 onTransition={performTransition}
+                defeatedBosses={gameState.defeatedBosses}
+                treasuresOpened={gameState.mapTreasuresOpened ?? []}
+                onTreasure={handleMapTreasure}
             />
             
             {/* HUD */}

@@ -7,8 +7,9 @@ import { updateGame } from './game/Logic';
 import { resetDirector } from './game/logic/Director';
 import { resetLightBurst } from './game/logic/LightBurst';
 import { startWaveFlavor } from './game/waveFlavors';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef, isBossWave } from './game/Constants';
 import ChapterCard from './ChapterCard';
+import MapBreather from './MapBreather'; // (7C)
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
 import { setSpriteMode } from './game/renderer/SpriteRenderer';
@@ -58,6 +59,10 @@ interface SurvivalGameProps {
   onBossDefeated: (bossId: string) => void;
   onBlockPauseMenu: (blocked: boolean) => void;
   onTransition: (callback: () => void) => void;
+  // (7C) world-map breather after bosses 1–5
+  defeatedBosses?: string[];
+  treasuresOpened?: string[];
+  onTreasure?: (id: string, matter: number) => void;
 }
 
 const GET_MATURITY = (matter: number) => {
@@ -106,6 +111,15 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       initialWave === 1 && !hasSeenIntro ? null : { chapter: CHAPTERS[chapterIndexOf(initialWave) - 1], seq: chapterIndexOf(initialWave) }
   );
   useEffect(() => { onChapterChange?.(CHAPTERS[chapterIndexOf(initialWave) - 1]); Audio.music(`music_ch${Math.min(6, Math.max(1, chapterIndexOf(initialWave)))}` as any, 1500); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // (7C) breather: wave whose boss just died (10, 20 … 50); the loop is frozen while set
+  const [breather, setBreather] = useState<number | null>(null);
+  const breatherRef = useRef<number | null>(null);
+  breatherRef.current = breather;
+  /** Boss of `w` died: show the map before the next chapter (never after the last boss). */
+  const completeBossWave = (w: number) => {
+      if (w < MAX_WAVE && isBossWave(w)) { setBreather(w); Audio.music('music_title', 1500); }
+      else advanceWaveRef.current();
+  };
   const showChapterCard = (w: number) => {
       const ci = chapterIndexOf(w);
       const ch = CHAPTERS[ci - 1];
@@ -180,8 +194,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
   // Block Pause Menu when in cinematic or end states
   useEffect(() => {
-      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon);
-  }, [activeCinematic, gameOver, gameWon, onBlockPauseMenu]);
+      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon || breather !== null);
+  }, [activeCinematic, gameOver, gameWon, breather, onBlockPauseMenu]);
 
   // Use a Ref for game state access inside the loop
   const gameRefs = useRef({ 
@@ -260,6 +274,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
   const advanceWaveRef = useRef(advanceWave);
   advanceWaveRef.current = advanceWave;
+  const completeBossWaveRef = useRef(completeBossWave);
+  completeBossWaveRef.current = completeBossWave;
 
   // Handle Cinematic Logic
   const handleCinematicComplete = () => {
@@ -276,8 +292,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           const state = gameStateRef.current;
           if (!state.activeBoss && !gameOver && !gameWon && cinematic !== INTRO_SCRIPT && state.bossKilledWave !== undefined) {
               // Boss outro finished → the boss wave is complete now.
+              const killedWave = state.bossKilledWave;
               state.bossKilledWave = undefined;
-              advanceWaveRef.current();
+              completeBossWave(killedWave); // (7C) map breather for chapters 1–5
           }
       });
   };
@@ -413,7 +430,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
         }
 
         // NORMAL GAME LOOP
-        if (!refs.paused && !refs.gameOver && !refs.gameWon) {
+        if (!refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null) {
             const state = gameStateRef.current;
             const wasBossActive = !!state.activeBoss;
             // (4A) feel toggles + HP mirror for the low-HP tint
@@ -494,8 +511,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     setGameWon(true); Audio.music("music_ending", 2000); // (6B)
                 } else {
                     // No outro script: boss death completes the wave immediately (2A)
+                    const killedWave = state.bossKilledWave ?? refs.wave;
                     state.bossKilledWave = undefined;
-                    advanceWaveRef.current();
+                    completeBossWaveRef.current(killedWave); // (7C)
                 }
             }
             
@@ -543,7 +561,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     timerInterval = setInterval(() => {
         const refs = gameRefs.current;
         // Don't tick timer if cinematic is active
-        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon) {
+        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null) {
             
             phraseTimerRef.current += 1;
             if (phraseTimerRef.current >= 5) {
@@ -590,7 +608,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           />
       )}
 
-      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && (
+      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && breather === null && (
           <MobileControls input={inputInstance} onOpenMenu={onTogglePause} burstUnlocked={!!burstHud} burstReady={!!burstHud?.ready} />
       )}
 
@@ -633,6 +651,19 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             currentPhrase={currentPhrase}
             darknessPhrase={darknessPhrase}
             maturity={maturity}
+          />
+      )}
+
+      {breather !== null && !gameOver && !gameWon && !activeCinematic && (
+          <MapBreather
+            nextWave={breather + 1}
+            maxWaveReached={maxWaveReached}
+            defeatedBosses={defeatedBosses}
+            treasuresOpened={treasuresOpened}
+            onTreasure={onTreasure}
+            reduceFlash={!!settings.reduceFlash}
+            onContinue={() => { setBreather(null); breatherRef.current = null; advanceWaveRef.current(); }}
+            onMenu={() => { setBreather(null); breatherRef.current = null; onReturnToMenu(); }}
           />
       )}
 
