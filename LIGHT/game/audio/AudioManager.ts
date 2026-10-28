@@ -116,10 +116,12 @@ class AudioManagerImpl {
 
     // positional attenuation (world units; 0 at > 1400 px) + mild pan not needed — keep it cheap
     let vol = (opts.vol ?? 1) * (SFX_VOLUME[id] ?? 0.6);
+    let pan = 0; // (6B step 5) −0.6…0.6 by horizontal offset from the listener (≈ screen x)
     if (opts.pos && opts.listener) {
       const d = Math.hypot(opts.pos.x - opts.listener.x, opts.pos.y - opts.listener.y);
       vol *= Math.max(0, 1 - d / 1400);
       if (vol < 0.02) return false;
+      pan = Math.max(-0.6, Math.min(0.6, (opts.pos.x - opts.listener.x) / 900));
     }
     this.pruneVoices(ctx.currentTime);
     if (this.voices.length >= MAX_VOICES) {
@@ -128,7 +130,9 @@ class AudioManagerImpl {
       for (let i = 1; i < this.voices.length; i++) if (this.voices[i].vol < this.voices[idx].vol || (this.voices[i].vol === this.voices[idx].vol && this.voices[i].startedAt < this.voices[idx].startedAt)) idx = i;
       const v = this.voices.splice(idx, 1)[0]; v.stop(); v.gain.disconnect();
     }
-    const g = ctx.createGain(); g.gain.value = vol; g.connect(this.sfxBus);
+    const g = ctx.createGain(); g.gain.value = vol;
+    if (pan !== 0 && typeof ctx.createStereoPanner === 'function') { const p = ctx.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(this.sfxBus); }
+    else g.connect(this.sfxBus);
     const pitch = 1 + (opts.pitchVar ? (Math.random() * 2 - 1) * opts.pitchVar : 0);
     let stop: () => void; let dur: number;
     const buf = this.buffer(id);

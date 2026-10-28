@@ -134,6 +134,18 @@ const App: React.FC = () => {
   useEffect(() => { Audio.init(); }, []);
   // (6B) title music whenever the main menu is shown; the run picks its own chapter track in advanceWave / start
   useEffect(() => { if (isInMainMenu) Audio.music('music_title', 1500); }, [isInMainMenu]);
+  // (6B step 4) one delegated click sound for every <button> in menus/tree/settings; `data-sfx="back"|"none"` overrides.
+  useEffect(() => {
+      const onDown = (e: PointerEvent) => {
+          const el = (e.target as HTMLElement | null)?.closest?.('button,[role="button"],a') as HTMLElement | null;
+          if (!el || el.closest('#game-canvas,canvas')) return;
+          const kind = el.dataset.sfx ?? (/back|close|return|cancel|resume/i.test(el.textContent ?? '') ? 'back' : 'click');
+          if (kind === 'none') return;
+          Audio.play(kind === 'back' ? 'ui_back' : 'ui_click', { vol: 0.7 });
+      };
+      window.addEventListener('pointerdown', onDown, { capture: true });
+      return () => window.removeEventListener('pointerdown', onDown, { capture: true } as any);
+  }, []);
   const { masterVolume, musicVolume, sfxVolume, muted } = gameState.settings;
   useEffect(() => {
       Audio.setSettings({ masterVolume, musicVolume, sfxVolume, muted: !!muted });
@@ -141,7 +153,9 @@ const App: React.FC = () => {
 
   const handleUnlock = (id: string) => {
     const node = ABILITY_TREE_DATA.find(n => n.id === id);
+    if (node && gameState.matter < node.cost) Audio.play('ui_error', { vol: 0.8 }); // (6B)
     if (node && gameState.matter >= node.cost) {
+        Audio.play('ui_unlock'); // (6B)
         setGameState(p => ({
             ...p,
             matter: p.matter - node.cost,
@@ -167,8 +181,10 @@ const App: React.FC = () => {
               }
           }
           if (!changed) {
+              Audio.play('ui_error', { vol: 0.8 }); // (6B)
               return p;
           }
+          Audio.play('ui_unlock'); // (6B)
           return { ...p, matter: currentMatter, unlockedAbilityIds: newUnlocked };
       });
   };
