@@ -1,0 +1,3 @@
+{
+  "_comment": "(6A) Optional id -> file map. Drop Ludo.ai exports here as public/audio/<id>.ogg and add a line, e.g. \"ui_click\": \"ui_click.ogg\". Ids without an entry (or whose file fails to load) fall back to the synth placeholder. See docs/AUDIO_LUDO.md."
+}
