@@ -33,7 +33,8 @@ const INITIAL_STATE: GameState = {
         sfxVolume: 1.0,
         performanceMode: 'MEDIUM',
         screenShake: true,
-        reduceFlash: false
+        reduceFlash: false,
+        showMinimap: true
     }
 };
 
@@ -61,6 +62,7 @@ export const useGameSave = () => {
                 if (settings.mouseMovementEnabled === undefined) settings.mouseMovementEnabled = true;
                 if (settings.screenShake === undefined) settings.screenShake = true; // (4A)
                 if (settings.reduceFlash === undefined) settings.reduceFlash = false; // (4A)
+                if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
 
                 // (1B) Tree migration: the seeded tree has stable ids; any id from the
                 // old random tree is dropped and refunded so the save never dangles.

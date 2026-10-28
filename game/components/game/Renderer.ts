@@ -13,6 +13,7 @@ import { drawLasers, drawEclipse, eclipseStrength } from './renderer/LaserRender
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
 import { drawWorldPoints, drawWorldArrow, drawWorldCard } from './renderer/WorldRenderer'; // (3A)
+import { drawMinimap } from './renderer/MinimapRenderer'; // (3A)
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -137,6 +138,7 @@ export const renderGame = (
     drawFlavorBanner(ctx, state, canvasWidth, canvasHeight); // (4B) special wave banner
     drawWorldArrow(ctx, state, canvasWidth, canvasHeight);   // (3A) off-screen hint, chapters 1–2
     drawWorldCard(ctx, state, canvasWidth, canvasHeight);    // (3A) lore card / shrine toast
+    drawMinimap(ctx, state, canvasWidth, canvasHeight);      // (3A) fog-of-discovery minimap
 
     // --- CURSOR ---
     ctx.fillStyle = '#fff';

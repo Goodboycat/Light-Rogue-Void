@@ -376,6 +376,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
             state.hpRatio = refs.playerStats.maxHealth > 0 ? refs.currentHealth / refs.playerStats.maxHealth : 1;
+            state.showMinimap = refs.settings.showMinimap !== false; // (3A)
             const bossId = state.activeBoss?.def.id;
             
             updateGame(state, refs.playerStats, input, refs.wave, refs.timeRemaining, 
