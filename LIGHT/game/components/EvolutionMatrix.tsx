@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle } from 'lucide-react';
-import { AbilityNodeData, GameState } from '../types';
+import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X } from 'lucide-react';
+import { AbilityNodeData, AbilityType, GameState } from '../types';
 import { ABILITY_TREE_DATA, BOSS_DISPLAY_NAMES } from '../data';
 import Connection from './Connection';
 import SkillNode from './SkillNode';
@@ -17,6 +17,49 @@ interface EvolutionMatrixProps {
     onResume: () => void;
     onReturnToMenu: () => void;
 }
+
+// (7A) tree UX
+export const ZOOM_MIN = 0.5;
+export const ZOOM_MAX = 2.5;
+const NODE_BY_ID: Record<string, AbilityNodeData> = Object.fromEntries(ABILITY_TREE_DATA.map(n => [n.id, n]));
+const ARC_LEGEND: { type: AbilityType; label: string; cls: string }[] = [
+    { type: AbilityType.OFFENSE, label: 'OFFENSE', cls: 'bg-red-500' },
+    { type: AbilityType.DEFENSE, label: 'DEFENSE', cls: 'bg-blue-500' },
+    { type: AbilityType.UTILITY, label: 'UTILITY', cls: 'bg-amber-500' },
+];
+/** Cheapest set of locked nodes that must be bought to reach `targetId` (Dijkstra over parentIds, cost = node.cost).
+ *  Returns the path from the first locked node after an unlocked ancestor down to the target, plus the total. */
+export const cheapestPath = (targetId: string, unlocked: string[], defeated: string[]): { ids: string[]; total: number } | null => {
+    const unl = new Set(unlocked);
+    const target = NODE_BY_ID[targetId];
+    if (!target || unl.has(targetId)) return null;
+    const bossLocked = (n: AbilityNodeData) => !!n.requiresBoss && !defeated.includes(n.requiresBoss);
+    if (bossLocked(target)) return null;
+    // best[id] = cheapest total cost of locked nodes from an unlocked ancestor down to and including id
+    const best: Record<string, number> = {}; const prev: Record<string, string | null> = {};
+    const open: string[] = [];
+    // seeds: every locked node with an unlocked parent (or a root)
+    for (const n of ABILITY_TREE_DATA) {
+        if (unl.has(n.id) || bossLocked(n)) continue;
+        if (n.parentIds.length === 0 || n.parentIds.some(p => unl.has(p))) { best[n.id] = n.cost; prev[n.id] = null; open.push(n.id); }
+    }
+    const done = new Set<string>();
+    while (open.length) {
+        let bi = 0; for (let i = 1; i < open.length; i++) if (best[open[i]] < best[open[bi]]) bi = i;
+        const id = open.splice(bi, 1)[0];
+        if (done.has(id)) continue; done.add(id);
+        if (id === targetId) break;
+        for (const n of ABILITY_TREE_DATA) {
+            if (!n.parentIds.includes(id) || unl.has(n.id) || bossLocked(n) || done.has(n.id)) continue;
+            const c = best[id] + n.cost;
+            if (best[n.id] === undefined || c < best[n.id]) { best[n.id] = c; prev[n.id] = id; open.push(n.id); }
+        }
+    }
+    if (best[targetId] === undefined) return null;
+    const ids: string[] = []; let cur: string | null = targetId;
+    while (cur) { ids.unshift(cur); cur = prev[cur]; }
+    return { ids, total: best[targetId] };
+};
 
 const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({ 
     gameState, 
@@ -36,6 +79,36 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     const dragX = useMotionValue(0);
     const dragY = useMotionValue(0);
     const [isPinching, setIsPinching] = useState(false);
+    // (7A) search + path preview
+    const [query, setQuery] = useState('');
+    const [previewId, setPreviewId] = useState<string | null>(null);
+    const matchIds = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (q.length < 2) return null;
+        return new Set(ABILITY_TREE_DATA.filter(n => !bossLocked(n) && (n.title.toLowerCase().includes(q) || (n.description || '').toLowerCase().includes(q))).map(n => n.id));
+    }, [query, gameState.defeatedBosses]);
+    const preview = useMemo(() => previewId ? cheapestPath(previewId, gameState.unlockedAbilityIds, gameState.defeatedBosses || []) : null, [previewId, gameState.unlockedAbilityIds, gameState.defeatedBosses]);
+    const pathSet = useMemo(() => new Set(preview?.ids ?? []), [preview]);
+    const focusNode = (n: AbilityNodeData, targetScale?: number) => {
+        dragX.stop(); dragY.stop();
+        const s2 = targetScale ?? scale.get();
+        if (targetScale) animate(scale, targetScale, { duration: 0.4 });
+        animate(dragX, -n.position.x * s2, { type: 'spring', stiffness: 200, damping: 25 });
+        animate(dragY, -n.position.y * s2, { type: 'spring', stiffness: 200, damping: 25 });
+    };
+    /** Fit one arc (or a boss constellation) into view: centre on its nodes' bbox. */
+    const fitGroup = (pick: (n: AbilityNodeData) => boolean) => {
+        const nodes = ABILITY_TREE_DATA.filter(pick); if (!nodes.length) return;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const n of nodes) { minX = Math.min(minX, n.position.x); maxX = Math.max(maxX, n.position.x); minY = Math.min(minY, n.position.y); maxY = Math.max(maxY, n.position.y); }
+        const w = Math.max(200, maxX - minX + 200), h = Math.max(200, maxY - minY + 200);
+        const s2 = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.min(window.innerWidth / w, window.innerHeight / h) * 0.85));
+        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        dragX.stop(); dragY.stop();
+        animate(scale, s2, { duration: 0.4 });
+        animate(dragX, -cx * s2, { type: 'spring', stiffness: 200, damping: 25 });
+        animate(dragY, -cy * s2, { type: 'spring', stiffness: 200, damping: 25 });
+    };
     
     // Initial Expansion Effect
     useEffect(() => {
@@ -72,7 +145,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
-            const newScale = Math.min(Math.max(pinchRef.current.startScale * (dist / pinchRef.current.dist), 0.2), 4.0);
+            const newScale = Math.min(Math.max(pinchRef.current.startScale * (dist / pinchRef.current.dist), ZOOM_MIN), ZOOM_MAX);
             scale.set(newScale);
             
             // Adjust position to maintain center relative to zoom
@@ -142,7 +215,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
 
     const handleWheel = (e: React.WheelEvent) => {
         const currentScale = scale.get();
-        const newScale = Math.min(Math.max(currentScale + (e.deltaY > 0 ? -0.1 : 0.1), 0.2), 4.0);
+        const newScale = Math.min(Math.max(currentScale + (e.deltaY > 0 ? -0.1 : 0.1), ZOOM_MIN), ZOOM_MAX);
         
         // Adjust position to maintain center relative to zoom
         const ratio = newScale / currentScale;
@@ -183,6 +256,40 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 </motion.h1>
                 <p className="text-white/30 font-mono tracking-widest text-xs uppercase mt-2">Ignite the divine spark within</p>
             </div>
+            {/* (7A) search + arc legend + fit buttons */}
+            <div id="tree-tools" className="absolute top-32 right-8 z-50 flex flex-col items-end gap-2 pointer-events-auto max-w-[260px]">
+                <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-lg px-2 py-1 backdrop-blur-md w-full">
+                    <Search size={14} className="text-slate-400 shrink-0" />
+                    <input id="tree-search" value={query} onChange={e => setQuery(e.target.value)} placeholder="search nodes…"
+                        className="bg-transparent outline-none text-xs font-mono text-white placeholder:text-slate-500 w-full" />
+                    {query && <button data-sfx="back" onClick={() => setQuery('')} className="text-slate-400 hover:text-white"><X size={14} /></button>}
+                </div>
+                {matchIds && (
+                    <div className="text-[10px] font-mono text-yellow-300/90 bg-black/50 px-2 py-1 rounded border border-yellow-500/20 w-full text-right">
+                        {matchIds.size} match{matchIds.size === 1 ? '' : 'es'}
+                        {matchIds.size > 0 && <button onClick={() => { const n = NODE_BY_ID[[...matchIds][0]]; focusNode(n, 1.2); setPreviewId(n.id); }} className="ml-2 underline hover:text-white">go to first</button>}
+                    </div>
+                )}
+                <div className="flex flex-wrap gap-1 justify-end">
+                    {ARC_LEGEND.map(a => (
+                        <button key={a.type} onClick={() => fitGroup(n => n.type === a.type && !n.requiresBoss)} title={`Fit ${a.label} arc`}
+                            className="flex items-center gap-1 px-2 py-1 rounded bg-slate-900/80 border border-slate-700 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">
+                            <span className={`w-2 h-2 rounded-full ${a.cls}`} />{a.label}
+                        </button>
+                    ))}
+                    <button onClick={() => fitGroup(() => true)} title="Fit whole tree"
+                        className="px-2 py-1 rounded bg-slate-900/80 border border-slate-700 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">ALL</button>
+                </div>
+                <div className="text-[9px] font-mono text-slate-500 text-right">● unlocked · ◌ affordable (green) · dashed = not yet reachable · ✦ constellation (boss)</div>
+            </div>
+            {preview && previewId && (
+                <div id="path-preview" className="absolute bottom-48 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-slate-900/90 border border-cyan-500/40 rounded-xl px-4 py-2 text-center backdrop-blur-md shadow-xl">
+                    <div className="font-tech text-xs text-cyan-200 tracking-wider">{NODE_BY_ID[previewId].title}</div>
+                    <div className="font-mono text-[10px] text-slate-300 mt-0.5">
+                        path: <span className="text-white">{preview.ids.length}</span> node{preview.ids.length === 1 ? '' : 's'} · total <span className={gameState.matter >= preview.total ? 'text-emerald-400' : 'text-red-400'}>{preview.total} M</span> · you have {gameState.matter} M
+                    </div>
+                </div>
+            )}
 
             {/* LEFT SIDE: ARCHIVES & AWARDS */}
             <div className="absolute top-32 left-8 z-50 flex flex-col gap-4 items-start pointer-events-auto">
@@ -317,6 +424,10 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                             currentScale={scale}
                             isBossLocked={bossLocked(node)}
                             lockLabel={bossLocked(node) ? lockLabelFor(node) : undefined}
+                            isGhost={!isRevealed && !isUnlocked && (pathSet.has(node.id) || (!!matchIds && matchIds.has(node.id)))}
+                            highlight={previewId === node.id ? 'target' : pathSet.has(node.id) ? 'path' : matchIds && matchIds.has(node.id) ? 'match' : null}
+                            isDimmed={!!matchIds && !matchIds.has(node.id) && !pathSet.has(node.id)}
+                            onPreview={setPreviewId}
                         />
                     );
                 })}

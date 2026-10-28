@@ -14,6 +14,13 @@ interface SkillNodeProps {
   /** (1B) Constellation node whose boss is not yet defeated: dim star + lock. */
   isBossLocked?: boolean;
   lockLabel?: string;
+  /** (7A) search hit / path preview: draw the node even when not revealed (dashed ghost). */
+  isGhost?: boolean;
+  /** (7A) 'path' = on the previewed cheapest path, 'target' = the previewed node, 'match' = search hit. */
+  highlight?: 'path' | 'target' | 'match' | null;
+  /** (7A) everything that is not a search hit is dimmed while a query is active. */
+  isDimmed?: boolean;
+  onPreview?: (id: string | null) => void;
 }
 
 const SkillNode: React.FC<SkillNodeProps> = ({
@@ -24,7 +31,11 @@ const SkillNode: React.FC<SkillNodeProps> = ({
   onUnlock,
   currentScale,
   isBossLocked = false,
-  lockLabel
+  lockLabel,
+  isGhost = false,
+  highlight = null,
+  isDimmed = false,
+  onPreview
 }) => {
   // Dynamic Icon Loading
   const IconComponent = (Icons as any)[data.icon] || Icons.Circle;
@@ -44,8 +55,13 @@ const SkillNode: React.FC<SkillNodeProps> = ({
     if (isUnlocked || isBossLocked) return;
     if (isRevealed && isAffordable) {
       onUnlock(data.id);
-    } 
+    } else {
+      onPreview?.(highlight === 'target' ? null : data.id); // (7A) tap a locked / ghost node = path preview (touch)
+    }
   };
+  const ringClass = highlight === 'target' ? 'ring-4 ring-cyan-300 ring-offset-2 ring-offset-black'
+    : highlight === 'path' ? 'ring-2 ring-cyan-400/80'
+    : highlight === 'match' ? 'ring-2 ring-yellow-300/90' : '';
 
   const getColors = () => {
     if (isBossLocked) return 'bg-slate-950/60 border-slate-700/40 opacity-60 cursor-not-allowed';
@@ -56,6 +72,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       if (data.type === AbilityType.DEFENSE) return 'bg-blue-950 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]';
       return 'bg-amber-950 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]';
     }
+    if (!isRevealed && isGhost) return 'bg-slate-950/80 border-dashed border-slate-500 opacity-80 cursor-pointer';
     if (isRevealed) {
         if(isAffordable) return 'bg-slate-900 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)] cursor-pointer hover:bg-slate-800 hover:border-emerald-400';
         return 'bg-slate-950 border-slate-800 cursor-not-allowed opacity-50';
@@ -73,11 +90,13 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       return 'text-slate-700';
   };
 
-  if (!isRevealed && !isUnlocked && !isBossLocked) return null;
+  if (!isRevealed && !isUnlocked && !isBossLocked && !isGhost) return null;
 
   return (
     <motion.div
-      className="absolute flex flex-col items-center justify-center group"
+      className={`absolute flex flex-col items-center justify-center group ${isDimmed ? 'opacity-25' : ''}`}
+      onPointerEnter={(e: React.PointerEvent) => { if (e.pointerType === 'mouse' && !isUnlocked) onPreview?.(data.id); }}
+      onPointerLeave={(e: React.PointerEvent) => { if (e.pointerType === 'mouse') onPreview?.(null); }}
       style={{
         left: data.position.x,
         top: data.position.y,
@@ -150,7 +169,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
         className={`
           relative ${sizeClass} rounded-full border-2 flex items-center justify-center
           transition-colors duration-300 overflow-hidden
-          ${getColors()}
+          ${getColors()} ${ringClass}
         `}
       >
         {/* Unlock Flash */}
@@ -175,7 +194,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       </motion.button>
       
       {/* Label only for Major nodes to reduce clutter */}
-      {isMajor && (
+      {(isMajor || isGhost || highlight === 'match') && (
         <motion.div className={`mt-2 text-[10px] font-tech tracking-wider uppercase font-bold text-center w-32 truncate
           ${isUnlocked ? 'text-white opacity-90' : 'text-slate-700 opacity-60'}
         `}
