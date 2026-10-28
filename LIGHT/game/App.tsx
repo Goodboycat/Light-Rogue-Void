@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import StarBackground from './components/StarBackground';
 import SurvivalGame from './components/SurvivalGame';
+import { Audio } from './audio/AudioManager';
 import { MAX_WAVE } from './components/game/Constants';
 import Archives from './components/Archives';
 import MainMenu from './components/MainMenu';
@@ -128,6 +129,13 @@ const App: React.FC = () => {
   const handleUpdateSettings = (newSettings: Settings) => {
       setGameState(p => ({ ...p, settings: newSettings }));
   };
+
+  // (6A) audio: unlock on first gesture, mirror volume settings into the engine
+  useEffect(() => { Audio.init(); }, []);
+  const { masterVolume, musicVolume, sfxVolume, muted } = gameState.settings;
+  useEffect(() => {
+      Audio.setSettings({ masterVolume, musicVolume, sfxVolume, muted: !!muted });
+  }, [masterVolume, musicVolume, sfxVolume, muted]);
 
   const handleUnlock = (id: string) => {
     const node = ABILITY_TREE_DATA.find(n => n.id === id);

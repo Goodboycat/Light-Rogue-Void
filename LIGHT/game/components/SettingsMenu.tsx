@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye, Map, Image } from 'lucide-react';
+import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye, Map, Image, Volume2, VolumeX } from 'lucide-react';
 import { Settings } from '../types';
+import { Audio } from '../audio/AudioManager';
 
 interface SettingsMenuProps {
     settings: Settings;
@@ -92,6 +93,36 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                                 onToggle={() => update('showMinimap', settings.showMinimap === false)}
                             />
                         </div>
+                    </div>
+
+                    {/* AUDIO (6A) */}
+                    <div className="space-y-4">
+                        <label className="text-xs font-mono text-cyan-400 uppercase tracking-widest block mb-2">Audio</label>
+                        <div className="space-y-3">
+                            <ToggleRow
+                                label={settings.muted ? 'Muted' : 'Sound on'}
+                                icon={settings.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                                active={!settings.muted}
+                                onToggle={() => { update('muted', !settings.muted); if (settings.muted) Audio.play('ui_click'); }}
+                            />
+                            {([['masterVolume', 'Master'], ['musicVolume', 'Music'], ['sfxVolume', 'Effects']] as const).map(([key, label]) => (
+                                <div key={key} className="flex items-center gap-4 p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                                    <span className="font-tech text-xs tracking-wider text-slate-300 w-16">{label}</span>
+                                    <input
+                                        type="range" min={0} max={1} step={0.05}
+                                        value={settings[key] ?? 0.8}
+                                        aria-label={`${label} volume`}
+                                        onChange={e => update(key, parseFloat(e.target.value))}
+                                        onPointerUp={() => Audio.play(key === 'musicVolume' ? 'ui_unlock' : 'ui_click')}
+                                        className="flex-1 accent-cyan-400 h-1.5 cursor-pointer"
+                                    />
+                                    <span className="font-mono text-xs text-slate-500 w-9 text-right">{Math.round((settings[key] ?? 0.8) * 100)}%</span>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-[10px] text-slate-500 text-center">
+                            Placeholder synth sounds until the Ludo.ai files land in <code>public/audio/</code>.
+                        </p>
                     </div>
 
                     {/* PERFORMANCE MODE */}

@@ -84,6 +84,7 @@ export interface Settings {
     reduceFlash?: boolean;  // (4A) default off
     spriteMode?: boolean;   // (5B) default off — blit extracted PNGs instead of procedural drawing
     showMinimap?: boolean;  // (3A) default on
+    muted?: boolean;        // (6A) default off — audio/AudioManager.ts reads master/music/sfx + muted
 }
 
 export interface GameState {

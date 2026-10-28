@@ -37,7 +37,8 @@ const INITIAL_STATE: GameState = {
         screenShake: true,
         reduceFlash: false,
         spriteMode: false,
-        showMinimap: true
+        showMinimap: true,
+        muted: false
     }
 };
 
@@ -67,6 +68,10 @@ export const useGameSave = () => {
                 if (settings.reduceFlash === undefined) settings.reduceFlash = false; // (4A)
                 if (settings.spriteMode === undefined) settings.spriteMode = false; // (5B)
                 if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
+                if (settings.muted === undefined) settings.muted = false; // (6A)
+                if (typeof settings.masterVolume !== 'number') settings.masterVolume = 0.8; // (6A)
+                if (typeof settings.musicVolume !== 'number') settings.musicVolume = 0.6;
+                if (typeof settings.sfxVolume !== 'number') settings.sfxVolume = 1.0;
 
                 // (1B) Tree migration: the seeded tree has stable ids; any id from the
                 // old random tree is dropped and refunded so the save never dangles.
