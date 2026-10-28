@@ -6,7 +6,8 @@ import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
 import { resetDirector } from './game/logic/Director';
 import { startWaveFlavor } from './game/waveFlavors';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef } from './game/Constants';
+import ChapterCard from './ChapterCard';
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
 import { applyRunModifiers, incomingDamageMult } from './game/logic/RunStats'; // (3A)
@@ -42,6 +43,7 @@ interface SurvivalGameProps {
   onEndingSeen?: (choice: 'stay' | 'leave') => void;
   onLandmarkSeen?: (id: string) => void; // (3A) → gameState.landmarksSeen
   onKills?: (counts: Record<string, number>) => void; // (3B) → gameState.killCounts
+  onChapterChange?: (chapter: ChapterDef) => void;   // (3B step 5) → StarBackground tint
   onTogglePause: () => void;
   hasSeenIntro: boolean;
   onIntroComplete: () => void;
@@ -69,6 +71,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     onEndingSeen,
     onLandmarkSeen,
     onKills,
+    onChapterChange,
     onEnemySeen,
     initialWave,
     maxWaveReached,
@@ -92,6 +95,17 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [storyLines, setStoryLines] = useState<StoryLine[] | null>(
       initialWave === 1 && !hasSeenIntro ? null : storyLinesForWave(initialWave) // intro case: set when the intro ends
   );
+  // (3B step 5) chapter title card: shows on run start (after the intro) and on every chapter change
+  const [chapterCard, setChapterCard] = useState<{ chapter: ChapterDef; seq: number } | null>(
+      initialWave === 1 && !hasSeenIntro ? null : { chapter: CHAPTERS[chapterIndexOf(initialWave) - 1], seq: chapterIndexOf(initialWave) }
+  );
+  useEffect(() => { onChapterChange?.(CHAPTERS[chapterIndexOf(initialWave) - 1]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const showChapterCard = (w: number) => {
+      const ci = chapterIndexOf(w);
+      const ch = CHAPTERS[ci - 1];
+      setChapterCard({ chapter: ch, seq: ci });
+      onChapterChange?.(ch);
+  };
   
   // --- CINEMATIC STATE MANAGEMENT ---
   // We use a generic 'activeCinematic' state to hold the script currently playing.
@@ -224,6 +238,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
       setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
       setStoryLines(storyLinesForWave(nextWave)); // (3B) null on waves without a beat
+      if (chapterIndexOf(nextWave) !== chapterIndexOf(nextWave - 1)) showChapterCard(nextWave); // (3B step 5) new chapter
 
       state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; });
       state.waveKills = 0;
@@ -246,6 +261,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           if (cinematic === INTRO_SCRIPT) {
               onIntroComplete();
               setStoryLines(storyLinesForWave(gameRefs.current.wave)); // (3B) chapter 1 opener after the intro
+              showChapterCard(gameRefs.current.wave); // (3B step 5) chapter 1 card after the intro
           }
           
           const state = gameStateRef.current;
@@ -564,6 +580,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
       {!activeCinematic && !gameOver && !gameWon && (
           <StoryCaption lines={storyLines} seq={wave} raised={!!settings.showTouchControls} />
+      )}
+
+      {!activeCinematic && !gameOver && !gameWon && (
+          <ChapterCard chapter={chapterCard?.chapter ?? null} seq={chapterCard?.seq ?? 0} />
       )}
 
       {!activeCinematic && !gameOver && !gameWon && (

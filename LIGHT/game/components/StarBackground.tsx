@@ -5,12 +5,24 @@ interface StarBackgroundProps {
   unlockedCount: number;
   totalCount: number;
   performanceMode?: 'LOW' | 'MEDIUM' | 'HIGH';
+  /** (3B step 5) chapter palette accent; null = plain white stars. Eased in over ~2 s. */
+  tint?: string | null;
 }
 
-const StarBackground: React.FC<StarBackgroundProps> = ({ unlockedCount, totalCount, performanceMode = 'MEDIUM' }) => {
+const hexToRgb = (hex: string): [number, number, number] => {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+const StarBackground: React.FC<StarBackgroundProps> = ({ unlockedCount, totalCount, performanceMode = 'MEDIUM', tint = null }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starsRef = useRef<Float32Array | null>(null);
   const currentMaxRef = useRef(0);
+  // Tint target + eased current colour (white by default); refs so the render loop doesn't restart.
+  const tintTargetRef = useRef<[number, number, number]>([255, 255, 255]);
+  const tintCurRef = useRef<[number, number, number]>([255, 255, 255]);
+  useEffect(() => { tintTargetRef.current = tint ? hexToRgb(tint) : [255, 255, 255]; }, [tint]);
 
   const getStarCount = (mode: string) => {
       switch(mode) {
@@ -91,10 +103,13 @@ const StarBackground: React.FC<StarBackgroundProps> = ({ unlockedCount, totalCou
       const safeTotal = Math.max(1, totalCount);
       const progress = Math.min(1, unlockedCount / safeTotal);
 
-      // Star Appearance: Glowing White
-      ctx.fillStyle = '#ffffff';
+      // Star Appearance: glowing, tinted toward the chapter accent (eased ~2 s at 60 fps)
+      const tc = tintCurRef.current, tt = tintTargetRef.current;
+      for (let k = 0; k < 3; k++) tc[k] += (tt[k] - tc[k]) * 0.025;
+      const starColor = `rgb(${tc[0] | 0},${tc[1] | 0},${tc[2] | 0})`;
+      ctx.fillStyle = starColor;
       ctx.shadowBlur = performanceMode === 'LOW' ? 0 : 4; // Disable shadow on LOW for extra perf
-      ctx.shadowColor = '#ffffff';
+      ctx.shadowColor = starColor;
       
       const cx = width / 2;
       const cy = height / 2;

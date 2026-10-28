@@ -40,6 +40,7 @@ const App: React.FC = () => {
   const [showAchievements, setShowAchievements] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isPauseBlocked, setIsPauseBlocked] = useState(false);
+  const [chapterTint, setChapterTint] = useState<string | null>(null); // (3B step 5) StarBackground tint, null in menus
   
   // Transition State
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -274,6 +275,7 @@ const App: React.FC = () => {
         unlockedCount={gameState.unlockedAbilityIds.length} 
         totalCount={ABILITY_TREE_DATA.length} 
         performanceMode={gameState.settings.performanceMode}
+        tint={isInMainMenu ? null : chapterTint}
       />
       
       {/* --- MAIN MENU --- */}
@@ -304,6 +306,7 @@ const App: React.FC = () => {
                 onEnemySeen={handleEnemySeen}
                 onLandmarkSeen={handleLandmarkSeen}
                 onKills={handleKills}
+                onChapterChange={(ch) => setChapterTint(ch.color)}
                 initialWave={startWave}
                 maxWaveReached={gameState.maxWaveReached || 1}
                 onUpdateMaxWave={handleUpdateMaxWave}
