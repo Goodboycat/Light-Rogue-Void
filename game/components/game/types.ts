@@ -223,7 +223,7 @@ export interface MutableGameState {
     worldEventActive?: boolean;
     /** landmark ids discovered this frame batch; SurvivalGame drains into gameState.landmarksSeen */
     landmarkSeenQueue?: string[];
-    /** mirrored from settings.showMinimap each frame by SurvivalGame (default on) */
+    /** mirrored from settings.showMinimap each frame (SurvivalGame); MinimapRenderer reads */
     showMinimap?: boolean;
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];

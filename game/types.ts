@@ -80,7 +80,7 @@ export interface Settings {
     performanceMode: 'LOW' | 'MEDIUM' | 'HIGH';
     screenShake?: boolean;  // (4A) default on
     reduceFlash?: boolean;  // (4A) default off
-    showMinimap?: boolean;  // (3A) fog-of-discovery minimap, default on
+    showMinimap?: boolean;  // (3A) default on
 }
 
 export interface GameState {

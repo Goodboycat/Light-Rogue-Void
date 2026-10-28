@@ -9,6 +9,7 @@ import { startWaveFlavor } from './game/waveFlavors';
 import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG } from './game/Constants';
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
+import { applyRunModifiers, incomingDamageMult } from './game/logic/RunStats'; // (3A)
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
 import GameOver from './GameOver';
 import { bossHint } from '../data/bossHints';
@@ -37,6 +38,7 @@ interface SurvivalGameProps {
   onReturnToMenu: () => void;
   /** (2D) Stay/Leave chosen on the ending screen. */
   onEndingSeen?: (choice: 'stay' | 'leave') => void;
+  onLandmarkSeen?: (id: string) => void; // (3A) → gameState.landmarksSeen
   onTogglePause: () => void;
   hasSeenIntro: boolean;
   onIntroComplete: () => void;
@@ -62,6 +64,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     paused, 
     onRestart, 
     onEndingSeen,
+    onLandmarkSeen,
     onEnemySeen,
     initialWave,
     maxWaveReached,
@@ -119,6 +122,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
   const [currentHealth, setCurrentHealth] = useState(playerStats.maxHealth);
   const [currentShield, setCurrentShield] = useState(0); 
+  const [relics, setRelics] = useState<string[]>([]); // (3A) relic ids held this run (HUD)
+  const relicsRef = useRef(0);
   
   const [gameOver, setGameOver] = useState(false);
   const [deathBoss, setDeathBoss] = useState<{ name: string; hint?: string } | null>(null); // (2B)
@@ -293,7 +298,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const handleDamage = (amount: number) => {
       // (4A) 0.3 s i-frames after any hit; also pulses the vignette + shake
       if (!onPlayerHurt(gameStateRef.current)) return;
-      let remainingDamage = amount;
+      // (3A) Ward shrine: -15 % damage taken (rounded, never below 1)
+      let remainingDamage = Math.max(1, Math.round(amount * incomingDamageMult(gameStateRef.current.runModifiers)));
       const shield = gameRefs.current.currentShield;
       
       if (shield > 0) {
@@ -375,11 +381,33 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             const wasBossActive = !!state.activeBoss;
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
-            state.hpRatio = refs.playerStats.maxHealth > 0 ? refs.currentHealth / refs.playerStats.maxHealth : 1;
             state.showMinimap = refs.settings.showMinimap !== false; // (3A)
+            // (3A) run layer: tree stats × shrine/relic modifiers → what every system reads this frame
+            const runStats = applyRunModifiers(refs.playerStats, state.runModifiers);
+            // (3A) heal / shield requests from shrines & events (fractions of *effective* max HP)
+            if (state.healRequest) {
+                const add = Math.max(1, Math.round(runStats.maxHealth * state.healRequest));
+                const nextHp = Math.min(runStats.maxHealth, refs.currentHealth + add);
+                gameRefs.current.currentHealth = nextHp; setCurrentHealth(nextHp);
+                state.healRequest = undefined;
+            }
+            if (state.shieldRequest) {
+                const nextSh = Math.min(5, refs.currentShield + Math.round(state.shieldRequest));
+                gameRefs.current.currentShield = nextSh; setCurrentShield(nextSh);
+                state.shieldRequest = undefined;
+            }
+            if (state.landmarkSeenQueue?.length) {
+                for (const id of state.landmarkSeenQueue) onLandmarkSeen?.(id);
+                state.landmarkSeenQueue = undefined;
+            }
+            if (state.world?.relics && relicsRef.current !== state.world.relics.length) {
+                relicsRef.current = state.world.relics.length;
+                setRelics([...state.world.relics]);
+            }
+            state.hpRatio = refs.playerStats.maxHealth > 0 ? refs.currentHealth / refs.playerStats.maxHealth : 1;
             const bossId = state.activeBoss?.def.id;
             
-            updateGame(state, refs.playerStats, input, refs.wave, refs.timeRemaining, 
+            updateGame(state, runStats, input, refs.wave, refs.timeRemaining, 
                 (v) => { onCollectMatter(v); setSessionMatter(m => m + v); },
                 handleDamage,
                 (id) => refs.onEnemySeen(id),
@@ -434,9 +462,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             }
 
             // --- REGEN LOGIC (Per Frame) ---
-            const maxHp = refs.playerStats.maxHealth;
-            if (refs.playerStats.healthRegen > 0 && refs.currentHealth < maxHp) {
-                regenAccRef.current += refs.playerStats.healthRegen / 60;
+            const maxHp = runStats.maxHealth;
+            if (runStats.healthRegen > 0 && refs.currentHealth < maxHp) {
+                regenAccRef.current += runStats.healthRegen / 60;
                 if (regenAccRef.current >= 1) {
                     const nextHp = Math.min(maxHp, refs.currentHealth + 1);
                     gameRefs.current.currentHealth = nextHp; 
@@ -450,7 +478,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             if (shieldCooldownRef.current > 0) {
                 shieldCooldownRef.current--;
             } else if (refs.currentShield < currentMaturityMaxShield) {
-                const regenRatePerSec = 0.5 + (refs.playerStats.healthRegen * 0.2);
+                const regenRatePerSec = 0.5 + (runStats.healthRegen * 0.2);
                 shieldRegenAccRef.current += regenRatePerSec / 60;
                 if (shieldRegenAccRef.current >= 1) {
                     gameRefs.current.currentShield = Math.min(currentMaturityMaxShield, refs.currentShield + 1);
@@ -460,7 +488,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 }
             }
         }
-        renderGame(ctx, gameStateRef.current, refs.playerStats, canvas.width, canvas.height, refs.maturityScale, refs.color);
+        renderGame(ctx, gameStateRef.current, applyRunModifiers(refs.playerStats, gameStateRef.current.runModifiers), canvas.width, canvas.height, refs.maturityScale, refs.color);
         anim = requestAnimationFrame(loop);
     };
 
@@ -525,6 +553,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             playerStats={playerStats}
             currentHealth={currentHealth}
             currentShield={currentShield}
+            relics={relics}
             timeRemaining={timeRemaining}
             wave={wave}
             waveKills={waveKills}

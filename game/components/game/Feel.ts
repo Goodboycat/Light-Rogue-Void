@@ -155,6 +155,13 @@ export const onEnemyHit = (state: MutableGameState, enemy: Enemy, damage: number
         const refund = damage * (1 - ARMORED_DMG_TAKEN);
         enemy.hp += refund; damage -= refund;
     }
+    // (3A) run modifiers: Ember Core (+dmg) / Watcher's Eye (enemies take more) — the extra is applied here
+    const rm = state.runModifiers;
+    if (rm && (rm.damageMult || rm.enemyDamageTakenMult)) {
+        const mult = (1 + rm.damageMult) * (1 + rm.enemyDamageTakenMult);
+        const extra = damage * (mult - 1);
+        enemy.hp -= extra; damage += extra;
+    }
     flash(enemy);
     spawnFloater(state, enemy, damage);
     if (enemy.isBoss && damage >= enemy.maxHp * 0.02) shake(state, 2, 3);
