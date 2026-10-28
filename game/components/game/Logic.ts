@@ -7,6 +7,7 @@ import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from 
 import { updateHazards } from './logic/enemies/BossHazards';
 import { updateBigFx } from './BigFx';
 import { updateDirector } from './logic/Director';
+import { updateWaveFlavor, startWaveFlavor } from './waveFlavors';
 import { VOID_BURN_DPS, VOID_BURN_TICK_FRAMES } from './Constants';
 import { createParticle, updateParticles as updateParticlesSystem, spawnExplosion } from './Particles';
 import { VFX } from './Emitters';
@@ -58,6 +59,9 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
+    if (state.currentWave !== wave) { // (4B) run start / ?wave= jump: arm the x5 flavor (advanceWave also calls it; idempotent)
+        if (state.flavorArmedWave !== wave) { startWaveFlavor(state, wave); state.flavorArmedWave = wave; }
+    }
     state.currentWave = wave; // (4B) KillLogic / flavors read the wave without threading it through
     // (2B) every damage path during a boss fight tags the boss (GameOver death hint); telegraphs call state.damagePlayer
     const rawOnDamage = onDamage; // capture BEFORE reassigning — the wrapper must not call itself (2C fix: stack overflow)
@@ -118,9 +122,11 @@ export const updateGame = (
             // (2B) roaming packs land at the arena edge after a telegraph — see BossKit.updateBossAdds
             updateBossAdds(state, state.activeBoss, wave, onEnemySeen);
         } else {
+            // (4B) special wave rules (banner, Gauntlet walls, Curse marks, Aegis tagging); Gauntlet owns spawning
+            const suppress = updateWaveFlavor(state, wave, onEnemySeen);
             // (4B) packs land after a 0.6 s telegraph; the trickle below runs at half speed around a pack
-            const trickleMult = updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
-            if (sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
+            const trickleMult = suppress ? 1 : updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
+            if (!suppress && sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
                 const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
                 const rate = Math.round(baseRate * trickleMult / Math.max(0.15, ramp));
                 if (state.frame % rate === 0) shouldSpawn = true;

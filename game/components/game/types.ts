@@ -198,6 +198,7 @@ export interface MutableGameState {
     packTimer?: number;            // frames until the director's next pack
     packPending?: number;          // packs currently telegraphed but not yet landed
     flavor?: import('./waveFlavors').WaveFlavorId;   // active special wave (set on wave start)
+    flavorArmedWave?: number;      // last wave startWaveFlavor ran for (Logic.ts arms it lazily on ?wave= starts)
     flavorBanner?: { banner: string; caption: string; color: string; frames: number; max: number };
     flavorEssenceMult?: number;    // CURSE clean bonus → 1.1 for the wave
     curseMarks?: import('./waveFlavors').CurseMark[];

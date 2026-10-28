@@ -215,7 +215,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       state.waveKills = 0;
       state.waveStartedFrame = state.frame;
       resetDirector(state);          // (4B) a pack lands early in every wave
-      startWaveFlavor(state, nextWave); // (4B) special wave at x5 (banner + rules), clears the old one
+      startWaveFlavor(state, nextWave); state.flavorArmedWave = nextWave; // (4B) special wave at x5 (banner + rules), clears the old one
       setWaveKills(0);
       setTimeRemaining(waveTimerSec(nextWave));
       return true;

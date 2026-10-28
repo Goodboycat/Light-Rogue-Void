@@ -88,3 +88,29 @@ export const drawHurtOverlay = (ctx: CanvasRenderingContext2D, state: MutableGam
     ctx.drawImage(getHurtVignetteSprite(), 0, 0, w, h);
     ctx.restore();
 };
+
+/** (4B) Screen space. Special-wave banner + caption for ~4 s on an x5 wave start. */
+export const drawFlavorBanner = (ctx: CanvasRenderingContext2D, state: MutableGameState, w: number, h: number) => {
+    const b = state.flavorBanner;
+    if (!b) return;
+    const age = b.max - b.frames;
+    const a = Math.min(1, age / 12, b.frames / 30);
+    const y = Math.min(h * 0.2, 120) - (1 - Math.min(1, age / 12)) * 16;
+    const big = w < 500 ? 28 : 38;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(2,6,23,0.55)';
+    ctx.fillRect(0, y - big, w, big * 2.6);
+    ctx.font = `bold ${big}px Orbitron, monospace`;
+    ctx.fillStyle = b.color;
+    ctx.shadowColor = b.color;
+    ctx.shadowBlur = 22;
+    ctx.fillText(b.banner, w / 2, y);
+    ctx.shadowBlur = 0;
+    ctx.font = `${w < 500 ? 12 : 15}px monospace`;
+    ctx.fillStyle = '#e2e8f0';
+    ctx.fillText(b.caption, w / 2, y + big * 0.95);
+    ctx.restore();
+};

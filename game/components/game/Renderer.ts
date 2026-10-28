@@ -5,10 +5,10 @@ import { drawEnemy } from './renderer/EnemyRenderer';
 import { drawOrbitals } from './renderer/OrbitalRenderer';
 import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
-import { drawFloaters, drawStreakBanner, drawHurtOverlay } from './renderer/FloaterRenderer';
+import { drawFloaters, drawStreakBanner, drawHurtOverlay, drawFlavorBanner } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
 import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
-import { drawHazards } from './renderer/HazardRenderer';
+import { drawHazards, drawCurseMarks } from './renderer/HazardRenderer';
 import { drawLasers, drawEclipse, eclipseStrength } from './renderer/LaserRenderer';
 import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
@@ -48,6 +48,7 @@ export const renderGame = (
     // --- BOSS ARENA + TELEGRAPHS (2B, under enemies) ---
     drawArena(ctx, state);
     drawHazards(ctx, state);   // (2C) persistent terrain hazards
+    drawCurseMarks(ctx, state); // (4B) CURSE wave marks
     drawTelegraphs(ctx, state);
 
     // --- ENEMIES ---
@@ -129,6 +130,7 @@ export const renderGame = (
     drawArenaVignette(ctx, arenaOutsideFactor(state), canvasWidth, canvasHeight);
     if (!state.activeBoss?.state?.custom?.cinematicMode) drawBossArrival(ctx, state, canvasWidth, canvasHeight);
     drawStreakBanner(ctx, state, canvasWidth, canvasHeight);
+    drawFlavorBanner(ctx, state, canvasWidth, canvasHeight); // (4B) special wave banner
 
     // --- CURSOR ---
     ctx.fillStyle = '#fff';

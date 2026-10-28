@@ -105,3 +105,28 @@ export const drawHazards = (ctx: CanvasRenderingContext2D, state: MutableGameSta
     }
     ctx.restore();
 };
+
+/** (4B) World space. CURSE wave dark marks: violet pools that shrink as they expire. */
+export const drawCurseMarks = (ctx: CanvasRenderingContext2D, state: MutableGameState) => {
+    const marks = state.curseMarks;
+    if (!marks || state.flavor !== 'CURSE') return;
+    ctx.save();
+    for (let i = 0; i < marks.length; i++) {
+        const m = marks[i];
+        if (!m.active) continue;
+        const life = m.timer / m.maxTimer;
+        const r = 55 * (0.6 + 0.4 * life);
+        const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, r);
+        g.addColorStop(0, `rgba(88,28,135,${0.75 * life + 0.15})`);
+        g.addColorStop(0.7, `rgba(59,7,100,${0.45 * life + 0.1})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(m.x, m.y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = `rgba(168,85,247,${0.5 * life + 0.2})`;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.lineDashOffset = -(state.frame % 60) * 0.4;
+        ctx.beginPath(); ctx.arc(m.x, m.y, r * 0.85, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+};
