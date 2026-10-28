@@ -9,6 +9,7 @@ export class InputHandler {
     virtualAim = { x: 0, y: 0 };
     virtualAimActive = false;
     virtualDash = false;
+    virtualBurst = false; // (3B step 6) touch Light Burst button
 
     constructor() {
         this.mouseX = window.innerWidth / 2;

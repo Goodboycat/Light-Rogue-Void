@@ -33,7 +33,8 @@ export const usePlayerStats = (unlockedAbilityIds: string[]) => {
 
             luxBladesLevel: 0,
             repulsionFieldLevel: 0,
-            plasmaWhipLevel: 0
+            plasmaWhipLevel: 0,
+            lightBurstLevel: 0
         };
 
         unlockedAbilityIds.forEach(id => {

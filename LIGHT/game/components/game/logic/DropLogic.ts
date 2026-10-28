@@ -1,4 +1,5 @@
 import { MutableGameState } from '../types';
+import { onBurstEssence } from './LightBurst';
 import { PlayerStats } from '../../../types';
 import { swapRemoveDrop } from '../Pools';
 import { collectRelic } from './WorldInteract';
@@ -25,6 +26,7 @@ export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturit
             if (drop.relicId) { collectRelic(state, drop.relicId); swapRemoveDrop(state.drops, i); continue; } // (3A)
             const amount = drop.value * stats.essenceMultiplier * (1 + (state.runModifiers?.essenceMult ?? 0)); // (3A) Greed / Crown
             onCollect(amount);
+            onBurstEssence(state, drop.value); // (3B step 6)
             swapRemoveDrop(state.drops, i); // (4A) O(1), recycled
         }
     }

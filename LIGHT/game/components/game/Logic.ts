@@ -25,6 +25,7 @@ import { consumeHitStop, updateFeel, updateShake } from './Feel';
 import { initWorld, markFog } from './logic/WorldLogic';
 import { updateWorld } from './logic/WorldInteract';
 import { updateFoundEvents } from './logic/FoundEvents';
+import { updateLightBurst } from './logic/LightBurst';
 
 export const updateGame = (
     state: MutableGameState, 
@@ -149,6 +150,7 @@ export const updateGame = (
     }
 
     // UPDATE ENTITIES (Pass Cinematic Flag implicitly via state or logic check)
+    state.burstFiredThisFrame = updateLightBurst(state, playerStats, input, wave); // (3B step 6) before the dash check
     updatePlayer(state, playerStats, input, canvasWidth, canvasHeight, maturityScale, mouseMovementEnabled);
 
     if (!isCinematic) {

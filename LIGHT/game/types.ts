@@ -43,6 +43,8 @@ export interface PlayerStats {
   luxBladesLevel: number;
   repulsionFieldLevel: number; // Replaced Time Warp
   plasmaWhipLevel: number;
+  /** (3B step 6) Light Burst level, 0 = locked. */
+  lightBurstLevel: number;
 }
 
 export interface AbilityNodeData {

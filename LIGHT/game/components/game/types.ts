@@ -229,6 +229,9 @@ export interface MutableGameState {
     landmarkSeenQueue?: string[];
     /** (3B) kills per EnemyDef.id this frame batch; SurvivalGame drains into gameState.killCounts */
     killCountQueue?: Record<string, number>;
+    /** (3B step 6) Light Burst meter / level / fired count. */
+    burst?: import('./logic/LightBurst').BurstState;
+    burstFiredThisFrame?: boolean;
     /** mirrored from settings.showMinimap each frame (SurvivalGame); MinimapRenderer reads */
     showMinimap?: boolean;
     // (2B+) BigFx — see components/game/BigFx.ts

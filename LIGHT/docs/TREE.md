@@ -1,6 +1,6 @@
 # LIGHT — Skill Tree (generated, do not edit)
 
-Seed `0x4C494748`. 405 nodes. Bounds x -10790..11911, y -9347..10761.
+Seed `0x4C494748`. 408 nodes. Bounds x -10790..11911, y -9347..10761.
 
 Regenerate: `npm run tree` (in `game/`). Two consecutive runs must produce the same file.
 
@@ -256,10 +256,13 @@ Regenerate: `npm run tree` (in `game/`). Two consecutive runs must produce the s
 | 58 | `solar_flare_node_58` | **Solar Flare** | 2551800 | solarFlareLevel +1 |
 | 59 | `def_59_0` | Fortitude | 944200 | maxHealth +0.2 |
 
-## UTILITY arc — 120 nodes (15 power nodes)
+## UTILITY arc — 123 nodes (18 power nodes)
 
 | Depth | Id | Title | Cost | Effect |
 |---|---|---|---|---|
+| 0 | `burst_2` | **Brighter Burst** | 260 | lightBurstLevel +1 |
+| 0 | `burst_3` | **Blinding Burst** | 520 | lightBurstLevel +1 |
+| 0 | `burst_unlock` | **Light Burst** | 120 | lightBurstLevel +1 |
 | 0 | `uti_0_0` | Influence | 20 | pickupRange +10 |
 | 0 | `uti_0_1` | Celerity | 22 | moveSpeed +0.03 |
 | 1 | `uti_1_0` | Insight | 22 | essenceMultiplier +0.15 |
@@ -456,4 +459,4 @@ Regenerate: `npm run tree` (in `game/`). Two consecutive runs must produce the s
 | `const_darkness_6` | **White Memory** | 2940600 | whiteHoleLevel +1 | Darkness is undone. Begin again, brighter. |
 
 ## Totals
-- Total matter to buy everything: **77,710,731**
+- Total matter to buy everything: **77,711,631**

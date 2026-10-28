@@ -11,6 +11,7 @@ import { closeArena } from './enemies/BossKit';
 import { castBossDeathBlast } from '../BigFx';
 import { ELITE_ESSENCE_MULT, SPLIT_MINI_HP, SPLIT_MINI_SIZE } from '../../../data/affixes';
 import { onFlavorKill } from '../waveFlavors';
+import { onBurstKill } from './LightBurst';
 
 export type KillCause = 'projectile' | 'contact' | 'aura' | 'dash' | 'explode' | 'script' | 'other';
 
@@ -30,6 +31,7 @@ export const killEnemy = (
 
     // (4A) streak first so this kill's essence already benefits from the multiplier
     onKillForStreak(state, enemy);
+    onBurstKill(state); // (3B step 6) +1 % Light Burst meter
     if (enemy.worldGuardOf) onWorldGuardKilled(state, enemy); // (3A) relic alcove guards
     const eliteMult = enemy.affixes && enemy.affixes.length ? ELITE_ESSENCE_MULT : 1; // (4B)
     // (3A step 7) found events: Golden Mite ×25, Essence Tide ×2, pylon pays its own burst

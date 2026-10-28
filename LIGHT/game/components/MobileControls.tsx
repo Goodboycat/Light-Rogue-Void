@@ -1,11 +1,13 @@
 
 import React, { useRef, useState } from 'react';
 import { InputHandler } from './game/Input';
-import { Zap, TreeDeciduous } from 'lucide-react';
+import { Zap, TreeDeciduous, Sun } from 'lucide-react';
 
 interface MobileControlsProps {
     input: InputHandler;
     onOpenMenu: () => void;
+    burstReady?: boolean;    // (3B step 6)
+    burstUnlocked?: boolean; // (3B step 6)
 }
 
 interface JoystickState {
@@ -17,7 +19,7 @@ interface JoystickState {
     active: boolean;
 }
 
-const MobileControls: React.FC<MobileControlsProps> = ({ input, onOpenMenu }) => {
+const MobileControls: React.FC<MobileControlsProps> = ({ input, onOpenMenu, burstReady, burstUnlocked }) => {
     // Layout updated to prevent blocking text and ensure better ergonomics
     
     return (
@@ -55,6 +57,21 @@ const MobileControls: React.FC<MobileControlsProps> = ({ input, onOpenMenu }) =>
                     input.virtualDash = pressed;
                 }} 
             />
+
+            {/* (3B step 6) Light Burst button — only when the tree node is owned */}
+            {burstUnlocked && (
+                <div 
+                    id="burst-button"
+                    className="absolute bottom-64 right-28 pointer-events-auto"
+                    onTouchStart={(e) => { e.preventDefault(); input.virtualBurst = true; }}
+                    onTouchEnd={(e) => { e.preventDefault(); input.virtualBurst = false; }}
+                >
+                    <div className={`w-16 h-16 rounded-full border-2 flex items-center justify-center backdrop-blur-sm transition-colors
+                        ${burstReady ? 'border-yellow-200 bg-yellow-300/30 shadow-[0_0_18px_rgba(253,230,138,0.6)] animate-pulse' : 'border-white/20 bg-white/5 opacity-50'}`}>
+                        <Sun className={burstReady ? 'text-yellow-100' : 'text-white/40'} size={28} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

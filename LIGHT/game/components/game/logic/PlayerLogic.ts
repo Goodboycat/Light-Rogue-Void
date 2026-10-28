@@ -135,7 +135,7 @@ export const updatePlayer = (
         state.player.vx += (dx * speed - state.player.vx) * 0.1;
         state.player.vy += (dy * speed - state.player.vy) * 0.1;
 
-        if ((input.keys['Space'] || input.isMouseDown || input.virtualDash) && state.player.dashCooldownTimer <= 0) {
+        if ((input.keys['Space'] || input.isMouseDown || input.virtualDash) && state.player.dashCooldownTimer <= 0 && !state.burstFiredThisFrame) {
             
             if (stats.superDashLevel > 0) {
                 const damage = 100 + (stats.superDashLevel * 25);

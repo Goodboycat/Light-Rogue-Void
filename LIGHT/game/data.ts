@@ -245,6 +245,40 @@ const generateTree = (): AbilityNodeData[] => {
     });
   });
 
+  // (3B step 6) LIGHT BURST — the one manual ability. Three nodes hang off the Utility spine
+  // (depth ~7). Placed after the rng-driven generation with fixed offsets so existing node ids /
+  // positions never move. `burst_unlock` unlocks the meter; `burst_2` / `burst_3` raise damage and
+  // fill speed (see logic/LightBurst.ts). Costs ~120 / 260 / 520.
+  const utiSpine = nodes.filter(n => /^uti_\d+_0$/.test(n.id))
+    .sort((a, b) => Math.abs(parseInt(a.id.split('_')[1]) - 7) - Math.abs(parseInt(b.id.split('_')[1]) - 7))[0] ?? origin;
+  const BURST_NODES = [
+    { id: 'burst_unlock', title: 'Light Burst', cost: 120, display: 'UNLOCK · SPACE / E',
+      desc: 'Kills fill a meter. At 100 % release a radial burst of light: damage 8 × wave, 440 px, 1 s stun.' },
+    { id: 'burst_2', title: 'Brighter Burst', cost: 260, display: '+35% Burst Dmg · +25% Fill',
+      desc: 'The light remembers every kill a little longer.' },
+    { id: 'burst_3', title: 'Blinding Burst', cost: 520, display: '+35% Burst Dmg · +25% Fill',
+      desc: 'Nothing in the void can look at you now.' },
+  ];
+  {
+    let prev = utiSpine;
+    const dirA = Math.atan2(utiSpine.position.y, utiSpine.position.x) + Math.PI / 2; // perpendicular to the spine
+    BURST_NODES.forEach((bn, n) => {
+      let pos = { x: 0, y: 0 };
+      for (let k = 0; k < 12; k++) {
+        const a = dirA + k * 0.35, d = 110 + n * 10 + k * 8;
+        const x = Math.round(prev.position.x + Math.cos(a) * d), y = Math.round(prev.position.y + Math.sin(a) * d);
+        pos = { x, y };
+        if (isFree(x, y)) break;
+      }
+      const node: AbilityNodeData = {
+        id: bn.id, title: bn.title, description: bn.desc, cost: bn.cost, position: pos, parentIds: [prev.id],
+        type: AbilityType.UTILITY, icon: 'Sun', statEffect: { lightBurstLevel: 1 }, statBoostDisplay: bn.display, isMajor: true,
+      };
+      nodes.push(node);
+      prev = node;
+    });
+  }
+
   return nodes;
 };
 

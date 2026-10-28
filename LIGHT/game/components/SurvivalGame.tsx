@@ -5,6 +5,7 @@ import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
 import { updateGame } from './game/Logic';
 import { resetDirector } from './game/logic/Director';
+import { resetLightBurst } from './game/logic/LightBurst';
 import { startWaveFlavor } from './game/waveFlavors';
 import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef } from './game/Constants';
 import ChapterCard from './ChapterCard';
@@ -153,6 +154,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [timeRemaining, setTimeRemaining] = useState(waveTimerSec(initialWave));
   const [waveKills, setWaveKills] = useState(0); // (2A) mirrored from state for the HUD
   const [bossInfo, setBossInfo] = useState<BossBarInfo | null>(null); // (2B) boss HUD mirror
+  const [burstHud, setBurstHud] = useState<{ meter: number; level: number; ready: boolean } | null>(null); // (3B step 6)
   const [sessionMatter, setSessionMatter] = useState(0);
   const [currentPhrase, setCurrentPhrase] = useState(LIGHT_PHRASES[Math.min(initialWave - 1, LIGHT_PHRASES.length - 1)]);
   const [darknessPhrase, setDarknessPhrase] = useState(VOID_PHRASES[0]);
@@ -360,6 +362,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     const ctx = canvas.getContext('2d')!;
     const input = new InputHandler();
     setInputInstance(input);
+    resetLightBurst(gameStateRef.current); // (3B step 6) meter starts empty every run
 
     let anim: number;
     let timerInterval: any;
@@ -454,6 +457,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     setBossInfo({ name: b.def.name, color: b.def.glowColor, hpPct: b.hp / b.maxHp, phase: b.state.phase ?? 1,
                         shifting: isPhaseShifting(b), enraged: !!state.bossEnraged, enrageIn: enrageCountdown(state) });
                 } else setBossInfo(prev => (prev ? null : prev));
+                // (3B step 6) Light Burst meter mirror
+                const bu = state.burst;
+                if (bu && bu.level > 0) setBurstHud(prev => (prev && prev.meter === bu.meter && prev.level === bu.level) ? prev : { meter: bu.meter, level: bu.level, ready: bu.meter >= 1 });
+                else setBurstHud(prev => (prev ? null : prev));
                 if (DEBUG) (window as any).__LIGHT = { state, wave: refs.wave, time: refs.timeRemaining };
             }
 
@@ -573,10 +580,26 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       )}
 
       {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && (
-          <MobileControls input={inputInstance} onOpenMenu={onTogglePause} />
+          <MobileControls input={inputInstance} onOpenMenu={onTogglePause} burstUnlocked={!!burstHud} burstReady={!!burstHud?.ready} />
       )}
 
       {!activeCinematic && !gameOver && !gameWon && bossInfo && <BossBar info={bossInfo} />}
+
+      {/* (3B step 6) Light Burst meter — only drawn when the tree node is owned */}
+      {!activeCinematic && !gameOver && !gameWon && burstHud && (
+          <div id="burst-meter" className="fixed top-28 right-8 z-40 w-40 select-none pointer-events-none">
+              <div className={`flex justify-between text-[10px] font-tech tracking-[0.25em] mb-1 ${burstHud.ready ? 'text-amber-200 animate-pulse' : 'text-white/40'}`}>
+                  <span>LIGHT BURST{burstHud.level > 1 ? ` ·${burstHud.level}` : ''}</span>
+                  <span>{burstHud.ready ? (settings.showTouchControls ? 'TAP ☀' : 'SPACE / E') : `${Math.floor(burstHud.meter * 100)}%`}</span>
+              </div>
+              <div className="h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden">
+                  <div className="h-full rounded-full transition-[width] duration-150"
+                      style={{ width: `${Math.min(100, burstHud.meter * 100)}%`,
+                               background: burstHud.ready ? 'linear-gradient(90deg,#fde68a,#fff7d6)' : 'linear-gradient(90deg,#b45309,#fbbf24)',
+                               boxShadow: burstHud.ready ? '0 0 12px #fde68a' : 'none' }} />
+              </div>
+          </div>
+      )}
 
       {!activeCinematic && !gameOver && !gameWon && (
           <StoryCaption lines={storyLines} seq={wave} raised={!!settings.showTouchControls} />

@@ -155,3 +155,13 @@ export const WORLD_STAR_SHARD_DMG = 0.12;     // fraction of max HP per shard hi
 export const STORY_CAPTION_CPS = 30;          // typewriter chars per second
 export const STORY_CAPTION_HOLD_MS = 4000;    // hold after the line is fully typed
 export const CHAPTER_CARD_MS = 2000;          // chapter title card wash on chapter entry
+
+// (3B step 6) LIGHT BURST — tree-unlocked manual ability. Numbers are 8B's to tune.
+export const BURST_RADIUS = 440;              // px
+export const BURST_DMG_PER_WAVE = 8;          // damage = 8 × wave (× level bonus)
+export const BURST_STUN_FRAMES = 60;          // 1 s (non-boss only)
+export const BURST_FILL_PER_KILL = 0.01;      // 1 % per kill
+export const BURST_FILL_PER_ESSENCE = 0.0005; // per raw essence point picked up (≈ 0.5 % per 10 essence)
+export const BURST_LEVEL_DMG_MULT = 0.35;     // +35 % damage per level above 1
+export const BURST_LEVEL_FILL_MULT = 0.25;    // +25 % fill speed per level above 1
+export const BURST_KNOCKBACK = 14;
