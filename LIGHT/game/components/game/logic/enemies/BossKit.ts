@@ -13,6 +13,7 @@ import { spawnEnemy } from './SpawnLogic';
 import { clearHazards } from './BossHazards';
 import { ENEMIES } from '../../../../enemies';
 import { hitStop, shake } from '../../Feel';
+import { sfx, sfxAt } from '../../../../audio/hooks'; // (6B)
 import {
     TELEGRAPH_POOL_SIZE, TELEGRAPH_FLASH_FRAMES,
     BOSS_PHASE_THRESHOLDS, BOSS_PHASE_SHIFT_FRAMES,
@@ -81,6 +82,7 @@ export const telegraph = (
     t.kind = kind; t.x = x; t.y = y;
     t.params = { color: state.activeBoss?.def.glowColor ?? '#ef4444', ...params };
     t.timer = frames; t.maxTimer = frames; t.active = true; t.onFire = onFire;
+    sfxAt(state, 'boss_telegraph', x, y); // (6B)
     return t;
 };
 
@@ -95,6 +97,7 @@ export const updateTelegraphs = (state: MutableGameState) => {
             t.active = false;
             state.telegraphFlashes!.push({ kind: t.kind, x: t.x, y: t.y, params: t.params, frames: TELEGRAPH_FLASH_FRAMES });
             const fn = t.onFire; t.onFire = undefined;
+            sfxAt(state, 'boss_fire', t.x, t.y); // (6B)
             fn?.(state, t);
         }
     }
@@ -195,6 +198,7 @@ export const isPhaseShifting = (boss: Enemy): boolean => (boss.state.custom?.pha
 export const startPhaseShift = (state: MutableGameState, boss: Enemy) => {
     boss.state.custom = boss.state.custom ?? {};
     boss.state.custom.phaseShiftTimer = BOSS_PHASE_SHIFT_FRAMES;
+    sfx('boss_phase', 1, 0); // (6B)
     boss.projectileImmunity = BOSS_PHASE_SHIFT_FRAMES;
     boss.vx = 0; boss.vy = 0;
     clearBossProjectiles(state);
@@ -235,6 +239,7 @@ export const enrage = (state: MutableGameState, boss: Enemy) => {
     state.bossEnraged = true;
     boss.state.custom = boss.state.custom ?? {};
     boss.state.custom.enraged = true;
+    sfx('boss_enrage', 1, 0); // (6B)
     shake(state, 12, 10);
     VFX.castShockwave(state, boss.x, boss.y, '#ef4444');
     spawnExplosion(state, boss.x, boss.y, '#ef4444', ParticleType.BOSS_AURA);
@@ -254,6 +259,7 @@ export const openArena = (state: MutableGameState, boss: Enemy) => {
     state.bossEnraged = false;
     state.bossAddTimer = 0;
     state.bossArrival = { name: boss.def.name, color: boss.def.glowColor, frames: BOSS_ARRIVAL_FRAMES, max: BOSS_ARRIVAL_FRAMES };
+    sfx('boss_arrive', 1, 0); // (6B)
     shake(state, 14, 12);
 };
 

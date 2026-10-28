@@ -132,6 +132,8 @@ const App: React.FC = () => {
 
   // (6A) audio: unlock on first gesture, mirror volume settings into the engine
   useEffect(() => { Audio.init(); }, []);
+  // (6B) title music whenever the main menu is shown; the run picks its own chapter track in advanceWave / start
+  useEffect(() => { if (isInMainMenu) Audio.music('music_title', 1500); }, [isInMainMenu]);
   const { masterVolume, musicVolume, sfxVolume, muted } = gameState.settings;
   useEffect(() => {
       Audio.setSettings({ masterVolume, musicVolume, sfxVolume, muted: !!muted });

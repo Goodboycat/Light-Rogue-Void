@@ -12,6 +12,7 @@ import { VFX } from '../Emitters';
 import { shake } from '../Feel';
 import { acquireDrop } from '../Pools';
 import { showCard } from './WorldInteract';
+import { sfx, sfxAt } from '../../../audio/hooks'; // (6B)
 
 export type FoundEventId = 'GOLDEN_MITE' | 'ESSENCE_TIDE' | 'TREASURE_PYLON' | 'AMBUSH_RING' | 'METEOR_SHOWER';
 
@@ -90,11 +91,13 @@ const caption = (state: MutableGameState, id: FoundEventId) => {
 
 const begin = (state: MutableGameState, ev: FoundEvent) => {
     ensureFoundEvents(state).active = ev;
+    sfx(ev.type === 'AMBUSH_RING' ? 'ambush_ring' : 'event_start', 1, 0); // (6B)
     caption(state, ev.type);
 };
 
 const end = (state: MutableGameState) => {
     const fe = ensureFoundEvents(state);
+    if (fe.active) sfx('event_end', 0.7, 0); // (6B)
     fe.active = undefined;
     fe.lastEndFrame = state.frame;
 };
@@ -189,8 +192,10 @@ const meteorTick = (state: MutableGameState, ev: FoundEvent) => {
     if (ev.timer <= FOUND_EVENTS.meteorWarnFrames || ev.timer % FOUND_EVENTS.meteorEvery !== 0) return;
     const a = Math.random() * Math.PI * 2, d = Math.random() * 260;
     const mx = state.player.x + Math.cos(a) * d, my = state.player.y + Math.sin(a) * d;
+    sfxAt(state, 'meteor_warn', mx, my, 0.6); // (6B)
     telegraph(state, 'circle', mx, my, { radius: FOUND_EVENTS.meteorRadius, color: '#f97316' }, FOUND_EVENTS.meteorWarnFrames, (st, t) => {
         VFX.castMeteor(st, mx, my);
+        sfxAt(st, 'meteor_hit', mx, my); // (6B)
         spawnExplosion(st, mx, my, '#f97316', ParticleType.FIRE);
         shake(st, 3);
         const hit = telegraphContains(t, st.player.x, st.player.y, st.player.size) && (st.player.dashTimer || 0) <= 0;

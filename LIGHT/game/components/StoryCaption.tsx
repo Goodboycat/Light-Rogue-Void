@@ -7,6 +7,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StoryLine, STORY_VOICE_COLOR } from '../data/story';
 import { STORY_CAPTION_CPS, STORY_CAPTION_HOLD_MS } from './game/Constants';
+import { sfx } from '../audio/hooks'; // (6B)
+import { Audio } from '../audio/AudioManager';
 
 interface Props {
     lines: StoryLine[] | null;
@@ -40,6 +42,8 @@ const StoryCaption: React.FC<Props> = ({ lines, seq, raised }) => {
         if (!visible || !lines || idx >= lines.length) { setVisible(false); return; }
         const line = lines[idx];
         if (shown < line.text.length) {
+            if (shown === 0) Audio.duck(0.5, 600); // (6B) −6 dB while a line types
+            if (shown % 2 === 0 && line.text[shown] !== ' ') sfx('story_line', undefined, 0.15); // (6B) tick
             timer.current = window.setTimeout(() => setShown(s => s + 1), 1000 / STORY_CAPTION_CPS);
         } else {
             timer.current = window.setTimeout(() => {

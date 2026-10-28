@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { WATCHER_WHISPERS } from '../data/story';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home } from 'lucide-react';
+import { sfx } from '../audio/hooks'; // (6B)
+import { Audio } from '../audio/AudioManager';
 import CinematicOverlay from './CinematicOverlay';
 import { OUTRO_SCRIPT } from '../data/cinematics';
 import { IS_DEMO, CHAPTERS } from './game/Constants';
@@ -60,6 +63,7 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
   }, [stage]);
 
   const choose = (choice: 'stay' | 'leave') => {
+    sfx(choice === 'stay' ? 'ending_stay' : 'ending_leave', 1, 0); // (6B)
     onEndingSeen?.(choice);
     if (choice === 'stay') { onReturnToMenu(); return; }
     setStage('credits');

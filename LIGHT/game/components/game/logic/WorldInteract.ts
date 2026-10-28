@@ -15,6 +15,7 @@ import { spawnExplosion, createParticle } from '../Particles';
 import { VFX } from '../Emitters';
 import { shake } from '../Feel';
 import { acquireDrop } from '../Pools';
+import { sfx } from '../../../audio/hooks'; // (6B)
 
 export const showCard = (state: MutableGameState, title: string, body: string, color: string, light?: string, frames = WORLD_CARD_FRAMES) => {
     state.worldCard = { title, body, light, color, frames, max: frames };
@@ -39,6 +40,7 @@ const touchShrine = (state: MutableGameState, p: WorldPoint) => {
     if (def.shield) state.shieldRequest = (state.shieldRequest ?? 0) + def.shield;
     burst(state, p.x, p.y, def.color);
     shake(state, 4);
+    sfx('shrine_touch', 1, 0); // (6B)
     showCard(state, def.name, def.toast, def.color, def.light);
 };
 
@@ -92,6 +94,7 @@ export const collectRelic = (state: MutableGameState, relicId: string) => {
     if (def.effect.revealMap) revealAllFog(state);
     burst(state, state.player.x, state.player.y, def.color);
     shake(state, 6);
+    sfx('pickup_relic', 1, 0); // (6B)
     showCard(state, def.name, def.desc, def.color, def.light);
 };
 
@@ -105,6 +108,7 @@ const touchLandmark = (state: MutableGameState, p: WorldPoint) => {
         const a = Math.random() * Math.PI * 2, r = 40 + Math.random() * 120;
         createParticle(state, p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, ParticleType.GLOW, def.color, { speed: 0.3, life: 90, size: 3 + Math.random() * 3 });
     }
+    sfx('landmark_reveal', 0.8, 0); // (6B)
     showCard(state, def.name, def.lore, def.color, def.light);
 };
 
@@ -114,6 +118,7 @@ const startEvent = (state: MutableGameState, p: WorldPoint, onEnemySeen: (id: st
     p.discovered = true; p.active = true; p.counter = def.durationSec * 60;
     state.worldEventActive = true;
     showCard(state, def.name, def.caption, def.color, def.light, 180);
+    sfx(def.id === 'ambush' ? 'ambush_ring' : 'event_start', 1, 0); // (6B)
     shake(state, 5);
     const wave = state.currentWave ?? 1;
     if (def.id === 'ambush') {

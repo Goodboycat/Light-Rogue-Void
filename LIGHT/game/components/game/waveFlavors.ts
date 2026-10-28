@@ -8,6 +8,7 @@
 //  AEGIS TRIAL — 4 of 5 enemies shielded (immune); killing a glowing Shiner breaks shields within 200 px for 3 s.
 import { MutableGameState, Enemy } from './types';
 import { spawnEnemy } from './logic/enemies/SpawnLogic';
+import { sfx } from '../../audio/hooks'; // (6B)
 import { telegraph } from './logic/enemies/BossKit';
 import { spawnExplosion } from './Particles';
 import { ParticleType } from './types';
@@ -84,6 +85,7 @@ export const startWaveFlavor = (state: MutableGameState, wave: number) => {
     state.flavor = def?.id;
     if (!def) { state.flavorBanner = undefined; return; }
     state.flavorBanner = { banner: def.banner, caption: def.caption, color: def.color, frames: WAVE_FLAVOR_CONFIG.bannerFrames, max: WAVE_FLAVOR_CONFIG.bannerFrames };
+    sfx('wave_special', 1, 0); // (6B)
     if (def.id === 'GAUNTLET') state.gauntletTimer = 150; // first wall 2.5 s in
 };
 

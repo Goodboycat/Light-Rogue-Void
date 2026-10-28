@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChapterDef, CHAPTER_CARD_MS } from './game/Constants';
+import { sfx } from '../audio/hooks'; // (6B)
 
 interface Props {
     chapter: ChapterDef | null;
@@ -19,6 +20,7 @@ const ChapterCard: React.FC<Props> = ({ chapter, seq }) => {
     useEffect(() => {
         if (!chapter) return;
         setVisible(true);
+        sfx('chapter_card', 1, 0); // (6B)
         const t = window.setTimeout(() => setVisible(false), CHAPTER_CARD_MS);
         return () => window.clearTimeout(t);
     }, [chapter, seq]);

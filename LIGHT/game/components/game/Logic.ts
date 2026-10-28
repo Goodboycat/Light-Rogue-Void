@@ -26,6 +26,7 @@ import { initWorld, markFog } from './logic/WorldLogic';
 import { updateWorld } from './logic/WorldInteract';
 import { updateFoundEvents } from './logic/FoundEvents';
 import { updateLightBurst } from './logic/LightBurst';
+import { sfx } from '../../audio/hooks'; // (6B)
 
 export const updateGame = (
     state: MutableGameState, 
@@ -182,6 +183,7 @@ export const updateGame = (
             const dmg = Math.max(1, Math.round(playerStats.maxHealth * VOID_BURN_DPS * VOID_BURN_TICK_FRAMES / 60));
             state.playerIFrames = 0; // the void ignores i-frames; it is a position check, not a hit
             onDamage(dmg);
+            sfx('arena_burn', 0.7, 0); // (6B)
             VFX.spark(state, state.player.x, state.player.y, '#a855f7', 6);
         }
     }

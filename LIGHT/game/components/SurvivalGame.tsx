@@ -105,7 +105,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [chapterCard, setChapterCard] = useState<{ chapter: ChapterDef; seq: number } | null>(
       initialWave === 1 && !hasSeenIntro ? null : { chapter: CHAPTERS[chapterIndexOf(initialWave) - 1], seq: chapterIndexOf(initialWave) }
   );
-  useEffect(() => { onChapterChange?.(CHAPTERS[chapterIndexOf(initialWave) - 1]); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { onChapterChange?.(CHAPTERS[chapterIndexOf(initialWave) - 1]); Audio.music(`music_ch${Math.min(6, Math.max(1, chapterIndexOf(initialWave)))}` as any, 1500); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const showChapterCard = (w: number) => {
       const ci = chapterIndexOf(w);
       const ch = CHAPTERS[ci - 1];
@@ -235,12 +235,14 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       const nextWave = refs.wave + 1;
 
       if ((IS_DEMO && nextWave > DEMO_MAX_WAVE) || nextWave > MAX_WAVE) {
-          setGameWon(true);
+          setGameWon(true); Audio.music("music_ending", 2000); // (6B)
           setTimeRemaining(0);
           return false;
       }
 
       setWave(nextWave);
+      sfx('wave_start', 0.8, 0); // (6B)
+      Audio.music(`music_ch${Math.min(6, Math.max(1, chapterIndexOf(nextWave)))}` as any, 1500); // (6B) chapter track (also restores after a boss)
       refs.wave = nextWave; // keep the loop in sync before React re-renders
       if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
       setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
@@ -489,7 +491,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     refs.onTransition(() => setActiveCinematic(outroScript));
                 } else if (bossId === 'darkness') {
                     // Darkness has no outro text, but triggers WIN immediately
-                    setGameWon(true);
+                    setGameWon(true); Audio.music("music_ending", 2000); // (6B)
                 } else {
                     // No outro script: boss death completes the wave immediately (2A)
                     state.bossKilledWave = undefined;
@@ -501,6 +503,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             if (state.bossSpawnedWave === refs.wave && state.activeBoss && !wasBossActive) {
                 // Boss just appeared this frame in Logic.ts
                 const id = state.activeBoss.def.id;
+                Audio.music('music_boss', 1500); Audio.duck(0.5, 2500); // (6B)
                 if (BOSS_SCRIPTS[id]?.intro) {
                     refs.onTransition(() => setActiveCinematic(BOSS_SCRIPTS[id].intro!));
                 }
