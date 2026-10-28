@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X, RotateCcw } from 'lucide-react';
+import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X, RotateCcw, HelpCircle } from 'lucide-react';
 import { AbilityNodeData, AbilityType, GameState } from '../types';
 import { ABILITY_TREE_DATA, BOSS_DISPLAY_NAMES } from '../data';
 import { RESPEC_TAX } from './game/Constants';
@@ -16,6 +16,7 @@ interface EvolutionMatrixProps {
     onOpenBestiary: () => void;
     onOpenAchievements: () => void;
     onOpenSettings: () => void;
+    onOpenGuide?: () => void; // (7A step 5)
     onResume: () => void;
     onReturnToMenu: () => void;
 }
@@ -71,6 +72,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     onOpenBestiary, 
     onOpenAchievements,
     onOpenSettings,
+    onOpenGuide,
     onResume,
     onReturnToMenu
 }) => {
@@ -314,6 +316,14 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                     label="ARCHIVES" 
                     color="text-blue-400"
                 />
+                {onOpenGuide && (
+                    <MenuSideButton 
+                        onClick={onOpenGuide} 
+                        icon={<HelpCircle size={20} />} 
+                        label="GUIDEBOOK" 
+                        color="text-cyan-400"
+                    />
+                )}
             </div>
 
             {/* TOP RIGHT CONTROLS */}

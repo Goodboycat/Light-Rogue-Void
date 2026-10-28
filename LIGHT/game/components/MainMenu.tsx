@@ -1,13 +1,14 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Settings, MessageSquare, X, Mail } from 'lucide-react';
+import { Play, Settings, MessageSquare, X, Mail, BookOpen } from 'lucide-react';
 import { CHAPTERS, WAVES_PER_CHAPTER } from './game/Constants';
 import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
 
 interface MainMenuProps {
     onStart: (wave: number) => void;
     onOpenSettings: () => void;
+    onOpenGuide?: () => void; // (7A step 5)
     maxWaveReached: number;
     onAddMatter: (amount: number) => void;
     currentMatter: number;
@@ -23,6 +24,7 @@ interface MainMenuProps {
 const MainMenu: React.FC<MainMenuProps> = ({ 
     onStart, 
     onOpenSettings, 
+    onOpenGuide,
     maxWaveReached,
     // Props kept for interface compatibility but unused in UI now
     onAddMatter,
@@ -58,8 +60,18 @@ const MainMenu: React.FC<MainMenuProps> = ({
                 </button>
             </div>
 
-            {/* --- TOP RIGHT: SETTINGS --- */}
-            <div className="absolute top-6 right-6 z-[100]">
+            {/* --- TOP RIGHT: GUIDEBOOK + SETTINGS --- */}
+            <div className="absolute top-6 right-6 z-[100] flex gap-3">
+                {onOpenGuide && (
+                    <button 
+                        id="guidebook-button"
+                        onClick={onOpenGuide}
+                        className="p-3 bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-400 rounded-full text-slate-400 hover:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                        title="Guidebook"
+                    >
+                        <BookOpen size={24} />
+                    </button>
+                )}
                 <button 
                     onClick={onOpenSettings}
                     className="p-3 bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-700 hover:border-white rounded-full text-slate-400 hover:text-white transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] group"

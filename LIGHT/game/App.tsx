@@ -7,6 +7,7 @@ import SurvivalGame from './components/SurvivalGame';
 import { Audio } from './audio/AudioManager';
 import { MAX_WAVE, RESPEC_TAX } from './components/game/Constants';
 import Archives from './components/Archives';
+import Guidebook from './components/Guidebook'; // (7A step 5)
 import MainMenu from './components/MainMenu';
 import AchievementList from './components/AchievementList';
 import EvolutionMatrix from './components/EvolutionMatrix';
@@ -45,6 +46,7 @@ const App: React.FC = () => {
   const [showArchives, setShowArchives] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showGuide, setShowGuide] = useState(false); // (7A step 5)
   const [isPauseBlocked, setIsPauseBlocked] = useState(false);
   const [chapterTint, setChapterTint] = useState<string | null>(null); // (3B step 5) StarBackground tint, null in menus
   
@@ -58,7 +60,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => { 
         if (e.code === 'Escape') {
-             if (showArchives) { setShowArchives(false); }
+             if (showGuide) { setShowGuide(false); }
+             else if (showArchives) { setShowArchives(false); }
              else if (showAchievements) { setShowAchievements(false); }
              else if (showSettings) { setShowSettings(false); }
              // Only open/close menu if not in main menu AND pause is not blocked (cinematics/gameover)
@@ -76,7 +79,7 @@ const App: React.FC = () => {
     return () => {
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showArchives, showAchievements, showSettings, isInMainMenu, isPauseBlocked, gameState.isMenuOpen, setGameState, isTransitioning]);
+  }, [showGuide, showArchives, showAchievements, showSettings, isInMainMenu, isPauseBlocked, gameState.isMenuOpen, setGameState, isTransitioning]);
 
   // --- TRANSITION HELPER ---
   const performTransition = useCallback((action: () => void) => {
@@ -335,6 +338,7 @@ const App: React.FC = () => {
           <MainMenu 
              onStart={handleStartGame} 
              onOpenSettings={() => { setShowSettings(true); }}
+             onOpenGuide={() => { setShowGuide(true); }}
              maxWaveReached={gameState.maxWaveReached}
              onAddMatter={handleAddMatter}
              currentMatter={gameState.matter}
@@ -354,7 +358,7 @@ const App: React.FC = () => {
                 key={gameKey} 
                 playerStats={playerStats} 
                 onCollectMatter={v => setGameState(p => ({...p, matter: p.matter + v}))} 
-                paused={gameState.isMenuOpen || showArchives || showAchievements || showSettings} 
+                paused={gameState.isMenuOpen || showArchives || showAchievements || showSettings || showGuide} 
                 onRestart={handleRestart}
                 onReturnToMenu={handleReturnToMenu}
                 onEndingSeen={handleEndingSeen}
@@ -381,13 +385,13 @@ const App: React.FC = () => {
             />
             
             {/* HUD */}
-            {!gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && !isPauseBlocked && !isTransitioning && (
+            {!gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && !showGuide && !isPauseBlocked && !isTransitioning && (
                 <GameHUD matter={gameState.matter} touch={!!gameState.settings.showTouchControls} />
             )}
 
             {/* EVOLUTION MATRIX */}
             <AnimatePresence>
-                {gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && (
+                {gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && !showGuide && (
                     <EvolutionMatrix 
                         gameState={gameState}
                         onUnlock={handleUnlock}
@@ -396,6 +400,7 @@ const App: React.FC = () => {
                         onOpenBestiary={() => { setShowArchives(true); }}
                         onOpenAchievements={() => { setShowAchievements(true); }}
                         onOpenSettings={() => { setShowSettings(true); }}
+                        onOpenGuide={() => { setShowGuide(true); }}
                         onResume={() => { setGameState(p => ({ ...p, isMenuOpen: false })); }}
                         onReturnToMenu={handleReturnToMenu}
                     />
@@ -437,6 +442,8 @@ const App: React.FC = () => {
               </motion.div>
           )}
       </AnimatePresence>
+
+      {showGuide && <Guidebook gameState={gameState} onClose={() => { setShowGuide(false); }} />}
 
       <AnimatePresence>
           {showSettings && (
