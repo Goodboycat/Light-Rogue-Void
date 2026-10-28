@@ -59,6 +59,10 @@ export const killEnemy = (
     }
     if (!enemy.isBoss) onFlavorKill(state, enemy); // (4B) special waves: curse marks, aegis shield breaks
 
+    // (7A) run summary counters
+    if (enemy.isBoss) state.bossKills = (state.bossKills ?? 0) + 1;
+    else if (enemy.affixes && enemy.affixes.length) state.eliteKills = (state.eliteKills ?? 0) + 1;
+
     // (6B) death SFX: boss / elite / big / small
     if (enemy.isBoss) sfxAt(state, 'boss_die', enemy.x, enemy.y, 1, 0);
     else if (enemy.affixes && enemy.affixes.length) sfxAt(state, 'elite_die', enemy.x, enemy.y);

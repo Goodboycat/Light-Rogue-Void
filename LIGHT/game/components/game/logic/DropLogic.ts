@@ -27,6 +27,7 @@ export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturit
             if (drop.relicId) { collectRelic(state, drop.relicId); sfx('pickup_relic', 1, 0); swapRemoveDrop(state.drops, i); continue; } // (3A)
             sfx('pickup_essence', undefined, 0.12); // (6B) throttled 45 ms in sfxIds
             const amount = drop.value * stats.essenceMultiplier * (1 + (state.runModifiers?.essenceMult ?? 0)); // (3A) Greed / Crown
+            state.essenceCollected = (state.essenceCollected ?? 0) + amount; // (7A) run summary
             onCollect(amount);
             onBurstEssence(state, drop.value); // (3B step 6)
             swapRemoveDrop(state.drops, i); // (4A) O(1), recycled

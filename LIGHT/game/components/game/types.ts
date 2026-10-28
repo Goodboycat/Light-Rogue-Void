@@ -161,6 +161,11 @@ export interface MutableGameState {
     waveKills: number;          // kills since the current wave started
     waveStartedFrame: number;   // state.frame when the current wave started
     totalKills: number;         // kills this run
+    /** (7A) run summary counters — optional, written by KillLogic / DropLogic */
+    eliteKills?: number;
+    bossKills?: number;
+    essenceCollected?: number;
+    runStartMs?: number;
     bossKilledWave?: number;    // set by killEnemy when a boss dies; SurvivalGame advances the wave
     // (4A) action feel — all optional, see Feel.ts
     hitStopFrames?: number;
