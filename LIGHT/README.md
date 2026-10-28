@@ -38,14 +38,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 5A | Art pass: `renderer/Palette.ts` (per-chapter base/glow/outline/accent, enemies tinted 25 % toward chapter), readable 32 px silhouettes for the 9 visual types, boss phase stroke + enrage heartbeat, spark 6 maturity stages + dash trail + burst ring, essence orbs 3 sizes + relic gem, `?gallery=1[&scale=N]` static sheet (`components/Gallery.tsx`, 151 cells), `docs/ART.md` (style rules + cell order for 5B). |
 | 5B | Art extraction: `tools/extract-art.mjs` (Playwright devDep, `npm run art`) screenshots `?gallery=1&sheet=1` → `public/sprites/<id>.png` (148, ~1.0 MB) + `atlas.json`; `renderer/SpriteRenderer.ts` (atlas preload, `drawSprite`, 64-entry tint cache); `?sprites=1` / Settings "Sprite mode (faster)" (`settings.spriteMode`) swaps enemy + projectile drawing for blits with procedural fallback; itch zip ships `sprites/` next to `index.html`; `docs/ART.md` sprite section, CONVENTIONS rule 4 exception. |
 | 6A | Audio foundation: `audio/AudioManager.ts` (unlock on first gesture, 24 voices, per-id throttle ≥ 40 ms, music cross-fade, `duck`, hidden-tab mute, `manifest.json` loader overriding synths), `audio/sfxIds.ts` (42 SFX + 9 music ids, family/throttle/volume tables), `audio/synth.ts` (8 placeholder families + 2 loop styles), Settings → Audio (master/music/sfx sliders + mute, persisted, migrated), `docs/AUDIO_LUDO.md` (a Ludo.ai prompt per id, export specs, drop-in steps). Nothing is hooked into gameplay yet — 6B. |
+| 6B | Audio integration: `audio/hooks.ts` (`sfx`/`sfxAt`), SFX on shots/hits/deaths/pickups/dash/hurt/low-HP/burst/streaks (step 1, prev. chat), BossKit arrive/telegraph/fire/phase/enrage, arena burn, special-wave banner, shrines/relics/landmarks/events, FoundEvents + meteors, chapter card, story typewriter tick + duck; music title → `music_chN` per wave → `music_boss` (1.5 s fade + duck) → `music_ending`; delegated UI click/back + unlock/error; stereo pan −0.6…0.6. Leak check (step 6) not measured. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 6B 7A 7B 7C 8A 8B 9A 9B 10
+Next: 7C 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 6B | Audio integration: SFX hooks, music per chapter, ducking, settings. |
 | 7A | UI polish: HUD, skill-tree UX (pan/zoom/search/path preview), run summary. |
 | 7B | Mobile QA: touch, safe areas, performance mode, 60 fps on mid phones. |
 | 7C | World Map: procedural chapter map (6 places, 1–10 waves each, boss at 10) as menu chapter select + breather after every boss (`prompts/7C.md`, owner request). |
