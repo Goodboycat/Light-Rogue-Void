@@ -15,7 +15,7 @@ Read `docs/CONVENTIONS.md`, `docs/HANDOFF.md`, then `prompts/<ID>.md`.
 1. **Roguelite, not roguelike.** No in-run power choice, no boon drafts, no "pick 1 of 3". All permanent power comes from the Skill Tree (`data.ts`). Run-only findings (relics, shrines) are *discovered* on the map, never offered as a menu.
 2. **Small tasks, small commits.** Each prompt lists steps; commit + `git push origin main` after every step. Message format: `<ID>: <what>` e.g. `2A: enemies persist across waves`.
 3. **Keep the build green.** `npm run build` must pass before every commit. `bash LIGHT/game/tools/itch.sh` must produce `LIGHT/out/light-rogue-void-itch.zip` at the end of every chat.
-4. **No generated images or audio in the repo.** Art is procedural Canvas 2D. Audio comes from Ludo.ai later (6A/6B). Repo should stay < 5 MB without node_modules.
+4. **No generated images or audio in the repo.** Art is procedural Canvas 2D. Audio comes from Ludo.ai later (6A/6B). Repo should stay < 5 MB without node_modules. **Exception (5B):** `game/public/sprites/*.png` + `atlas.json` are *derived* from the procedural gallery by `npm run art` and are committed (~1.0 MB); never hand-paint them — change the renderer, re-run the script, commit the regenerated set.
 5. **Credits are scarce.** Don't re-read big files you already know; don't run Playwright unless the prompt asks; don't rewrite files when an edit will do. Prefer `grep -n` + `sed -n a,bp`.
 6. **Constants in `components/game/Constants.ts`.** No magic numbers for waves, chapters, caps.
 7. **Save compatibility.** Never break `useGameSave`; add fields with defaults; bump `SAVE_VERSION` when shape changes (8A owns migrations, others only add optional fields).

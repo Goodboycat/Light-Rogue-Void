@@ -1,7 +1,8 @@
 # ART — style rules + gallery cell order (5A)
 
-Art is **procedural Canvas 2D**; no PNG/JPG is ever committed (CONVENTIONS rule 4). 5B screenshots the gallery
-(`?gallery=1`, `?gallery=1&scale=2`) and cuts sprites from it using the cell order below.
+Art is **procedural Canvas 2D** and stays the default. The only PNGs in the repo are `public/sprites/*.png` + `atlas.json`,
+**derived** from the gallery by `npm run art` (CONVENTIONS rule 4 exception) — never hand-edit them, re-run the script.
+The gallery (`?gallery=1`, `&scale=N`, `&sheet=1` = transparent/no labels) is the single source of truth.
 
 ## Style rules
 - **One palette per chapter** — `components/game/renderer/Palette.ts` → `chapterPalette(1..6)` returns
@@ -56,6 +57,20 @@ Notes for 5B:
 - World cells draw with `discovered: true` and the player far away, so no glow pulse / touch ring is included — pure silhouette.
 - Boss P2/P3 cells include the seam ring / crack web overlay (`drawBossPhaseOverlay`); enrage ring is **not** on the sheet (needs `state.bossEnraged`, animated).
 
+## Sprite mode (5B)
+- `npm run art [scale]` = `npm run build` + `node tools/extract-art.mjs`: serves `dist/` with `vite preview` on :4179, opens
+  `/?gallery=1&sheet=1&scale=S` in headless Chromium (Playwright, devDependency), reads `window.__GALLERY`, trims every cell to its
+  alpha bounds in-page, writes `public/sprites/<id>.png` (id = label lower-cased, `[^a-z0-9]` → `_`) and `atlas.json`
+  `{ scale, cell, sprites: { id: { index, label, w, h, anchorX, anchorY, unit, bytes } } }`. `unit` = sprite px per world px
+  (gallery cells draw at 2×). Deterministic (frame 0, no RAF). Budget 1.5 MB total; scale 1 = 148 PNG, ~1.02 MB (3 empty cells skipped).
+- `components/game/renderer/SpriteRenderer.ts`: `preloadSprites()` fetches `sprites/atlas.json` relative to `document.baseURI`
+  (works in itch's CDN subfolder), `drawSprite(ctx, id, x, y, rot, scale, tint?)`; tinted variants cached in offscreen canvases
+  (max 64, LRU-ish eviction). `hasSprite(id)` lets renderers fall back to procedural when an id is missing or not loaded yet.
+- Flag: `?sprites=1` or Settings → "Sprite mode (faster)" (`settings.spriteMode`, saved). Checked first in `EnemyRenderer.ts`
+  (`drawEnemy`) and `ProjectileRenderer.ts`; bosses, player, drops, world stay procedural (their art is animated/phase-dependent).
+- Builds: `vite build` copies `public/sprites/` to `dist/sprites/`; the itch zip ships it next to `index.html` (`tools/itch.sh`).
+- **Any art change** → re-run `npm run art` and commit the regenerated PNGs, otherwise sprite mode shows stale art.
+
 ## Where to add art
 | Thing | File |
 |-------|------|
@@ -67,3 +82,4 @@ Notes for 5B:
 | Telegraphs / arena | `renderer/TelegraphRenderer.ts` |
 | Palette helpers | `renderer/Palette.ts` |
 | Gallery sheet | `components/Gallery.tsx` (+ this table) |
+| Sprite extraction / blits | `tools/extract-art.mjs`, `components/game/renderer/SpriteRenderer.ts` |
