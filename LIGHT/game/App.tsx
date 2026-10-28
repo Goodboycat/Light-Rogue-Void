@@ -12,6 +12,7 @@ import EvolutionMatrix from './components/EvolutionMatrix';
 import GameHUD from './components/GameHUD';
 import SettingsMenu from './components/SettingsMenu';
 import TransitionOverlay from './components/TransitionOverlay';
+import Gallery from './components/Gallery';
 
 import { ABILITY_TREE_DATA } from './data';
 import { checkAchievements } from './data/achievements';
@@ -19,7 +20,11 @@ import { useGameSave, lastTreeMigration } from './hooks/useGameSave';
 import { usePlayerStats } from './hooks/usePlayerStats';
 import { Settings } from './types';
 
+// (5A step 6) `?gallery=1` renders the static art sheet instead of the game (docs/ART.md).
+const IS_GALLERY = typeof location !== 'undefined' && new URLSearchParams(location.search).get('gallery') === '1';
+
 const App: React.FC = () => {
+  if (IS_GALLERY) return <Gallery />;
   const { gameState, setGameState, resetSave } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
   const [migrationToast, setMigrationToast] = useState(lastTreeMigration);
