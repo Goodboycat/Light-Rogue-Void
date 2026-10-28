@@ -456,127 +456,205 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
             ctx.fill();
             break;
 
-        case 'CRAB':
-            ctx.strokeStyle = enemy.def.color;
-            for(let i=0; i<6; i++) {
-                const angle = (i / 6) * Math.PI * 2 + (frame * 0.05);
-                const legLen = size * 1.5;
-                const lx = Math.cos(angle) * legLen;
-                const ly = Math.sin(angle) * legLen * (0.8 + Math.sin(frame * 0.2 + i)*0.2);
-                ctx.beginPath();
-                ctx.moveTo(0,0);
-                ctx.lineTo(lx, ly);
-                ctx.stroke();
+        case 'CRAB': {
+            // (5A) shell + 6 jointed legs + 2 claws: a wide, low silhouette
+            const legStroke = ctx.strokeStyle;
+            ctx.lineWidth = Math.max(1.5, size * 0.12); ctx.lineCap = 'round';
+            for (let i = 0; i < 6; i++) {
+                const side = i < 3 ? -1 : 1;
+                const a = side * (Math.PI * 0.25 + (i % 3) * 0.42) + Math.PI / 2 * (side === 1 ? -1 : 1) * 0;
+                const ang = (i % 3 - 1) * 0.55 + (side < 0 ? Math.PI : 0);
+                const kneeX = Math.cos(ang) * size * 1.15, kneeY = Math.sin(ang) * size * 1.15 - size * 0.3;
+                const footY = kneeY + size * 0.9 + Math.sin(frame * 0.2 + i) * size * 0.15;
+                ctx.beginPath(); ctx.moveTo(Math.cos(ang) * size * 0.6, Math.sin(ang) * size * 0.4);
+                ctx.lineTo(kneeX, kneeY); ctx.lineTo(kneeX * 1.15, footY); ctx.stroke();
+                void a;
             }
-            ctx.beginPath();
-            ctx.arc(0, 0, size, 0, Math.PI*2);
-            ctx.fill();
-            ctx.stroke();
+            // claws
+            for (const side of [-1, 1]) {
+                const cx = side * size * 1.1, cy = -size * 0.9;
+                ctx.beginPath(); ctx.moveTo(side * size * 0.5, -size * 0.4); ctx.lineTo(cx, cy); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, size * 0.32, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            }
+            ctx.strokeStyle = legStroke; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.ellipse(0, 0, size, size * 0.72, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            // eyes
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(-size * 0.3, -size * 0.25, size * 0.12, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(size * 0.3, -size * 0.25, size * 0.12, 0, Math.PI * 2); ctx.fill();
             break;
+        }
 
-        case 'SERPENT':
-            ctx.beginPath();
-            ctx.arc(0, 0, size, 0, Math.PI*2);
-            ctx.fill();
+        case 'SERPENT': {
+            // (5A) head + 7 tapering segments (filled discs, not a line) so the body reads at 32 px
             const angleS = Math.atan2(enemy.vy, enemy.vx) + Math.PI;
-            ctx.beginPath();
-            ctx.moveTo(0,0);
-            for(let i=1; i<8; i++) {
-                const dist = i * (size * 0.8);
-                const wave = Math.sin(frame * 0.3 + i) * (size * 0.5);
-                const tx = Math.cos(angleS) * dist + Math.cos(angleS + Math.PI/2) * wave;
-                const ty = Math.sin(angleS) * dist + Math.sin(angleS + Math.PI/2) * wave;
-                ctx.lineTo(tx, ty);
+            const bodyFill = ctx.fillStyle;
+            for (let i = 7; i >= 1; i--) {
+                const dist = i * (size * 0.75);
+                const wave = Math.sin(frame * 0.3 + i) * (size * 0.45);
+                const tx = Math.cos(angleS) * dist + Math.cos(angleS + Math.PI / 2) * wave;
+                const ty = Math.sin(angleS) * dist + Math.sin(angleS + Math.PI / 2) * wave;
+                const r = size * (0.85 - i * 0.09);
+                ctx.globalAlpha = 1 - i * 0.07;
+                ctx.beginPath(); ctx.arc(tx, ty, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             }
-            ctx.strokeStyle = enemy.def.glowColor;
-            ctx.stroke();
+            ctx.globalAlpha = 1; ctx.fillStyle = bodyFill;
+            ctx.beginPath(); ctx.arc(0, 0, size, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            // dorsal fin + eye
+            const fa = angleS + Math.PI;
+            ctx.beginPath(); ctx.moveTo(Math.cos(fa) * size, Math.sin(fa) * size);
+            ctx.lineTo(Math.cos(fa + 0.5) * size * 0.6, Math.sin(fa + 0.5) * size * 0.6);
+            ctx.lineTo(Math.cos(fa - 0.5) * size * 0.6, Math.sin(fa - 0.5) * size * 0.6); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(Math.cos(fa + 0.9) * size * 0.5, Math.sin(fa + 0.9) * size * 0.5, size * 0.14, 0, Math.PI * 2); ctx.fill();
             break;
+        }
 
-        case 'GHOST':
-            ctx.globalAlpha = 0.7;
-            const p = 1 + Math.sin(frame * 0.1) * 0.1;
+        case 'GHOST': {
+            // (5A) hooded sheet with a 3-point trailing hem and two hollow eyes
+            ctx.globalAlpha = 0.8;
+            const p = 1 + Math.sin(frame * 0.1) * 0.08;
             ctx.scale(p, p);
             ctx.beginPath();
-            ctx.moveTo(-size, 0);
-            ctx.lineTo(-size, -size);
-            ctx.quadraticCurveTo(0, -size*1.5, size, -size);
-            ctx.lineTo(size, 0);
-            for(let i=0; i<3; i++) {
-                ctx.lineTo(size - (i * size * 0.8), size + Math.sin(frame * 0.2 + i) * 5);
+            ctx.moveTo(-size, size * 0.3);
+            ctx.lineTo(-size, -size * 0.2);
+            ctx.quadraticCurveTo(-size, -size * 1.3, 0, -size * 1.3);
+            ctx.quadraticCurveTo(size, -size * 1.3, size, -size * 0.2);
+            ctx.lineTo(size, size * 0.3);
+            for (let i = 0; i < 4; i++) {
+                const x = size - (i + 0.5) * size * 0.5;
+                const y = size * 0.3 + (i % 2 === 0 ? size * 0.6 : size * 0.15) + Math.sin(frame * 0.2 + i) * size * 0.1;
+                ctx.lineTo(x, y);
             }
-            ctx.lineTo(-size, 0);
+            ctx.lineTo(-size, size * 0.3);
+            ctx.closePath();
             ctx.fill();
             ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(-size*0.4, -size*0.4, 2, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(size*0.4, -size*0.4, 2, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#05060a';
+            ctx.beginPath(); ctx.ellipse(-size * 0.38, -size * 0.45, size * 0.18, size * 0.26, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(size * 0.38, -size * 0.45, size * 0.18, size * 0.26, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(-size * 0.38, -size * 0.45, size * 0.07, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(size * 0.38, -size * 0.45, size * 0.07, 0, Math.PI * 2); ctx.fill();
             break;
+        }
 
-        case 'STAR':
-            ctx.rotate(frame * 0.1);
+        case 'STAR': {
+            // (5A) 5 long spikes + a bright core disc
+            ctx.rotate(frame * 0.05);
             ctx.beginPath();
-            for(let i=0; i<5; i++) {
-                ctx.lineTo(Math.cos((i*0.8 + frame*0.01) * Math.PI)*size, Math.sin((i*0.8 + frame*0.01) * Math.PI)*size);
-                ctx.lineTo(Math.cos((i*0.8 + 0.4 + frame*0.01) * Math.PI)*size*0.5, Math.sin((i*0.8 + 0.4 + frame*0.01) * Math.PI)*size*0.5);
+            for (let i = 0; i < 5; i++) {
+                const a0 = (i / 5) * Math.PI * 2, a1 = a0 + Math.PI / 5;
+                ctx.lineTo(Math.cos(a0) * size * 1.15, Math.sin(a0) * size * 1.15);
+                ctx.lineTo(Math.cos(a1) * size * 0.45, Math.sin(a1) * size * 0.45);
             }
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath(); ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(0, 0, size * 0.14, 0, Math.PI * 2); ctx.fill();
             break;
+        }
 
-        case 'CONSTRUCT':
+        case 'CONSTRUCT': {
+            // (5A) hex hull + 4 corner plates + a rotating inner frame
             ctx.rotate(frame * 0.02);
-            ctx.beginPath();
-            ctx.rect(-size*0.7, -size*0.7, size*1.4, size*1.4);
-            ctx.fill();
-            ctx.stroke();
-            ctx.rotate(-frame * 0.04);
-            ctx.strokeStyle = '#fff';
-            ctx.strokeRect(-size*0.4, -size*0.4, size*0.8, size*0.8);
-            ctx.stroke();
+            drawHexagon(ctx, 0, 0, size);
+            const plateFill = ctx.fillStyle;
+            for (let i = 0; i < 4; i++) {
+                const a = i * Math.PI / 2 + Math.PI / 4;
+                const px = Math.cos(a) * size * 0.95, py = Math.sin(a) * size * 0.95;
+                ctx.beginPath(); ctx.rect(px - size * 0.22, py - size * 0.22, size * 0.44, size * 0.44); ctx.fill(); ctx.stroke();
+            }
+            ctx.fillStyle = plateFill;
+            ctx.rotate(-frame * 0.05);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(-size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
+            ctx.fillStyle = ctx.strokeStyle; ctx.globalAlpha = 0.9;
+            ctx.beginPath(); ctx.arc(0, 0, size * 0.14, 0, Math.PI * 2); ctx.fill();
             break;
-        
-        case 'EYE':
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size, size*0.6, 0, 0, Math.PI*2);
-            ctx.fill();
-            ctx.stroke();
-            const px = Math.sin(frame * 0.05) * (size*0.3);
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(px, 0, size*0.3, 0, Math.PI*2);
-            ctx.fill();
-            break;
-        
-        case 'CRYSTAL':
-            ctx.beginPath();
-            ctx.moveTo(0, -size);
-            ctx.lineTo(size*0.7, -size*0.3);
-            ctx.lineTo(0, size);
-            ctx.lineTo(-size*0.7, -size*0.3);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            break;
-            
-        case 'SWARMER':
-            ctx.rotate(Math.atan2(enemy.vy, enemy.vx) + Math.PI/2);
-            ctx.beginPath();
-            ctx.moveTo(0, -size);
-            ctx.lineTo(size*0.6, size);
-            ctx.lineTo(0, size*0.7);
-            ctx.lineTo(-size*0.6, size);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            break;
+        }
 
-        default: // SIMPLE
+        case 'EYE': {
+            // (5A) almond eye: lids, coloured iris, dark pupil, highlight
             ctx.beginPath();
-            ctx.arc(0, 0, size, 0, Math.PI*2);
+            ctx.moveTo(-size * 1.15, 0);
+            ctx.quadraticCurveTo(0, -size * 1.0, size * 1.15, 0);
+            ctx.quadraticCurveTo(0, size * 1.0, -size * 1.15, 0);
+            ctx.closePath();
             ctx.fill();
             ctx.stroke();
+            const px = Math.sin(frame * 0.05) * (size * 0.3);
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.beginPath(); ctx.arc(px, 0, size * 0.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#05060a';
+            ctx.beginPath(); ctx.arc(px, 0, size * 0.28, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(px + size * 0.12, -size * 0.14, size * 0.09, 0, Math.PI * 2); ctx.fill();
             break;
+        }
+
+        case 'CRYSTAL': {
+            // (5A) hexagonal prism: outer shard + a lit facet + a dark facet
+            ctx.beginPath();
+            ctx.moveTo(0, -size * 1.2);
+            ctx.lineTo(size * 0.65, -size * 0.45);
+            ctx.lineTo(size * 0.5, size * 0.6);
+            ctx.lineTo(0, size * 1.1);
+            ctx.lineTo(-size * 0.5, size * 0.6);
+            ctx.lineTo(-size * 0.65, -size * 0.45);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            const prevA = ctx.globalAlpha;
+            ctx.fillStyle = '#ffffff'; ctx.globalAlpha = prevA * 0.35;
+            ctx.beginPath(); ctx.moveTo(0, -size * 1.2); ctx.lineTo(-size * 0.65, -size * 0.45); ctx.lineTo(0, -size * 0.1); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#05060a'; ctx.globalAlpha = prevA * 0.35;
+            ctx.beginPath(); ctx.moveTo(0, -size * 0.1); ctx.lineTo(size * 0.5, size * 0.6); ctx.lineTo(0, size * 1.1); ctx.closePath(); ctx.fill();
+            ctx.globalAlpha = prevA;
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.globalAlpha = prevA * 0.5;
+            ctx.beginPath(); ctx.moveTo(0, -size * 1.2); ctx.lineTo(0, size * 1.1); ctx.stroke();
+            ctx.globalAlpha = prevA;
+            break;
+        }
+
+        case 'SWARMER': {
+            // (5A) dart body + two swept wings + 3 engine dots
+            ctx.rotate(Math.atan2(enemy.vy, enemy.vx) + Math.PI / 2);
+            ctx.beginPath();
+            ctx.moveTo(0, -size * 1.2);
+            ctx.lineTo(size * 0.9, size * 0.9);
+            ctx.lineTo(size * 0.3, size * 0.5);
+            ctx.lineTo(0, size * 0.8);
+            ctx.lineTo(-size * 0.3, size * 0.5);
+            ctx.lineTo(-size * 0.9, size * 0.9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = ctx.strokeStyle;
+            for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.arc(i * size * 0.3, size * 0.55 + Math.abs(i) * size * 0.1, size * 0.11, 0, Math.PI * 2); ctx.fill(); }
+            break;
+        }
+
+        default: { // SIMPLE
+            // (5A) orb: body disc + inner bright core + a crescent highlight (reads as a sphere, not a dot)
+            ctx.beginPath();
+            ctx.arc(0, 0, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = ctx.strokeStyle;
+            const prevA = ctx.globalAlpha;
+            ctx.globalAlpha = prevA * 0.8;
+            ctx.beginPath(); ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.globalAlpha = prevA * 0.55;
+            ctx.beginPath(); ctx.arc(-size * 0.32, -size * 0.32, size * 0.2, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = prevA;
+            break;
+        }
     }
 
     // (2C) phase-coloured core + P3 cracks on every boss
