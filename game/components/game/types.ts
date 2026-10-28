@@ -205,6 +205,19 @@ export interface MutableGameState {
     curseDamagedInWave?: boolean;
     gauntletTimer?: number;
     aegisCounter?: number;
+    // (3A) discovery — logic/WorldLogic.ts, renderer/WorldRenderer.ts, data/world.ts
+    runSeed?: number;
+    world?: import('./logic/WorldLogic').WorldState;
+    runModifiers?: import('../../data/world').RunModifiers;
+    /** extra dashes still available this run (Mirror Shard); PlayerLogic consumes */
+    dashChargesLeft?: number;
+    /** 4 s lore card (landmark) / toast (shrine, relic) drawn by WorldRenderer in screen space */
+    worldCard?: { title: string; body: string; light?: string; color: string; frames: number; max: number };
+    /** set by WorldLogic when a found event asks for a heal / shield; SurvivalGame consumes */
+    healRequest?: number;      // fraction of max HP
+    shieldRequest?: number;    // shield points
+    /** found-event in progress → Director pauses (Logic.ts gate) */
+    worldEventActive?: boolean;
     // (2B+) BigFx — see components/game/BigFx.ts
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx

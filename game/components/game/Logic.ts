@@ -22,6 +22,7 @@ import { updateDrops } from './logic/DropLogic';
 import { updateCamera } from './logic/CameraLogic';
 import { WORLD_SIZE } from './Constants';
 import { consumeHitStop, updateFeel, updateShake } from './Feel';
+import { initWorld, markFog } from './logic/WorldLogic';
 
 export const updateGame = (
     state: MutableGameState, 
@@ -60,6 +61,8 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
+    if (!state.world) initWorld(state, wave); // (3A) seeded discovery points, once per run
+    if (state.frame % 15 === 0) markFog(state, state.player.x, state.player.y); // (3A) fog of discovery
     if (state.currentWave !== wave) { // (4B) run start / ?wave= jump: arm the x5 flavor (advanceWave also calls it; idempotent)
         if (state.flavorArmedWave !== wave) { startWaveFlavor(state, wave); state.flavorArmedWave = wave; }
     }

@@ -132,3 +132,21 @@ export const PACK_INTERVAL_SEC = 7;           // seconds between packs (scaled d
 export const PACK_SPAWN_DIST = 760;           // packs land this far from the player (just off screen)
 export const ENEMY_SHOT_WARN_FRAMES = 24;     // 0.4 s glow before a SNIPER / SHOOT_* enemy fires
 // (4B) no ENEMY_PROJ_CAP — rule 9; enemy shots are pooled (acquireProjectile) and batch-drawn instead
+
+// --- DISCOVERY (3A) --- see data/world.ts, logic/WorldLogic.ts, renderer/WorldRenderer.ts, docs/WORLD.md
+export const WORLD_POINT_MARGIN = 220;        // px from the world edge a point may be placed
+export const WORLD_MIN_SPAWN_DIST = 600;      // px from the run spawn (0,0)
+export const WORLD_MIN_POINT_DIST = 500;      // px between any two points
+export const WORLD_TOUCH_RADIUS = 70;         // walk inside this → the point triggers
+export const WORLD_GLOW_RANGE = 900;          // undiscovered points pulse when the player is this close
+export const WORLD_ARROW_CHAPTERS = 2;        // off-screen arrow hint only in chapters 1–2
+export const WORLD_CARD_FRAMES = 240;         // 4 s lore card / toast
+export const WORLD_FOG_GRID = 20;             // minimap cells per side
+export const WORLD_RELIC_GUARDS = 8;          // elites guarding a relic alcove
+export const WORLD_GUARD_WARN_FRAMES = 48;    // 0.8 s telegraph before guards land
+export const WORLD_EVENT_RING = 320;          // ambush ring radius around the event point
+export const WORLD_SPARK_RADIUS = 180;        // Lost Spark: stay this close to kindle it
+export const WORLD_SPARK_KINDLE_SEC = 8;      // seconds inside the radius needed
+export const WORLD_STAR_SHARD_EVERY = 30;     // frames between Collapsing Star shards
+export const WORLD_STAR_SHARD_R = 70;         // shard impact radius
+export const WORLD_STAR_SHARD_DMG = 0.12;     // fraction of max HP per shard hit
