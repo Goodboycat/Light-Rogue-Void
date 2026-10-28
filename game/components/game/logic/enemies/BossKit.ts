@@ -17,8 +17,8 @@ import {
     TELEGRAPH_POOL_SIZE, TELEGRAPH_FLASH_FRAMES,
     BOSS_PHASE_THRESHOLDS, BOSS_PHASE_SHIFT_FRAMES,
     BOSS_ENRAGE_SEC, BOSS_ENRAGE_DMG_MULT, BOSS_ENRAGE_WARN_MULT,
-    BOSS_PROJ_CAP, BOSS_PROJ_LIFE, ARENA_RADIUS,
-    BOSS_ADD_INTERVAL_SEC, BOSS_ADD_PACK_MIN, BOSS_ADD_PACK_MAX, BOSS_ADD_WARN_FRAMES, BOSS_ADD_CAP,
+    BOSS_PROJ_LIFE, ARENA_RADIUS,
+    BOSS_ADD_INTERVAL_SEC, BOSS_ADD_PACK_MIN, BOSS_ADD_PACK_MAX, BOSS_ADD_WARN_FRAMES,
     BOSS_ARRIVAL_FRAMES,
 } from '../../Constants';
 
@@ -162,9 +162,8 @@ export const countBossProjectiles = (state: MutableGameState): number => {
     return n;
 };
 
-/** Pooled boss bullet. Skipped (returns false) when BOSS_PROJ_CAP live boss projectiles exist. Never queued. */
+/** Pooled boss bullet. (4B) Uncapped — rule 9. */
 export const fireBossProjectile = (state: MutableGameState, init: Partial<Projectile> & { x: number; y: number; vx: number; vy: number }): boolean => {
-    if (countBossProjectiles(state) >= BOSS_PROJ_CAP) return false;
     state.projectiles.push(acquireProjectile({
         size: 10, color: state.activeBoss?.def.glowColor ?? '#ef4444', life: BOSS_PROJ_LIFE, visualType: 'DEFAULT',
         ...init,
@@ -288,17 +287,15 @@ export const arenaEdgePoint = (state: MutableGameState, radiusScale = 0.95): { x
 // ---------------------------------------------------------------- roaming adds
 /**
  * Every BOSS_ADD_INTERVAL_SEC a pack of 3–5 lands at the arena edge after a telegraph circle.
- * Composition: `boss.def.addTable` (enemy ids) or the wave-appropriate pool. Cap BOSS_ADD_CAP alive.
+ * Composition: `boss.def.addTable` (enemy ids) or the wave-appropriate pool. No alive cap (rule 9).
  * Called from Logic.ts once per frame while a boss is active and not in cinematic.
  */
 export const updateBossAdds = (state: MutableGameState, boss: Enemy, wave: number, onEnemySeen: (id: string) => void) => {
     if (state.bossAddTimer === undefined) return;
     if (state.bossAddTimer > 0) { state.bossAddTimer--; return; }
-    const aliveNonBoss = state.enemies.length - 1;
-    if (aliveNonBoss >= BOSS_ADD_CAP) { state.bossAddTimer = 60; return; } // retry in 1 s
     state.bossAddTimer = BOSS_ADD_INTERVAL_SEC * 60;
 
-    const count = Math.min(BOSS_ADD_CAP - aliveNonBoss, BOSS_ADD_PACK_MIN + Math.floor(Math.random() * (BOSS_ADD_PACK_MAX - BOSS_ADD_PACK_MIN + 1)));
+    const count = BOSS_ADD_PACK_MIN + Math.floor(Math.random() * (BOSS_ADD_PACK_MAX - BOSS_ADD_PACK_MIN + 1));
     const at = arenaEdgePoint(state, 0.9);
     const table = boss.def.addTable?.map(id => ENEMIES.find(e => e.id === id)).filter((d): d is NonNullable<typeof d> => !!d);
     telegraph(state, 'circle', at.x, at.y, { radius: 70, color: boss.def.glowColor }, BOSS_ADD_WARN_FRAMES, (st) => {

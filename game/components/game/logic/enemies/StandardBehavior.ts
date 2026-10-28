@@ -3,6 +3,21 @@ import { MutableGameState, Enemy, ParticleType } from '../../types';
 import { createParticle, spawnExplosion } from '../../Particles';
 import { spawnEnemy } from './SpawnLogic';
 import { VFX } from '../../Emitters';
+import { ENEMY_SHOT_WARN_FRAMES } from '../../Constants';
+import { Projectile } from '../../types';
+import { acquireProjectile } from '../../Pools';
+
+/** (4B) Enemy shot: pooled (acquireProjectile), never capped — rule 9. */
+export const enemyShot = (state: MutableGameState, p: Projectile): boolean => {
+    state.projectiles.push(acquireProjectile(p));
+    return true;
+};
+/** (4B) Shooter telegraph: returns true on the frame the shot should fire; `enemy.shotWarn` glows for 0.4 s before. */
+const warnThenFire = (enemy: Enemy, period: number, phase = 0): boolean => {
+    const t = (enemy.state.timer + phase) % period;
+    if (t === period - ENEMY_SHOT_WARN_FRAMES) enemy.shotWarn = ENEMY_SHOT_WARN_FRAMES;
+    return t === 0 && enemy.state.timer > 0;
+};
 
 export const updateStandardBehavior = (
     state: MutableGameState, 
@@ -77,9 +92,9 @@ export const updateStandardBehavior = (
                 // Special check for Mirage to be invisible while aiming
                 if (enemy.def.id === 'e33') enemy.opacity = 0.2;
 
-                if (enemy.state.timer % 120 === 0) {
+                if (warnThenFire(enemy, 120)) {
                     const shotAngle = Math.atan2(dy, dx);
-                    state.projectiles.push({
+                    enemyShot(state, {
                         x: enemy.x, y: enemy.y,
                         vx: Math.cos(shotAngle) * 8, vy: Math.sin(shotAngle) * 8,
                         life: 100, size: 5, color: '#fff',
@@ -140,22 +155,26 @@ export const updateStandardBehavior = (
             break;
         case 'SHOOT_SPIRAL':
             moveSpeed *= 0.6;
-            if (enemy.state.timer % 5 === 0) {
+            { // 2 s cycle: 0.4 s glow, then a 1.6 s spiral burst (readable pause between bursts)
+                const cyc = enemy.state.timer % 120;
+                if (cyc === 0) enemy.shotWarn = ENEMY_SHOT_WARN_FRAMES;
+                if (cyc >= ENEMY_SHOT_WARN_FRAMES && enemy.state.timer % 5 === 0) {
                     const sAngle = enemy.state.timer * 0.1;
-                    state.projectiles.push({
+                    enemyShot(state, {
                     x: enemy.x, y: enemy.y,
                     vx: Math.cos(sAngle) * 4, vy: Math.sin(sAngle) * 4,
                     life: 60, size: 4, color: enemy.def.glowColor,
                     damage: 1, isEnemy: true
                 });
+                }
             }
             break;
         case 'SHOOT_RING':
             moveSpeed = 0;
-            if (enemy.state.timer % 150 === 0) {
+            if (warnThenFire(enemy, 150)) {
                     for(let k=0; k<8; k++) {
                         const rAngle = (k / 8) * Math.PI * 2;
-                        state.projectiles.push({
+                        enemyShot(state, {
                         x: enemy.x, y: enemy.y,
                         vx: Math.cos(rAngle) * 5, vy: Math.sin(rAngle) * 5,
                         life: 70, size: 4, color: enemy.def.glowColor,
@@ -288,7 +307,7 @@ export const updateStandardBehavior = (
         case 'LEAVE_MINES':
             // Solar Wisp: Fast movement, drops mines
             if (state.frame % 20 === 0) {
-                state.projectiles.push({
+                enemyShot(state, {
                     x: enemy.x, y: enemy.y, vx: 0, vy: 0,
                     life: 300, size: 20, color: '#fbbf24', damage: 1, isEnemy: true, isStatic: true,
                     visualType: 'SOLAR_FLARE'
@@ -354,8 +373,8 @@ export const updateStandardBehavior = (
             if (dist > 300) { moveX = dx; moveY = dy; }
             else { moveSpeed = 0; }
             
-            if (enemy.state.timer % 180 === 0) {
-                state.projectiles.push({
+            if (warnThenFire(enemy, 180)) {
+                enemyShot(state, {
                     x: enemy.x, y: enemy.y,
                     vx: (dx/dist) * 3, vy: (dy/dist) * 3,
                     life: 300, size: 20, color: '#000', damage: 1, isEnemy: true,

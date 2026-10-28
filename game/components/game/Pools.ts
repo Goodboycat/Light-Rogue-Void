@@ -3,9 +3,9 @@
 // (`createParticle`, `state.projectiles.push(...)`, `state.drops.push(...)`) are unchanged;
 // pooling happens on the *release* side (and `acquire*` is available for new spawners).
 //
-// Caps mirror docs/CONVENTIONS.md rule 9: ≤ 600 particles, ≤ 400 projectiles.
+// (4B) Rule 9: NO live-count caps. The *_FREE_LIST constants only bound how many dead objects are kept.
 import { Projectile, Particle, Drop, Enemy, ParticleType, MutableGameState } from './types';
-import { PARTICLE_CAP, PROJECTILE_CAP, DROP_POOL_CAP } from './Constants';
+import { PARTICLE_FREE_LIST, PROJECTILE_FREE_LIST, DROP_FREE_LIST } from './Constants';
 
 // --- PARTICLES ---------------------------------------------------------------
 const PARTICLE_FREE: Particle[] = [];
@@ -18,7 +18,7 @@ export const acquireParticle = (): Particle =>
     };
 
 export const releaseParticle = (p: Particle): void => {
-    if (PARTICLE_FREE.length < PARTICLE_CAP) PARTICLE_FREE.push(p);
+    if (PARTICLE_FREE.length < PARTICLE_FREE_LIST) PARTICLE_FREE.push(p);
 };
 
 /** Remove index i from arr in O(1) (order not preserved) and recycle it. */
@@ -30,8 +30,6 @@ export const swapRemoveParticle = (arr: Particle[], i: number): void => {
     releaseParticle(removed);
 };
 
-/** When the particle array is full, drop the oldest (index 0 region) instead of growing. */
-export const particleBudgetFull = (state: MutableGameState): boolean => state.particles.length >= PARTICLE_CAP;
 
 // --- PROJECTILES -------------------------------------------------------------
 const PROJECTILE_FREE: Projectile[] = [];
@@ -47,7 +45,7 @@ export const acquireProjectile = (init: Projectile): Projectile => {
 };
 
 export const releaseProjectile = (p: Projectile): void => {
-    if (PROJECTILE_FREE.length < PROJECTILE_CAP) {
+    if (PROJECTILE_FREE.length < PROJECTILE_FREE_LIST) {
         p.customData = undefined; p.targetId = undefined; p.pullRadius = undefined;
         PROJECTILE_FREE.push(p);
     }
@@ -71,7 +69,7 @@ export const acquireDrop = (x: number, y: number, value: number): Drop => {
 };
 
 export const releaseDrop = (d: Drop): void => {
-    if (DROP_FREE.length < DROP_POOL_CAP) DROP_FREE.push(d);
+    if (DROP_FREE.length < DROP_FREE_LIST) DROP_FREE.push(d);
 };
 
 export const swapRemoveDrop = (arr: Drop[], i: number): void => {

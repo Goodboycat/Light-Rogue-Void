@@ -53,13 +53,12 @@ export const bossIndexOf = (wave: number): number => chapterIndexOf(wave) - 1;
 // is met OR the timer runs out; survivors carry over (`enemy.carried`).
 export const waveKillQuota = (w: number): number => Math.floor(8 + w * 1.5);
 export const waveTimerSec = (w: number): number => 30 + Math.min(w, 30);
-/** Crowd budget: max non-boss enemies alive at a given wave. */
-export const maxAlive = (w: number): number => Math.min(300, 40 + w * 3);
+/** (4B) NO crowd cap — rule 9. Kept only as a *reference* density used by the director to scale pack size; never used to block a spawn. */
+export const refDensity = (w: number): number => 40 + w * 3;
 /** Seconds after a wave starts during which spawns ramp from 0 → full rate. */
 export const WAVE_GRACE_SEC = 3;
 export const WAVE_RAMP_SEC = 10;
-/** During a boss: cap for non-boss adds (2B refines composition). */
-export const BOSS_ADD_CAP = 20;
+/** (4B) No boss-add cap (rule 9). Packs just keep landing every BOSS_ADD_INTERVAL_SEC. */
 /** Essence bonus for enemies that survived a wave change. */
 export const CARRIED_REWARD_MULT = 1.1;
 /** If nothing is alive and quota is unmet, force a spawn this often (frames). */
@@ -85,10 +84,11 @@ export const PLAYER_IFRAMES = 18;          // 0.3 s
 export const HURT_VIGNETTE_FRAMES = 14;
 export const LOW_HP_PCT = 0.25;            // heartbeat tint below this
 
-// --- POOLS (4A) --- see components/game/Pools.ts; budgets from CONVENTIONS rule 9
-export const PARTICLE_CAP = 600;
-export const PROJECTILE_CAP = 400;
-export const DROP_POOL_CAP = 400;
+// --- POOLS (4A/4B) --- see components/game/Pools.ts. These size the FREE LISTS only (how many dead
+// objects we keep for reuse). They are NOT live-count caps — rule 9: no particle / projectile / entity caps.
+export const PARTICLE_FREE_LIST = 4096;
+export const PROJECTILE_FREE_LIST = 2048;
+export const DROP_FREE_LIST = 1024;
 
 // --- BOSS KIT (2B) --- see components/game/logic/enemies/BossKit.ts, docs/BOSSES.md
 export const TELEGRAPH_POOL_SIZE = 24;
@@ -100,7 +100,7 @@ export const BOSS_PHASE_SHIFT_FRAMES = 72;    // 1.2 s invulnerable + arena puls
 export const BOSS_ENRAGE_SEC = 150;           // boss alive this long → enrage
 export const BOSS_ENRAGE_DMG_MULT = 2;
 export const BOSS_ENRAGE_WARN_MULT = 0.7;     // telegraph warn frames × this when enraged
-export const BOSS_PROJ_CAP = 48;              // live boss projectiles (hard cap, skipped not queued)
+// (4B) no BOSS_PROJ_CAP — rule 9
 export const BOSS_PROJ_LIFE = 360;
 export const ARENA_RADIUS = 900;
 export const VOID_BURN_DPS = 0.04;            // fraction of max HP per second outside the arena
@@ -131,4 +131,4 @@ export const PACK_WARN_FRAMES = 36;           // 0.6 s spawn telegraph before a 
 export const PACK_INTERVAL_SEC = 7;           // seconds between packs (scaled down by wave, floor 3.5)
 export const PACK_SPAWN_DIST = 760;           // packs land this far from the player (just off screen)
 export const ENEMY_SHOT_WARN_FRAMES = 24;     // 0.4 s glow before a SNIPER / SHOOT_* enemy fires
-export const ENEMY_PROJ_CAP = 400;            // hard cap on live projectiles (enemy shots are skipped above it)
+// (4B) no ENEMY_PROJ_CAP — rule 9; enemy shots are pooled (acquireProjectile) and batch-drawn instead

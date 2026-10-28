@@ -1,6 +1,6 @@
 
 import { MutableGameState, Enemy, ParticleType } from './types';
-import { isBossWave as isBossWaveFn, maxAlive, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES } from './Constants';
+import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
 import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
@@ -108,9 +108,9 @@ export const updateGame = (
 
     // --- SPAWN DIRECTOR (2A) ---
     // Enemies persist across waves, so spawning is budgeted instead of wiped:
-    //  * crowd cap `maxAlive(wave)` (non-boss),
+    //  * (4B) NO crowd cap — rule 9; pacing is rate only,
     //  * 3 s grace after a wave starts, then the rate ramps up over 10 s,
-    //  * bosses keep a small roaming crowd (BOSS_ADD_CAP) — 2B refines it,
+    //  * bosses keep roaming packs landing (BossKit.updateBossAdds),
     //  * anti-starvation: nothing alive + quota unmet → force a spawn.
     if (!isCinematic) {
         const aliveNonBoss = state.enemies.length - (state.activeBoss ? 1 : 0);
@@ -126,7 +126,7 @@ export const updateGame = (
             const suppress = updateWaveFlavor(state, wave, onEnemySeen);
             // (4B) packs land after a 0.6 s telegraph; the trickle below runs at half speed around a pack
             const trickleMult = suppress ? 1 : updateDirector(state, wave, sinceWave, onEnemySeen, state.flavor === 'ELITE_RUSH' ? { elite: true } : undefined);
-            if (!suppress && sinceWave >= WAVE_GRACE_SEC && aliveNonBoss < maxAlive(wave)) {
+            if (!suppress && sinceWave >= WAVE_GRACE_SEC) {
                 const ramp = Math.min(1, (sinceWave - WAVE_GRACE_SEC) / WAVE_RAMP_SEC); // 0 → 1
                 const rate = Math.round(baseRate * trickleMult / Math.max(0.15, ramp));
                 if (state.frame % rate === 0) shouldSpawn = true;

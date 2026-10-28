@@ -1,5 +1,5 @@
 import { MutableGameState, ParticleType } from './types';
-import { acquireParticle, swapRemoveParticle, particleBudgetFull } from './Pools';
+import { acquireParticle, swapRemoveParticle, } from './Pools';
 
 export const createParticle = (
     state: MutableGameState, 
@@ -24,7 +24,7 @@ export const createParticle = (
     const life = options.life ?? (30 + Math.random() * 20);
     const size = options.size ?? (Math.random() * 4 + 2);
 
-    // (4A) pooled: reuse a recycled particle; at the cap, recycle the oldest slot instead of growing
+    // (4A) pooled: reuse a recycled particle. (4B) no cap — rule 9
     const p = acquireParticle();
     p.x = x; p.y = y; p.vx = vx; p.vy = vy;
     p.life = life; p.maxLife = life; p.size = size; p.color = color; p.type = type;
@@ -32,9 +32,6 @@ export const createParticle = (
     p.gravity = options.gravity ?? 0;
     p.shrink = options.shrink ?? 0.1;
     p.alpha = options.alpha ?? 1;
-    if (particleBudgetFull(state)) {
-        swapRemoveParticle(state.particles, 0);
-    }
     state.particles.push(p);
 };
 

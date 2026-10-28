@@ -3,9 +3,9 @@
 // off-screen point after a 0.6 s circle telegraph (the same "promise" shape bosses use).
 // The 2A trickle in Logic.ts keeps running between packs; the director alternates
 // pack / trickle by halving the trickle rate while a pack is pending or just landed.
-// Respects `maxAlive(wave)`; never runs during a boss (BossKit.updateBossAdds owns that).
+// (4B) No alive cap (rule 9) — pacing by interval only; never runs during a boss (BossKit.updateBossAdds owns that).
 import { MutableGameState, Enemy, ParticleType } from '../types';
-import { maxAlive, PACK_MIN, PACK_MAX, PACK_WARN_FRAMES, PACK_INTERVAL_SEC, PACK_SPAWN_DIST, WORLD_SIZE } from '../Constants';
+import { refDensity, PACK_MIN, PACK_MAX, PACK_WARN_FRAMES, PACK_INTERVAL_SEC, PACK_SPAWN_DIST, WORLD_SIZE } from '../Constants';
 import { getSpawnableEnemy } from '../../../enemies';
 import { spawnEnemy, SpawnOpts } from './enemies/SpawnLogic';
 import { telegraph } from './enemies/BossKit';
@@ -72,10 +72,9 @@ export const updateDirector = (
 ): number => {
     if (state.packTimer === undefined) state.packTimer = Math.round(2.5 * 60); // first pack ~2.5 s into a run
     if (sinceWaveSec < 1.5) return 1; // let the wave banner breathe
-    const aliveNonBoss = state.enemies.length;
-    const room = maxAlive(wave) - aliveNonBoss;
     if (state.packTimer > 0) { state.packTimer--; return state.packTimer > packIntervalFrames(wave) - 90 ? 2 : 1; }
-    if (room < PACK_MIN) { state.packTimer = 60; return 1; } // crowded: retry in 1 s, trickle fills gaps
+    // (4B) rule 9: no room check — a pack always lands. `room` is just an upper size hint for composePack.
+    const room = Math.max(PACK_MAX, refDensity(wave));
     const plan = composePack(state, wave, room, packOpts);
     state.packTimer = packIntervalFrames(wave);
     if (!plan) return 1;

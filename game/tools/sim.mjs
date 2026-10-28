@@ -20,7 +20,7 @@ globalThis.performance ??= { now: () => Date.now() };
 
 const entry = `
 export { updateGame } from '${game}/components/game/Logic.ts';
-export { waveKillQuota, waveTimerSec, maxAlive, MAX_WAVE } from '${game}/components/game/Constants.ts';
+export { waveKillQuota, waveTimerSec, refDensity as maxAlive, MAX_WAVE } from '${game}/components/game/Constants.ts';
 `;
 const out = await build({ stdin: { contents: entry, resolveDir: game, loader: 'ts' }, bundle: true, write: false, format: 'esm', platform: 'node',
   external: ['react', 'react-dom', 'framer-motion', 'lucide-react'] });
@@ -37,8 +37,8 @@ const state = { player: { x: 0, y: 0, vx: 0, vy: 0, size: 10, dashTimer: 0, dash
   mouse: { x: 640, y: 360 }, frame: 0, worldSize: 3500, seenEnemyIds: [], maxWaveReached: startWave, bossSpawnedWave: 0, waveKills: 0, waveStartedFrame: 0, totalKills: 0 };
 
 let wave = startWave, time = M.waveTimerSec(wave), collected = 0, dmgTaken = 0, maxAliveSeen = 0, maxFrameMs = 0, sumFrameMs = 0, frames = 0;
-const advance = () => { wave++; state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; }); state.waveKills = 0; state.waveStartedFrame = state.frame; time = M.waveTimerSec(wave); console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s cap=${M.maxAlive(wave)}`); };
-console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s cap=${M.maxAlive(wave)}`);
+const advance = () => { wave++; state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; }); state.waveKills = 0; state.waveStartedFrame = state.frame; time = M.waveTimerSec(wave); console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s refDensity=${M.maxAlive(wave)}`); };
+console.log(`--- WAVE ${wave} quota=${M.waveKillQuota(wave)} timer=${time}s refDensity=${M.maxAlive(wave)}`);
 
 for (let sec = 0; sec < seconds; sec++) {
   for (let f = 0; f < 60; f++) {
