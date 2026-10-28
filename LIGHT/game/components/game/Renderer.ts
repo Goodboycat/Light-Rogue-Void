@@ -5,6 +5,7 @@ import { drawEnemy } from './renderer/EnemyRenderer';
 import { drawOrbitals } from './renderer/OrbitalRenderer';
 import { renderProjectiles } from './renderer/ProjectileRenderer';
 import { drawPlayer } from './renderer/PlayerRenderer';
+import { drawDrops } from './renderer/DropRenderer';
 import { drawFloaters, drawStreakBanner, drawHurtOverlay, drawFlavorBanner } from './renderer/FloaterRenderer';
 import { drawParticlesBatched } from './renderer/ParticleBatcher';
 import { drawTelegraphs, drawArena, drawArenaVignette, drawBossArrival } from './renderer/TelegraphRenderer';
@@ -35,17 +36,8 @@ export const renderGame = (
     ctx.lineWidth = 4;
     ctx.strokeRect(-WORLD_SIZE/2, -WORLD_SIZE/2, WORLD_SIZE, WORLD_SIZE);
 
-    // --- DROPS ---
-    ctx.shadowBlur = 10;
-    state.drops.forEach(d => {
-        const pulse = 1 + Math.sin(state.frame * 0.1) * 0.2;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, 5 * pulse, 0, Math.PI*2);
-        ctx.fillStyle = '#c084fc';
-        ctx.fill();
-        ctx.shadowColor = '#d8b4fe';
-    });
-    ctx.shadowBlur = 0;
+    // --- DROPS --- (5A) 3 essence sizes + relic gem, culled to the viewport
+    drawDrops(ctx, state);
 
     // --- WORLD POINTS (3A, under everything but the border) ---
     drawWorldPoints(ctx, state, canvasWidth, canvasHeight);
