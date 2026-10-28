@@ -1,5 +1,6 @@
 
 import { MutableGameState, Projectile } from '../../types';
+import { nearestEnemy } from '../../SpatialHash';
 import { ParticleType } from '../../types';
 import { createParticle } from '../../Particles';
 
@@ -17,15 +18,7 @@ export const updateProjectileMovement = (state: MutableGameState, p: Projectile,
             hasTarget = true;
         } else {
             // Player missile tracks enemies
-            let closest = null;
-            let minD = 800;
-            for(const e of state.enemies) {
-                const d = Math.hypot(e.x - p.x, e.y - p.y);
-                if (d < minD) {
-                    minD = d;
-                    closest = e;
-                }
-            }
+            const closest = nearestEnemy(p.x, p.y, 800); // (4B) spatial hash
             if (closest) {
                 targetX = closest.x;
                 targetY = closest.y;

@@ -4,8 +4,19 @@ import { renderBossProjectile } from './projectiles/BossRenderer';
 import { renderEnvironmentProjectile } from './projectiles/EnvironmentRenderer';
 import { renderWeaponProjectile } from './projectiles/WeaponRenderer';
 
-export const renderProjectiles = (ctx: CanvasRenderingContext2D, state: MutableGameState) => {
+// (4B) Default bullets are batched into one Path2D per colour and culled to the viewport (+64 px),
+// so thousands of enemy / player shots cost a handful of fill() calls — rule 9 (no projectile cap).
+const bulletBuckets = new Map<string, Path2D>();
+
+export const renderProjectiles = (
+    ctx: CanvasRenderingContext2D, state: MutableGameState,
+    view?: { cx: number; cy: number; halfW: number; halfH: number },
+) => {
+    bulletBuckets.clear();
+    const cullW = view ? view.halfW + 64 : Infinity, cullH = view ? view.halfH + 64 : Infinity;
+    const vcx = view ? view.cx : 0, vcy = view ? view.cy : 0;
     state.projectiles.forEach(p => {
+        if (view && !p.isStatic && (Math.abs(p.x - vcx) > cullW || Math.abs(p.y - vcy) > cullH)) return;
         // 1. BOSS & SPECIALS
         if (p.visualType === 'BOSS_SINGULARITY' || 
             p.visualType === 'VOID_NOVA' || 
@@ -42,13 +53,11 @@ export const renderProjectiles = (ctx: CanvasRenderingContext2D, state: MutableG
             return;
         }
 
-        // 4. DEFAULT RENDERER
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowBlur = 0; 
+        // 4. DEFAULT RENDERER — batched by colour
+        let path = bulletBuckets.get(p.color);
+        if (!path) { path = new Path2D(); bulletBuckets.set(p.color, path); }
+        path.moveTo(p.x + p.size, p.y);
+        path.arc(p.x, p.y, p.size, 0, Math.PI*2);
     });
+    bulletBuckets.forEach((path, color) => { ctx.fillStyle = color; ctx.fill(path); });
 };

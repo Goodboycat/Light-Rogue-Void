@@ -60,7 +60,7 @@ export const renderGame = (
     drawLasers(ctx, state);
 
     // --- PROJECTILES ---
-    renderProjectiles(ctx, state);
+    renderProjectiles(ctx, state, { cx: state.camera.x + canvasWidth / 2, cy: state.camera.y + canvasHeight / 2, halfW: canvasWidth / 2, halfH: canvasHeight / 2 });
 
     // --- BACK ORBITALS (Behind Player) ---
     if (stats.projectileCount > 0) {

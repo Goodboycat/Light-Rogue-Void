@@ -16,6 +16,7 @@ import { updateEnemies, spawnEnemy } from './logic/EnemyLogic';
 import { InputHandler } from './Input';
 import { updatePlayerAbilities } from './logic/AbilityLogic';
 import { updateProjectiles } from './logic/ProjectileLogic';
+import { rebuildEnemyGrid } from './SpatialHash';
 import { updateOrbitals } from './logic/OrbitalLogic';
 import { updateDrops } from './logic/DropLogic';
 import { updateCamera } from './logic/CameraLogic';
@@ -156,6 +157,7 @@ export const updateGame = (
     }
 
     updateEnemiesLogic(state, playerStats, maturityScale, onDamage, onEnemySeen);
+    rebuildEnemyGrid(state); // (4B) spatial hash for projectile broad-phase — rule 9 (no caps → O(n) checks)
     
     // Freeze projectiles during cinematic
     if (!isCinematic) {

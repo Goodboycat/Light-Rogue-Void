@@ -2,6 +2,7 @@
 import { MutableGameState, Enemy } from '../../types';
 import { PlayerStats } from '../../../../types';
 import { WORLD_SIZE } from '../../Constants';
+import { forEachEnemyNear } from '../../SpatialHash';
 
 export const updateEnemyPhysics = (
     state: MutableGameState, 
@@ -18,18 +19,20 @@ export const updateEnemyPhysics = (
     let pushX = 0;
     let pushY = 0;
     
-    // Separation (Avoid overlapping other enemies)
-    if (i > 0) {
-        const neighbor = state.enemies[i-1];
+    // (4B) Separation via the previous frame's spatial hash (grid is rebuilt after all enemies move):
+    // up to 4 overlapping neighbours push; crowds stay crowds, not a single stacked dot.
+    let n = 0;
+    forEachEnemyNear(enemy.x, enemy.y, enemy.size, (neighbor) => {
+        if (neighbor === enemy || neighbor.isBoss) return;
         const ndx = neighbor.x - enemy.x;
         const ndy = neighbor.y - enemy.y;
         const ndist = Math.sqrt(ndx*ndx + ndy*ndy);
-        // Added ndist > 0.1 check
         if (ndist < enemy.size + neighbor.size && ndist > 0.1) {
-                pushX -= (ndx/ndist) * 0.5;
-                pushY -= (ndy/ndist) * 0.5;
+            pushX -= (ndx/ndist) * 0.5;
+            pushY -= (ndy/ndist) * 0.5;
+            if (++n >= 4) return true;
         }
-    }
+    });
 
     const moveLen = Math.sqrt(moveX*moveX + moveY*moveY);
     

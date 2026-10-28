@@ -5,6 +5,7 @@ import { swapRemoveProjectile } from '../../../Pools';
 import { FIREBALL_BREAKS_BOSS_PROJ } from '../../../Constants';
 import { spawnExplosion, createParticle } from '../../../Particles';
 import { VFX } from '../../../Emitters';
+import { forEachEnemyNear } from '../../../SpatialHash';
 
 export const checkPlayerCollisions = (
     state: MutableGameState, 
@@ -115,18 +116,18 @@ export const checkPlayerCollisions = (
     // --- GENERIC IMPACT ---
     let hitCount = 0;
     if (p.isStatic) {
-        state.enemies.forEach(e => {
+        if (state.frame % 10 === 0) forEachEnemyNear(p.x, p.y, p.size, (e) => {
                 if (Math.hypot(e.x - p.x, e.y - p.y) < p.size + e.size) {
-                    if (state.frame % 10 === 0) { 
                     e.hp -= p.damage;
                     onEnemyHit(state, e, p.damage);
                     VFX.spark(state, e.x, e.y, p.color, 2);
-                    }
                 }
         });
     } else {
-        for(const enemy of state.enemies) {
-            if (Math.hypot(p.x - enemy.x, p.y - enemy.y) < enemy.size + p.size) {
+        // (4B) broad-phase via spatial hash: only enemies in nearby cells are tested
+        forEachEnemyNear(p.x, p.y, p.size, (enemy) => {
+            const ddx = p.x - enemy.x, ddy = p.y - enemy.y, rr = enemy.size + p.size;
+            if (ddx * ddx + ddy * ddy < rr * rr) {
                 enemy.hp -= p.damage;
                 onEnemyHit(state, enemy, p.damage);
                 hitCount++;
@@ -135,15 +136,16 @@ export const checkPlayerCollisions = (
                 if (p.visualType === 'HOMING_MISSILE') {
                     spawnExplosion(state, p.x, p.y, '#f472b6', ParticleType.FIRE);
                     VFX.castShockwave(state, p.x, p.y, '#f472b6');
-                        state.enemies.forEach(near => {
+                        forEachEnemyNear(p.x, p.y, 100, (near) => {
                             if (Math.hypot(near.x - p.x, near.y - p.y) < 100) {
                                 near.hp -= p.damage * 0.5;
                                 onEnemyHit(state, near, p.damage * 0.5);
                             }
                         });
                 }
+                return true; // first hit ends the broad-phase (projectile dies)
             }
-        }
+        });
         if (hitCount > 0) return true;
     }
 
