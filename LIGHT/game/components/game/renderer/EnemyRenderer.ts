@@ -2,6 +2,21 @@
 import { Enemy } from '../types';
 import { AFFIX_BY_ID } from '../../../data/affixes';
 import { ENEMY_SHOT_WARN_FRAMES } from '../Constants';
+import { enemyPalette, mix, type ChapterPalette } from './Palette';
+import type { EnemyDef } from '../types';
+
+// (5A) Per-def tint cache: every enemy keeps its own hue but is pulled 25 % toward its chapter accent so a wave
+// reads as one palette; the outline is the chapter's dark outline. Bosses keep their own colours (phase overlay rules).
+const tintCache = new Map<string, { fill: string; glow: string; pal: ChapterPalette }>();
+export const enemyTint = (def: EnemyDef) => {
+    let t = tintCache.get(def.id);
+    if (!t) {
+        const pal = enemyPalette(def);
+        t = { fill: mix(def.color, pal.base, 0.25), glow: mix(def.glowColor, pal.accent, 0.25), pal };
+        tintCache.set(def.id, t);
+    }
+    return t;
+};
 
 const drawHexagon = (ctx: CanvasRenderingContext2D, x: number, y: number, r: number) => {
     ctx.beginPath();
@@ -140,10 +155,10 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
         ctx.globalCompositeOperation = 'overlay';
         ctx.fillStyle = '#fff';
     } else {
-        ctx.fillStyle = enemy.def.color;
+        ctx.fillStyle = enemy.isBoss ? enemy.def.color : enemyTint(enemy.def).fill;
     }
     
-    ctx.strokeStyle = enemy.def.glowColor;
+    ctx.strokeStyle = enemy.isBoss ? enemy.def.glowColor : enemyTint(enemy.def).glow;
     ctx.lineWidth = 2;
 
     const size = enemy.def.size;
