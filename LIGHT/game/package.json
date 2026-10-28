@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "tree": "node tools/dump-tree.mjs",
     "enemies": "node tools/dump-enemies.mjs",
+    "story": "node tools/dump-story.mjs",
     "itch": "bash tools/itch.sh",
     "typecheck": "NODE_OPTIONS=--max-old-space-size=3000 tsc --noEmit -p .",
     "sim": "node tools/sim.mjs"
