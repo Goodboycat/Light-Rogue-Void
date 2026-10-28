@@ -8,7 +8,7 @@ Continue **LIGHT (Light Rogue Void)**, my passion project. You may not finish ev
 1. Extract the tar so the repo is at `/home/user/webapp/LIGHT` (or `git clone https://github.com/Goodboycat/Light-Rogue-Void /home/user/webapp/LIGHT`).
 2. `cd /home/user/webapp && bash LIGHT/game/tools/github.sh <TOKEN>` once (I paste the token here: `<TOKEN>`).
 3. `cd LIGHT/game && npm install && npm run build` must be green before you touch anything.
-4. `bash LIGHT/game/tools/next.sh` prints the chat ID you must do and shows its prompt file. Read `docs/CONVENTIONS.md` and `docs/HANDOFF.md` first, then that prompt. **Do only that ID.** Do not re-plan, do not reorder, do not start another ID unless the prompt is fully done and accepted.
+4. `bash LIGHT/game/tools/next.sh` prints the chat ID you must do and shows its prompt file. Read `docs/CONVENTIONS.md` and `docs/HANDOFF.md` first, then that prompt. Do that ID first. **When its handoff is finished (README/HANDOFF/itch/push), run `next.sh` again and continue with the next ID in the same chat** — repeat until credits run low. Do not re-plan, do not reorder. Report to me after every finished ID (you may get axed at any time).
 
 ## Rules
 - **Roguelite, not roguelike.** All permanent power is the Skill Tree. No in-run power picking, no "choose 1 of 3", no boon drafts, no node map, no mercy. Run-only things are *discovered* on the map, never offered.
@@ -25,6 +25,7 @@ Continue **LIGHT (Light Rogue Void)**, my passion project. You may not finish ev
 3. `bash LIGHT/game/tools/itch.sh` → upload `LIGHT/out/light-rogue-void-itch.zip` as a download link named **light-rogue-void-itch**.
 4. Also give me a download link of the whole `LIGHT` folder as `LIGHT.tar.gz` (exclude `node_modules`, `dist`, `out`).
 5. Push. Then report to me in chat: what you did, what you skipped and why, and the exact prompt for the next chat (update this file `prompts/NEXT_CHAT.md` if anything about the setup changed).
+6. **Then continue with the next ID** (`bash LIGHT/game/tools/next.sh`) in this same chat, repeating steps 1–5 for it. Stop only when credits are nearly out — always leave the repo pushed with README/HANDOFF current.
 
 `npm run typecheck` has one pre-existing error in `components/ErrorBoundary.tsx` — ignore it, `npm run build` is the gate.
 
