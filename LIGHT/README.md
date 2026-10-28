@@ -39,16 +39,16 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 5B | Art extraction: `tools/extract-art.mjs` (Playwright devDep, `npm run art`) screenshots `?gallery=1&sheet=1` → `public/sprites/<id>.png` (148, ~1.0 MB) + `atlas.json`; `renderer/SpriteRenderer.ts` (atlas preload, `drawSprite`, 64-entry tint cache); `?sprites=1` / Settings "Sprite mode (faster)" (`settings.spriteMode`) swaps enemy + projectile drawing for blits with procedural fallback; itch zip ships `sprites/` next to `index.html`; `docs/ART.md` sprite section, CONVENTIONS rule 4 exception. |
 | 6A | Audio foundation: `audio/AudioManager.ts` (unlock on first gesture, 24 voices, per-id throttle ≥ 40 ms, music cross-fade, `duck`, hidden-tab mute, `manifest.json` loader overriding synths), `audio/sfxIds.ts` (42 SFX + 9 music ids, family/throttle/volume tables), `audio/synth.ts` (8 placeholder families + 2 loop styles), Settings → Audio (master/music/sfx sliders + mute, persisted, migrated), `docs/AUDIO_LUDO.md` (a Ludo.ai prompt per id, export specs, drop-in steps). Nothing is hooked into gameplay yet — 6B. |
 | 6B | Audio integration: `audio/hooks.ts` (`sfx`/`sfxAt`), SFX on shots/hits/deaths/pickups/dash/hurt/low-HP/burst/streaks (step 1, prev. chat), BossKit arrive/telegraph/fire/phase/enrage, arena burn, special-wave banner, shrines/relics/landmarks/events, FoundEvents + meteors, chapter card, story typewriter tick + duck; music title → `music_chN` per wave → `music_boss` (1.5 s fade + duck) → `music_ending`; delegated UI click/back + unlock/error; stereo pan −0.6…0.6. Leak check (step 6) not measured. |
+| 7C | World Map (owner request): `components/WorldMap.tsx` procedural seeded star chart (6 places + 4 faint `?` future places, dotted Catmull-Rom path, locks, ✓ rings, pulsing current, black-hole swirl, `@` glyph nodes) replaces `#chapter-select` in the menu (START shows place + waves N–N+9); `MapBreather.tsx` freezes the run on the map after bosses 1–5 (CONTINUE → chapter card, RETURN TO MENU, Esc/Enter/Space); 6 hidden treasure caches revealed per cleared boss grant matter once (`gameState.mapTreasuresOpened`, optional field, no SAVE_VERSION bump); `docs/GDD.md` World Map, `docs/WORLD.md`, PLAN 13b. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 7C 7A 7B 8A 8B 9A 9B 10
+Next: 7A 7B 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
 | 7A | UI polish: HUD, skill-tree UX (pan/zoom/search/path preview), run summary. |
 | 7B | Mobile QA: touch, safe areas, performance mode, 60 fps on mid phones. |
-| 7C | World Map: procedural chapter map (6 places, 1–10 waves each, boss at 10) as menu chapter select + breather after every boss (`prompts/7C.md`, owner request). |
 | 8A | Save v2: migrations, export/import, run stats, achievements v2. |
 | 8B | Balance: headless sim (`npm run sim`), curves for 60 waves + endless. |
 | 9A | Endless mode + daily seed. |

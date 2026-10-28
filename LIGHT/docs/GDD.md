@@ -72,6 +72,12 @@ Top-down auto-attack action **roguelite** (Canvas 2D, mobile + desktop, itch.io 
 - Music: 7 loops (6 chapters + title), 90–120 s, seamless.
 - SFX: ~40 (see `docs/AUDIO_LUDO.md`, written in 6A). Synth placeholders until the real files arrive in `public/audio/`.
 
+## World Map (7C)
+- A procedural Canvas 2D **star chart** (`components/WorldMap.tsx`, seeded, no PNG) modelled on the owner's reference picture: nebula "places" on a dotted path, locks on unreached places, `@` glyph nodes, a black-hole swirl for Seam of the Void, and 4 faint "?" places (Echoing Caverns, The Shattered Core, Broken Sanctuary, The Rift) reserved for 9A endless/future chapters.
+- **Every place = one chapter = waves 1–10 of that place, wave 10 = its boss.** (`WAVES_PER_CHAPTER = 10`, `isBossWave`.) Places unlock at `maxWaveReached >= firstWave`, a ✓ ring marks a cleared boss (`defeatedBosses`).
+- **Breather rule:** after bosses 1–5 the run freezes on the map (`MapBreather.tsx`): the next place lights up, **CONTINUE** → chapter card → wave N+1, **RETURN TO MENU** ends the run keeping essence. Boss 6 goes to the ending instead. The map is also the chapter select in the main menu.
+- **Hidden treasure caches:** 6 side paths (`MAP_TREASURES`), one per place, revealed when that place's boss is dead; tapping one grants matter once (`gameState.mapTreasuresOpened`). Discovery, never a draft — roguelite rule holds.
+
 ## Platforms
 - itch.io HTML (single file + CDN tailwind/fonts), Android APK via Capacitor (10). Desktop keyboard/mouse, mobile joystick + dash button. Pointer-aim optional.
 

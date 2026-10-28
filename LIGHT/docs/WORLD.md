@@ -70,6 +70,10 @@ Random roll once per second: `p = min(0.25, 0.02 + 0.004·calmSeconds)`; Essence
 
 Found events seen this run: `state.foundEvents.found[]` (not persisted yet — 8A run stats).
 
+## World Map (7C — between chapters, not inside the arena)
+`components/WorldMap.tsx` draws the star chart (seed `0x4c494748`, 1024×683 virtual canvas scaled to fit; static layer cached offscreen). Places: 6 chapters at the picture's slots 1,2,3,4,5,8; 4 faint `?` future places. Path = Catmull-Rom through `PATH_VIAS`, dotted; `@` glyph nodes are decorative. State derives only from `maxWaveReached`, `defeatedBosses`, `mapTreasuresOpened`.
+**Treasure caches** (`MAP_TREASURES`, revealed when `from` chapter's boss is dead, opened once): cache_1 60 · cache_2 90 · cache_3 120 · cache_4 160 · cache_5 220 · cache_6 320 matter. Hit radii `PLACE_HIT_R 62`, `TREASURE_HIT_R 28`. `MapBreather.tsx` = in-run overlay after bosses 1–5 (`SurvivalGame.tsx completeBossWave`).
+
 ## Constants (`Constants.ts`)
 `WORLD_SIZE 3500 · WORLD_POINT_MARGIN 220 · WORLD_MIN_SPAWN_DIST 600 · WORLD_MIN_POINT_DIST 500 · WORLD_TOUCH_RADIUS 70 · WORLD_GLOW_RANGE 900 · WORLD_ARROW_CHAPTERS 2 · WORLD_CARD_FRAMES 240 · WORLD_FOG_GRID 20 · WORLD_RELIC_GUARDS 8 · WORLD_GUARD_WARN_FRAMES 48 · WORLD_EVENT_RING 320 · WORLD_SPARK_RADIUS 180 · WORLD_SPARK_KINDLE_SEC 8 · WORLD_STAR_SHARD_EVERY 30 · WORLD_STAR_SHARD_R 70 · WORLD_STAR_SHARD_DMG 0.12` · found-event tuning in `FOUND_EVENTS` (`logic/FoundEvents.ts`).
 

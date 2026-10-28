@@ -33,6 +33,7 @@ Here's the order, taken from the README's "Done" and "Next" tables. Each line gi
 11. **6B:** Audio integration: SFX hooks everywhere, music per chapter with cross-fade + ducking, volume settings, `public/audio/` drop-in loader.
 12. **7A:** UI polish: HUD, skill-tree UX (pan/zoom/search/path preview, respec with matter tax), run summary, guidebook.
 13. **7B:** Mobile QA: touch, safe areas, quality profiles (port Quality.ts + haptics + mobile css), 30+ fps on mid phones, portrait + landscape.
+13b. **7C (owner request, done before 7A):** World Map: procedural star chart as menu chapter select + breather after every boss (1–10 waves per place, boss at 10), hidden treasure caches.
 14. **8A:** Save v2: versioned migrations, export/import code, run stats, achievements v2.
 15. **8B:** Balance: grow `npm run sim`, curves for 60 waves, boss time-to-kill targets, tree cost curve.
 16. **9A:** Endless mode after the ending (fork's 5 extra bosses as an idea pool) + daily seed.
