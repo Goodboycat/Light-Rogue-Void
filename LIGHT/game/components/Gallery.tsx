@@ -43,8 +43,11 @@ const fakeEnemy = (def: EnemyDef, extra: Partial<Enemy> = {}): Enemy => ({
 } as Enemy);
 
 /** Scale a drawing so `natural` px fits inside the cell (with padding); never upscale past ×2. */
+// (5B) `lastFit` records the scale of the cell being drawn so the extractor knows sprite px per world px.
+export let lastFit = 1;
 const fit = (ctx: CanvasRenderingContext2D, natural: number, pad = 24) => {
     const s = Math.min(2, (GALLERY_CELL - pad) / Math.max(1, natural));
+    lastFit = s;
     ctx.scale(s, s);
 };
 
@@ -160,8 +163,10 @@ export const buildGalleryCells = (): GalleryCell[] => {
     return cells;
 };
 
-export const drawGallery = (canvas: HTMLCanvasElement, cells: GalleryCell[], scale: number) => {
+// (5B) `sheet` = transparent background, no borders / labels — what tools/extract-art.mjs screenshots.
+export const drawGallery = (canvas: HTMLCanvasElement, cells: GalleryCell[], scale: number, sheet = false) => {
     const rows = Math.ceil(cells.length / GALLERY_COLS);
+    const units: number[] = [];
     const cw = GALLERY_CELL, chh = GALLERY_CELL + LABEL_H;
     canvas.width = GALLERY_COLS * cw * scale;
     canvas.height = rows * chh * scale;
@@ -169,19 +174,22 @@ export const drawGallery = (canvas: HTMLCanvasElement, cells: GalleryCell[], sca
     canvas.style.height = `${rows * chh}px`;
     const ctx = canvas.getContext('2d')!;
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.fillStyle = BG; ctx.fillRect(0, 0, GALLERY_COLS * cw, rows * chh);
+    if (!sheet) { ctx.fillStyle = BG; ctx.fillRect(0, 0, GALLERY_COLS * cw, rows * chh); }
     cells.forEach((cell, i) => {
+        lastFit = 1;
         const cx = (i % GALLERY_COLS) * cw, cy = Math.floor(i / GALLERY_COLS) * chh;
         ctx.save();
         ctx.beginPath(); ctx.rect(cx, cy, cw, cw); ctx.clip();
         ctx.translate(cx + cw / 2, cy + cw / 2);
         try { cell.draw(ctx); } catch (e) { console.error('gallery cell failed', cell.label, e); }
         ctx.restore();
+        units.push(lastFit);
+        if (sheet) return;
         ctx.strokeStyle = BORDER; ctx.lineWidth = 1; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, cw - 1);
         ctx.fillStyle = '#9ca3af'; ctx.font = '10px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(`${i} ${cell.label}`, cx + cw / 2, cy + cw + LABEL_H / 2, cw - 6);
     });
-    return { rows, count: cells.length };
+    return { rows, count: cells.length, units, cell: GALLERY_CELL, labelH: LABEL_H, cols: GALLERY_COLS };
 };
 
 const Gallery: React.FC = () => {
@@ -190,7 +198,8 @@ const Gallery: React.FC = () => {
         if (!ref.current) return;
         const scale = Math.max(1, Math.min(4, parseFloat(new URLSearchParams(location.search).get('scale') || '1') || 1));
         const cells = buildGalleryCells();
-        const info = drawGallery(ref.current, cells, scale);
+        const sheet = new URLSearchParams(location.search).get('sheet') === '1';
+        const info = drawGallery(ref.current, cells, scale, sheet);
         (window as any).__GALLERY = { cells: cells.map(c => c.label), ...info, scale };
         document.title = `LIGHT gallery — ${info.count} cells`;
     }, []);
