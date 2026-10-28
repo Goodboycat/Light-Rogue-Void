@@ -1,6 +1,6 @@
 # Publishing on itch.io
 
-The itch build is **one file**: `out/light-rogue-void-itch/index.html` (all JS/CSS inlined by `vite-plugin-singlefile`; Tailwind + Google Fonts stay on CDN, which itch allows). Zip root = `index.html` — that is what itch requires.
+The itch build is `out/light-rogue-void-itch/index.html` (all JS/CSS inlined by `vite-plugin-singlefile`; Tailwind + Google Fonts stay on CDN, which itch allows) **plus** `sprites/` (149 PNG + `atlas.json`, ~1.4 MB, since 5B — too big to inline; loaded relative to `document.baseURI`, so itch's hashed CDN subfolder works). Zip root = `index.html` — that is what itch requires. The game is fully playable even if `sprites/` fails to load (procedural fallback).
 
 ```bash
 bash LIGHT/game/tools/itch.sh      # -> LIGHT/out/light-rogue-void-itch.zip
@@ -11,7 +11,8 @@ bash LIGHT/game/tools/itch.sh      # -> LIGHT/out/light-rogue-void-itch.zip
 2. Upload `light-rogue-void-itch.zip`, tick **"This file will be played in the browser"**.
 3. **Embed options:** *Click to launch in fullscreen* or *Embed in page* with **Viewport 960 × 600** (any size; the game is responsive) and **Mobile friendly** ✓, **Fullscreen button** ✓.
 4. **Frame options:** leave *SharedArrayBuffer support* off (not needed), *Orientation* = Landscape.
-5. Save → **View page** — it must show the menu within ~3 s on a 4G phone (zip is 352 kB, 1.48 MB inflated).
+5. Save → **View page** — it must show the menu within ~3 s on a 4G phone (zip is 1.45 MB / 151 files, 2.6 MB inflated; sprites load lazily and only matter with "Sprite mode" on).
+6. itch limits: 1000 files / 500 MB per HTML zip — we are at 151 files. `itch.sh` aborts if `index.html` is not at the zip root or `sprites/atlas.json` is missing.
 
 ## Checks done in the 4B chat (2026-10-28)
 - `unzip -l` → exactly one entry `index.html` (1 479 882 bytes). No `assets/` folder, no absolute `/` paths (`base: './'`).
