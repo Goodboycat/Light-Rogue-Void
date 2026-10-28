@@ -60,6 +60,7 @@ export const killEnemy = (
     if (!enemy.isBoss) onFlavorKill(state, enemy); // (4B) special waves: curse marks, aegis shield breaks
 
     // (7A) run summary counters
+    (state.runKillIds ??= {})[enemy.def.id] = true;
     if (enemy.isBoss) state.bossKills = (state.bossKills ?? 0) + 1;
     else if (enemy.affixes && enemy.affixes.length) state.eliteKills = (state.eliteKills ?? 0) + 1;
 

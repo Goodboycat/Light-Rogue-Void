@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { WATCHER_WHISPERS } from '../data/story';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home } from 'lucide-react';
+import RunSummary, { RunSummaryData } from './RunSummary'; // (7A step 4)
 import { sfx } from '../audio/hooks'; // (6B)
 import { Audio } from '../audio/AudioManager';
 import CinematicOverlay from './CinematicOverlay';
@@ -24,13 +25,16 @@ interface WinGameProps {
   onEndingSeen?: (choice: 'stay' | 'leave') => void;
   /** Run stats for the credits roll. */
   stats?: { kills: number; wave: number };
+  /** (7A) run summary shown on the choice screen */
+  summary?: RunSummaryData | null;
+  onOpenTree?: () => void;
 }
 
 type Stage = 'outro' | 'choice' | 'credits';
 
 const WHISPERS = WATCHER_WHISPERS; // (3B step 7) single source in data/story.ts
 
-const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSeen, stats }) => {
+const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSeen, stats, summary, onOpenTree }) => {
   const [stage, setStage] = useState<Stage>(IS_DEMO ? 'choice' : 'outro');
   const [seamPhase, setSeamPhase] = useState<'wash' | 'tear' | 'bloom'>('wash');
   const [flicker, setFlicker] = useState(false);
@@ -164,7 +168,7 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
 
             <motion.p
               {...({ initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 1, duration: 1 } } as any)}
-              className="text-xl md:text-2xl text-slate-800 font-light tracking-[0.2em] mb-12"
+              className="text-xl md:text-2xl text-slate-800 font-light tracking-[0.2em] mb-8"
             >
               {IS_DEMO
                 ? 'Thank you for playing. Unlock the full void in the complete version.'
@@ -177,6 +181,11 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
               <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-center">
                 <ChoiceButton delay={1.5} onClick={() => choose('stay')} label="STAY" sub="Keep the void company. Endless." />
                 <ChoiceButton delay={1.8} onClick={() => choose('leave')} label="LEAVE" sub="Let it be dark. It will remember." />
+              </div>
+            )}
+            {summary && (
+              <div className="mt-10 [&_#run-summary_span]:!text-slate-800 [&_#run-summary_.text-white\/40]:!text-slate-500 [&_#run-summary_button]:!text-slate-800 [&_#run-summary_button]:!border-slate-500 [&_#run-summary_button]:!bg-white/40">
+                <RunSummary data={summary} hideRetry onTree={() => onOpenTree?.()} onRetryChapter={() => {}} onMenu={onReturnToMenu} />
               </div>
             )}
             {!IS_DEMO && (

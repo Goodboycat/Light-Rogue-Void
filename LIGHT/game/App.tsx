@@ -371,6 +371,8 @@ const App: React.FC = () => {
                 settings={gameState.settings}
                 onUpdateMaxMaturity={handleUpdateMaxMaturity}
                 onBossDefeated={handleBossDefeated}
+                onOpenTree={() => setGameState(p => ({ ...p, isMenuOpen: true }))}
+                seenEnemyIdsAtStart={gameState.seenEnemyIds}
                 onBlockPauseMenu={setIsPauseBlocked}
                 onTransition={performTransition}
                 defeatedBosses={gameState.defeatedBosses}

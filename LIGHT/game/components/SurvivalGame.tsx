@@ -20,6 +20,7 @@ import { spawnExplosion, createParticle, updateParticles } from './game/Particle
 import GameOver from './GameOver';
 import { bossHint } from '../data/bossHints';
 import WinGame from './WinGame';
+import type { RunSummaryData } from './RunSummary'; // (7A step 4)
 import CinematicOverlay from './CinematicOverlay';
 import MobileControls from './MobileControls';
 import GameOverlay from './GameOverlay';
@@ -58,6 +59,10 @@ interface SurvivalGameProps {
   onUpdateMaxMaturity: (level: number) => void;
   onBossDefeated: (bossId: string) => void;
   onBlockPauseMenu: (blocked: boolean) => void;
+  /** (7A) run summary → open the Evolution Matrix (pause tree) from the end screen */
+  onOpenTree?: () => void;
+  /** (7A) enemy ids already in the archives when this run started (for the "new in bestiary" list) */
+  seenEnemyIdsAtStart?: string[];
   onTransition: (callback: () => void) => void;
   // (7C) world-map breather after bosses 1–5
   defeatedBosses?: string[];
@@ -95,6 +100,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     onUpdateMaxMaturity,
     onBossDefeated,
     onBlockPauseMenu,
+    onOpenTree,
+    seenEnemyIdsAtStart,
     onTransition
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -159,7 +166,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     bossSpawnedWave: 0,
     waveKills: 0,
     waveStartedFrame: 0,
-    totalKills: 0
+    totalKills: 0,
+    runStartMs: Date.now() // (7A)
   });
 
   const [currentHealth, setCurrentHealth] = useState(playerStats.maxHealth);
@@ -596,6 +604,35 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     };
   }, [maxShield]); 
 
+  // (7A step 4) everything the end screens show — built once when the run ends
+  const seenAtStartRef = useRef<Set<string>>(new Set(seenEnemyIdsAtStart ?? []));
+  const buildRunSummary = (): RunSummaryData => {
+      const st = gameStateRef.current;
+      const newIds: string[] = [];
+      const seen = new Set<string>();
+      const add = (id?: string) => { if (id && !seen.has(id)) { seen.add(id); if (!seenAtStartRef.current.has(id)) newIds.push(id); } };
+      for (const e of st.enemies) add(e.def?.id);
+      Object.keys(st.runKillIds ?? {}).forEach(add);
+      return {
+          wave,
+          kills: st.totalKills || 0,
+          eliteKills: st.eliteKills ?? 0,
+          bossKills: st.bossKills ?? 0,
+          essence: st.essenceCollected ?? 0,
+          matter: sessionMatter,
+          relics: st.world?.relics.length ?? 0,
+          shrines: st.world?.shrinesUsed.length ?? 0,
+          landmarks: st.world?.landmarksSeen.length ?? 0,
+          bestStreak: st.bestStreak ?? 0,
+          burstsFired: st.burst?.fired ?? 0,
+          timeMs: Date.now() - (st.runStartMs ?? Date.now()),
+          newEnemyIds: newIds,
+      };
+  };
+  const summaryRef = useRef<RunSummaryData | null>(null);
+  if ((gameOver || gameWon) && !summaryRef.current) summaryRef.current = buildRunSummary();
+  const retryChapter = (firstWave: number) => onRestart(firstWave);
+
   return (
     <div className={`absolute inset-0 ${!paused && !gameOver && !gameWon && !activeCinematic ? 'cursor-none' : ''}`}>
       <canvas ref={canvasRef} className="block" />
@@ -670,7 +707,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           />
       )}
 
-      {gameOver && (
+      {/* (7A) end screens hide while the pause menu / tree is open (Matrix is z-50, these are z-100) */}
+      {gameOver && !paused && (
         <GameOver 
             wave={wave}
             maxWaveReached={maxWaveReached} 
@@ -678,15 +716,20 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             deathBoss={deathBoss}
             onRestart={onRestart} 
             onReturnToMenu={onReturnToMenu}
+            summary={summaryRef.current}
+            onOpenTree={onOpenTree}
+            onRetryChapter={retryChapter}
         />
       )}
 
-      {gameWon && (
+      {gameWon && !paused && (
           <WinGame 
             onRestart={() => onRestart(1)} 
             onReturnToMenu={onReturnToMenu}
             onEndingSeen={onEndingSeen}
             stats={{ kills: gameStateRef.current.totalKills || 0, wave }}
+            summary={summaryRef.current}
+            onOpenTree={onOpenTree}
           />
       )}
     </div>

@@ -3,6 +3,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { VOID_PHRASES } from '../data/phrases';
 import { FastForward, Play, Home } from 'lucide-react';
+import RunSummary, { RunSummaryData } from './RunSummary'; // (7A step 4)
 
 interface GameOverProps {
   wave: number;
@@ -12,9 +13,13 @@ interface GameOverProps {
   deathBoss?: { name: string; hint?: string } | null;
   onRestart: (wave?: number) => void;
   onReturnToMenu: () => void;
+  /** (7A) run summary + buttons Tree / Retry chapter / Menu */
+  summary?: RunSummaryData | null;
+  onOpenTree?: () => void;
+  onRetryChapter?: (firstWave: number) => void;
 }
 
-const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle, deathBoss, onRestart, onReturnToMenu }) => {
+const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle, deathBoss, onRestart, onReturnToMenu, summary, onOpenTree, onRetryChapter }) => {
   const phrase = useMemo(() => VOID_PHRASES[Math.floor(Math.random() * VOID_PHRASES.length)], []);
   const [showContent, setShowContent] = useState(false);
   const [selectedWave, setSelectedWave] = useState(1);
@@ -73,10 +78,10 @@ const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle
                 initial: { opacity: 0, y: 20 },
                 animate: { opacity: 1, y: 0 }
             } as any)}
-            className="text-center px-6 max-w-2xl flex flex-col items-center relative z-20"
+            className="text-center px-4 md:px-6 max-w-2xl w-full flex flex-col items-center relative z-20 max-h-full overflow-y-auto py-16"
           >
             <motion.h1 
-              className="text-7xl md:text-9xl font-tech text-red-600 mb-4 tracking-tighter drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]"
+              className="text-5xl md:text-8xl font-tech text-red-600 mb-3 tracking-tighter drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]"
               {...({
                   animate: { opacity: [1, 0.8, 1] },
                   transition: { duration: 0.1, repeat: Infinity }
@@ -102,13 +107,25 @@ const GameOver: React.FC<GameOverProps> = ({ wave, maxWaveReached, maturityTitle
                   animate: { opacity: 1 },
                   transition: { delay: 0.5, duration: 2 }
               } as any)}
-              className="text-slate-300 italic text-xl md:text-2xl font-light mb-8 leading-relaxed"
+              className="text-slate-300 italic text-base md:text-xl font-light mb-6 leading-relaxed"
             >
               "{phrase}"
             </motion.p>
 
+            {summary && (
+                <div className="w-full mb-6">
+                    <RunSummary
+                        data={summary}
+                        accent="text-red-200"
+                        onTree={() => onOpenTree?.()}
+                        onRetryChapter={(fw) => (onRetryChapter ?? onRestart)(fw)}
+                        onMenu={onReturnToMenu}
+                    />
+                </div>
+            )}
+
             {maxWaveReached > 1 && (
-                <div className="w-full max-w-md bg-slate-900/50 p-6 rounded-xl border border-slate-800 mb-8">
+                <div className="w-full max-w-md bg-slate-900/50 p-4 md:p-6 rounded-xl border border-slate-800 mb-6">
                     <label className="text-sm text-slate-400 font-tech mb-2 block uppercase tracking-widest">
                         Select Respawn Wave
                     </label>

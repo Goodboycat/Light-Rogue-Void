@@ -166,6 +166,8 @@ export interface MutableGameState {
     bossKills?: number;
     essenceCollected?: number;
     runStartMs?: number;
+    /** (7A) enemy ids killed this run (for the run summary bestiary list) */
+    runKillIds?: Record<string, true>;
     bossKilledWave?: number;    // set by killEnemy when a boss dies; SurvivalGame advances the wave
     // (4A) action feel — all optional, see Feel.ts
     hitStopFrames?: number;
