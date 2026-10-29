@@ -5,6 +5,7 @@ import { getNode } from '../data';
 import { SAVE_KEY, SAVE_BACKUP_KEY, SAVE_VERSION, SaveV2, defaultSave } from '../save/schema';
 import { migrateSave, MigrationReport } from '../save/migrate';
 import { createSaveWriter, getLocalStorage, SaveWriter } from '../save/storage';
+import { encodeSave, decodeSave, DecodeResult } from '../save/codec';
 
 export interface TreeMigrationReport { dropped: number; refunded: number }
 /** Set once at load; App.tsx reads it to show a toast. */
@@ -111,5 +112,31 @@ export const useGameSave = () => {
         window.location.reload();
     };
 
-    return { gameState, setGameState, resetSave };
+    /** (8A step 3) Current state → transfer code (always normalised through migrateSave). */
+    const exportCode = (): string => encodeSave(stateToSave(gameState));
+
+    /** (8A step 3) Validate a code / .light text without applying it (for the confirm dialog). */
+    const previewImport = (text: string): DecodeResult => decodeSave(text, nodeExists);
+
+    /**
+     * (8A step 3) Apply a decoded save: replace state, write immediately (no debounce) so a reload right after
+     * cannot lose it. Keeps the current save in `light_save_backup` so a mistaken import is recoverable once.
+     */
+    const applyImport = (result: DecodeResult): boolean => {
+        if (!result.ok) return false;
+        try {
+            const ls = getLocalStorage();
+            const cur = ls?.getItem(SAVE_KEY);
+            if (cur) ls?.setItem(SAVE_BACKUP_KEY, cur);
+        } catch { /* backup of the overwritten save is best-effort */ }
+        const next = saveToState(result.save);
+        setGameState(next);
+        const w = getWriter();
+        const blob = stateToSave(next);
+        w.schedule(JSON.stringify(blob), blob.savedAt || Date.now());
+        w.flush();
+        return true;
+    };
+
+    return { gameState, setGameState, resetSave, exportCode, previewImport, applyImport };
 };

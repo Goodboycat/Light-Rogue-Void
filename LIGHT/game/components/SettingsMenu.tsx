@@ -5,15 +5,20 @@ import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTri
 import { Settings } from '../types';
 import { Audio } from '../audio/AudioManager';
 import { haptic } from '../utils/haptics'; // (7B)
+import SaveTransfer from './SaveTransfer'; // (8A)
+import type { DecodeResult } from '../save/codec';
+import type { SaveV2 } from '../save/schema';
 
 interface SettingsMenuProps {
     settings: Settings;
     onUpdateSettings: (newSettings: Settings) => void;
     onClose: () => void;
     onDeleteSave: () => void;
+    /** (8A step 3) save transfer — optional so Settings still renders without the hook (tests / gallery) */
+    transfer?: { exportCode: () => string; previewImport: (t: string) => DecodeResult; applyImport: (r: DecodeResult) => boolean; current: SaveV2 };
 }
 
-const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings, onClose, onDeleteSave }) => {
+const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings, onClose, onDeleteSave, transfer }) => {
     const [confirmDelete, setConfirmDelete] = useState(false);
     
     const update = (key: keyof Settings, value: any) => {
@@ -171,6 +176,9 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                             Hurt, dash, Light Burst, boss phase shifts. LIGHT = short single taps. Desktop browsers ignore this.
                         </p>
                     </div>
+
+                    {/* SAVE TRANSFER (8A) */}
+                    {transfer && <SaveTransfer {...transfer} />}
 
                     {/* DANGER ZONE */}
                     <div className="space-y-4 pt-6 border-t border-slate-800">

@@ -18,7 +18,7 @@ import Gallery from './components/Gallery';
 
 import { ABILITY_TREE_DATA } from './data';
 import { checkAchievements } from './data/achievements';
-import { useGameSave, lastTreeMigration } from './hooks/useGameSave';
+import { useGameSave, lastTreeMigration, stateToSave } from './hooks/useGameSave';
 import { usePlayerStats } from './hooks/usePlayerStats';
 import { Settings } from './types';
 
@@ -27,7 +27,7 @@ const IS_GALLERY = typeof location !== 'undefined' && new URLSearchParams(locati
 
 const App: React.FC = () => {
   if (IS_GALLERY) return <Gallery />;
-  const { gameState, setGameState, resetSave } = useGameSave();
+  const { gameState, setGameState, resetSave, exportCode, previewImport, applyImport } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
   const [migrationToast, setMigrationToast] = useState(lastTreeMigration);
   useEffect(() => {
@@ -463,6 +463,7 @@ const App: React.FC = () => {
                 onUpdateSettings={handleUpdateSettings} 
                 onClose={() => { setShowSettings(false); }}
                 onDeleteSave={resetSave}
+                transfer={{ exportCode, previewImport, applyImport, current: stateToSave(gameState) }}
               />
           )}
       </AnimatePresence>
