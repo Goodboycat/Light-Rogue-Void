@@ -46,6 +46,15 @@ Measured essence per run against matter already spent (bot, 3 runs each):
 | median wave | 3 | 9 | 10 | 10 | 19 | 20 | 30 | 30 | 30 | 30 |
 
 Model (cheapest-first spending): 25% of tree at run 114, 50% at run 203, **Offense full at run 234**, Defense 254, Utility 277. The full tree is never reached because the boss 4–6 constellations need wave 40+, which the bot could not pass before the step 5 patch. Offense-first ordering gives the same result (costs are gated by depth).
+**Re-measured in 9A (after the Eclipse laser patch), 3 runs each:**
+| owned matter | 1M | 3M | 10M |
+|---|---|---|---|
+| ess / run | 171k (was 146k) | 114k (was 207k) | 234k (was 237k) |
+| median wave | 30 | 20 (2/3 died to Void Warden at w20, noisy) | 30 |
+| deaths | eclipse 3 | warden 2, eclipse 1 | eclipse 2, e10 1 |
+
+Model with the new table: 25% at run 126, 50% at run 215, **Offense full 246**, Defense 265, Utility 289 (about +12 runs vs pre-patch, mostly from the noisy 3M point). **The wave-30 wall is still there for partial trees:** 6 of 9 budget runs still died to Crimson Eclipse, so the laser patch only fixed the full-tree case. Waves 40–60 still have no measured data. Next balance pass: more runs per point (`--runs=10`) and see whether the Eclipse needs a second patch for 1M–10M trees.
+
 **Reading:** the early game is fast (about 170 nodes in 20 runs). Past wave 30, income levels off around 220k per run, while the depth-50 tier (×100) costs millions per node. If playtests say the late tree is a grind, lower the 50+ tier from 100 toward 60, or raise `ESSENCE_PER_WAVE` above 0. Re-measure after the Eclipse patch first (the plateau was the wave-30 wall).
 
 ## Death causes (step 5)

@@ -14,8 +14,9 @@ const o = await build({ stdin: { contents: `export {ABILITY_TREE_DATA} from '${g
 const { ABILITY_TREE_DATA: T } = await import('data:text/javascript;base64,' + Buffer.from(o.outputFiles[0].text).toString('base64'));
 
 // ---- measured curve: owned matter → [avg essence per run, median wave]
+// 1M/3M/10M re-measured in 9A after the 8B Crimson Eclipse laser patch (3 runs each; 3M = 2/3 died to void_warden at w20, noisy)
 let CURVE = [[0, 19, 3], [500, 177, 9], [2000, 613, 10], [8000, 2537, 10], [30000, 18641, 19], [100000, 45843, 20], [300000, 93432, 30],
-  [1000000, 146144, 30], [3000000, 206979, 30], [10000000, 236947, 30], [30000000, 214184, 30], [78000000, 249419, 30]];
+  [1000000, 171253, 30], [3000000, 113598, 20], [10000000, 234033, 30], [30000000, 214184, 30], [78000000, 249419, 30]];
 const sumFile = path.resolve(g, '..', 'out', 'sim', 'summary.jsonl');
 if (fs.existsSync(sumFile)) {
   const m = new Map();
