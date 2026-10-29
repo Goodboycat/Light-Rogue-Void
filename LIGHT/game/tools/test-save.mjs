@@ -151,7 +151,13 @@ const ok = (name, cond) => eq(name, !!cond, true);
 if (C) {
   const { save } = M.migrateSave(fixture('save_v2.json'), nodeExists);
   const code = C.encodeSave(save);
-  ok('code is base64url', /^[A-Za-z0-9_-]+$/.test(code));
+  ok('code is LIGHT1. + base64url', /^LIGHT1\.[A-Za-z0-9_-]+$/.test(code));
+  eq('code without prefix still decodes', C.decodeSave(code.slice(7), nodeExists).ok && C.decodeSave(code.slice(7), nodeExists).save, save);
+  eq('code with whitespace/newlines decodes', C.decodeSave(code.replace(/(.{40})/g, '$1\n  '), nodeExists).ok, true);
+  eq('raw JSON paste decodes', C.decodeSave(JSON.stringify(fixture('save_v1.json')), nodeExists).ok, true);
+  eq('future version refused', C.decodeSave(C.encodeSave({ ...save, version: 9 }), nodeExists).ok, false);
+  eq('v0 fixture encoded → decodes through migration', C.decodeSave(C.encodeSave(fixture('save_v0.json')), nodeExists).save?.matter, 1540);
+  ok('file name', /^light-save-\d{4}-\d{2}-\d{2}-w\d+\.light$/.test(C.saveFileName(save)));
   const dec = C.decodeSave(code, nodeExists);
   ok('decode ok', dec.ok);
   eq('export→import round trip exact', dec.ok && dec.save, save);
