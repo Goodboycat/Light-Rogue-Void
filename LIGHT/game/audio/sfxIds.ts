@@ -19,6 +19,8 @@ export const SFX_IDS = [
   'event_start', 'event_end', 'meteor_warn', 'meteor_hit', 'ambush_ring', 'golden_mite',
   // story
   'chapter_card', 'story_line', 'ending_leave', 'ending_stay',
+  // (7D) world map place reveal
+  'music_sting_reveal',
 ] as const;
 export type SfxId = typeof SFX_IDS[number];
 
@@ -45,6 +47,7 @@ export const SFX_FAMILY: Record<SfxId, SynthFamily> = {
   event_start: 'chord', event_end: 'sweep_down', meteor_warn: 'sweep_down', meteor_hit: 'thud',
   ambush_ring: 'drone', golden_mite: 'bell',
   chapter_card: 'chord', story_line: 'blip', ending_leave: 'chord', ending_stay: 'bell',
+  music_sting_reveal: 'chord',
 };
 
 /** Default per-id throttle (ms) — spammy ids get a longer gap. AudioManager enforces ≥ 40 ms for all. */
@@ -57,4 +60,5 @@ export const SFX_THROTTLE_MS: Partial<Record<SfxId, number>> = {
 export const SFX_VOLUME: Partial<Record<SfxId, number>> = {
   player_shot: 0.35, enemy_hit: 0.3, pickup_essence: 0.4, enemy_die_small: 0.45, story_line: 0.25,
   boss_arrive: 0.9, boss_die: 1, boss_enrage: 0.9, player_death: 0.9, ending_leave: 0.8, ending_stay: 0.8,
+  music_sting_reveal: 0.9,
 };

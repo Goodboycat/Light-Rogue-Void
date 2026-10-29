@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Settings, MessageSquare, X, Mail, BookOpen } from 'lucide-react';
 import { CHAPTERS, WAVES_PER_CHAPTER, IS_DEMO, DEMO_MAX_WAVE } from './game/Constants';
 import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
+import MapReveal from './MapReveal'; // (7D)
 
 interface MainMenuProps {
     onStart: (wave: number) => void;
@@ -19,6 +20,9 @@ interface MainMenuProps {
     treasuresOpened?: string[];
     onTreasure?: (id: string, matter: number) => void;
     reduceFlash?: boolean;
+    // (7D) place-reveal cinematic once per newly unlocked place (gameState.mapRevealsSeen)
+    revealsSeen?: string[];
+    onRevealSeen?: (id: string) => void;
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({ 
@@ -34,8 +38,17 @@ const MainMenu: React.FC<MainMenuProps> = ({
     treasuresOpened = [],
     onTreasure,
     reduceFlash = false,
+    revealsSeen,
+    onRevealSeen,
 }) => {
     const [showNote, setShowNote] = useState(false);
+    // (7D) first unlocked place not yet revealed in the menu (place 0 never needs a reveal; the in-run
+    // MapBreather already revealed it when `revealsSeen` carries the id). Legacy saves (undefined) see none.
+    const [revealPlace, setRevealPlace] = useState<number>(() => {
+        if (!revealsSeen) return -1;
+        for (let i = 1; i < CHAPTERS.length; i++) if (isChapterUnlocked(i, maxWaveReached) && !revealsSeen.includes(CHAPTERS[i].bossId)) return i;
+        return -1;
+    });
     // (3B) chapter time-skip: a chapter is unlocked once you've reached its first wave.
     const [chapterIdx, setChapterIdx] = useState(0);
     const chapterFirstWave = (i: number) => i * WAVES_PER_CHAPTER + 1;
@@ -159,6 +172,16 @@ const MainMenu: React.FC<MainMenuProps> = ({
                             Star Chart — pick a place · 10 waves each, boss at the 10th
                         </label>
                         <div className="w-full" style={{ aspectRatio: '1024 / 683' }}>
+                            {revealPlace >= 0 ? (
+                            <MapReveal
+                                place={revealPlace}
+                                maxWaveReached={chapterFirstWave(revealPlace) - 1}
+                                defeatedBosses={defeatedBosses}
+                                treasuresOpened={treasuresOpened}
+                                reduceFlash={reduceFlash}
+                                onDone={() => { onRevealSeen?.(CHAPTERS[revealPlace].bossId); setRevealPlace(-1); }}
+                            />
+                            ) : (
                             <WorldMap
                                 maxWaveReached={maxWaveReached}
                                 defeatedBosses={defeatedBosses}
@@ -168,6 +191,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
                                 onTreasure={onTreasure}
                                 reduceFlash={reduceFlash}
                             />
+                            )}
                         </div>
                         <div className="mt-1 font-mono text-[10px]" style={{ color: CHAPTERS[chapterIdx].color }}>
                             {String(CHAPTERS[chapterIdx].id).padStart(2, '0')} · {CHAPTERS[chapterIdx].name.toUpperCase()} · WAVES {startWave}–{CHAPTERS[chapterIdx].bossWave}

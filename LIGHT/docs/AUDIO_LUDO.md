@@ -97,6 +97,7 @@ Columns: **Len** = seconds, **Loop** = yes/no. Game family = the synth placehold
 | story_line | 0.05 | no | Typewriter caption tick: micro soft glass tick, very quiet, 20–30 Hz repeat rate by the game. Must be nearly inaudible alone. |
 | ending_leave | 5.0 | no | Ending — LEAVE: a light passing through the seam — bright ascending choir-like synth pad resolving into a warm major chord, peaceful, release, long fade. |
 | ending_stay | 5.0 | no | Ending — STAY: a light choosing the dark — low warm drone with a single soft bell repeating, bittersweet, unresolved minor chord, slow fade. |
+| music_sting_reveal | 3.0 | no | (7D) World-map place reveal sting: hushed reverse-swell into one bright orchestral-synth chord with glass bells and a slow shimmer tail, major, cinematic awe — "a new place burns out of the fog". |
 
 ## Music prompts
 All loops, 60–120 s, seamless. BPM free unless stated. Avoid melodies that fight the captions — ambient/pulse driven.

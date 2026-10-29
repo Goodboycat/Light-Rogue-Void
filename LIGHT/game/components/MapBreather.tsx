@@ -3,10 +3,11 @@
 // (ChapterCard as before), RETURN TO MENU → run ends, essence kept. Esc / Enter
 // also continue. Treasure caches on the map can be opened here too.
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CHAPTERS, chapterIndexOf } from './game/Constants';
-import WorldMap from './WorldMap';
+import WorldMap, { isChapterUnlocked } from './WorldMap';
+import MapReveal from './MapReveal'; // (7D)
 
 interface Props {
   nextWave: number;
@@ -14,23 +15,27 @@ interface Props {
   defeatedBosses: string[];
   treasuresOpened: string[];
   onTreasure?: (id: string, matter: number) => void;
+  onRevealSeen?: (bossId: string) => void; // (7D)
   reduceFlash?: boolean;
   onContinue: () => void;
   onMenu: () => void;
 }
 
-const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses, treasuresOpened, onTreasure, reduceFlash, onContinue, onMenu }) => {
+const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses, treasuresOpened, onTreasure, onRevealSeen, reduceFlash, onContinue, onMenu }) => {
   const nextIdx = chapterIndexOf(nextWave) - 1;
   const next = CHAPTERS[nextIdx];
   const cleared = CHAPTERS[Math.max(0, nextIdx - 1)];
+  // (7D) the next place is new to this save → play the reveal cinematic first (MapReveal swallows keys while up)
+  const [revealing, setRevealing] = useState(() => !isChapterUnlocked(nextIdx, maxWaveReached));
 
   useEffect(() => {
+    if (revealing) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Escape' || e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); e.stopPropagation(); onContinue(); }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [onContinue]);
+  }, [onContinue, revealing]);
 
   return (
     <motion.section
@@ -50,6 +55,16 @@ const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses
       </header>
       <div className="w-full max-w-3xl flex-1 min-h-0 flex items-center justify-center">
         <div className="w-full max-h-full" style={{ aspectRatio: '1024 / 683' }}>
+          {revealing ? (
+            <MapReveal
+              place={nextIdx}
+              maxWaveReached={maxWaveReached}
+              defeatedBosses={defeatedBosses}
+              treasuresOpened={treasuresOpened}
+              reduceFlash={reduceFlash}
+              onDone={() => { onRevealSeen?.(CHAPTERS[nextIdx].bossId); setRevealing(false); }}
+            />
+          ) : (
           <WorldMap
             maxWaveReached={Math.max(maxWaveReached, nextWave)}
             defeatedBosses={defeatedBosses}
@@ -58,9 +73,10 @@ const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses
             onTreasure={onTreasure}
             reduceFlash={reduceFlash}
           />
+          )}
         </div>
       </div>
-      <footer className="mt-3 flex flex-wrap items-center justify-center gap-3">
+      <footer className="mt-3 flex flex-wrap items-center justify-center gap-3" style={{ opacity: revealing ? 0.25 : 1, pointerEvents: revealing ? 'none' : 'auto', transition: 'opacity 0.4s' }}>
         <button
           onClick={onContinue}
           className="px-8 py-3 bg-white hover:bg-slate-200 text-black font-tech font-bold tracking-[0.25em] rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95"

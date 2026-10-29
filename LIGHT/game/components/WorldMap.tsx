@@ -16,7 +16,7 @@ export const MAP_H = 683;
 const MAP_SEED = 0x4c494748; // "LIGH"
 
 /** Owner's picture positions (1024×683). Real chapters map to picture slots 1,2,3,4,5,8. */
-const PLACE_POS: [number, number][] = [[215, 135], [420, 130], [625, 130], [820, 145], [225, 345], [880, 360]];
+export const PLACE_POS: [number, number][] = [[215, 135], [420, 130], [625, 130], [820, 145], [225, 345], [880, 360]];
 /** Reserved names from the picture (9A endless / future). Drawn as faint "?" nebulas. */
 export const FUTURE_PLACES = [
   { name: 'Echoing Caverns', x: 445, y: 345 },

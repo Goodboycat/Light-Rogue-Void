@@ -68,6 +68,7 @@ interface SurvivalGameProps {
   defeatedBosses?: string[];
   treasuresOpened?: string[];
   onTreasure?: (id: string, matter: number) => void;
+  onRevealSeen?: (bossId: string) => void; // (7D)
 }
 
 const GET_MATURITY = (matter: number) => {
@@ -101,6 +102,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     defeatedBosses,
     treasuresOpened,
     onTreasure,
+    onRevealSeen,
     onBossDefeated,
     onBlockPauseMenu,
     onOpenTree,
@@ -704,6 +706,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             defeatedBosses={defeatedBosses}
             treasuresOpened={treasuresOpened}
             onTreasure={onTreasure}
+            onRevealSeen={onRevealSeen}
             reduceFlash={!!settings.reduceFlash}
             onContinue={() => { setBreather(null); breatherRef.current = null; advanceWaveRef.current(); }}
             onMenu={() => { setBreather(null); breatherRef.current = null; onReturnToMenu(); }}

@@ -106,5 +106,7 @@ export interface GameState {
   killCounts?: Record<string, number>;
   /** (7C) ids of world-map treasure caches already opened. */
   mapTreasuresOpened?: string[];
+  /** (7D) bossIds of places whose map-reveal cinematic was already shown (in-run breather or menu). */
+  mapRevealsSeen?: string[];
   settings: Settings;
 }

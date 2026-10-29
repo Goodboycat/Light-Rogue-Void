@@ -134,6 +134,14 @@ const App: React.FC = () => {
       });
   }, [setGameState]);
 
+  /** (7D) Place-reveal cinematic shown once per place. */
+  const handleRevealSeen = useCallback((id: string) => {
+      setGameState(p => {
+          const seen = p.mapRevealsSeen ?? [];
+          return seen.includes(id) ? p : { ...p, mapRevealsSeen: [...seen, id] };
+      });
+  }, [setGameState]);
+
   const handleAddMatter = (amount: number) => {
       setGameState(p => ({ ...p, matter: p.matter + amount }));
   };
@@ -348,6 +356,8 @@ const App: React.FC = () => {
              treasuresOpened={gameState.mapTreasuresOpened ?? []}
              onTreasure={handleMapTreasure}
              reduceFlash={!!gameState.settings.reduceFlash}
+             revealsSeen={gameState.mapRevealsSeen ?? []}
+             onRevealSeen={handleRevealSeen}
           />
       )}
 
@@ -382,6 +392,7 @@ const App: React.FC = () => {
                 defeatedBosses={gameState.defeatedBosses}
                 treasuresOpened={gameState.mapTreasuresOpened ?? []}
                 onTreasure={handleMapTreasure}
+                onRevealSeen={handleRevealSeen}
             />
             
             {/* HUD */}
