@@ -4,6 +4,7 @@ import { GameState } from '../types';
 import { getNode } from '../data';
 import { SAVE_KEY, SAVE_BACKUP_KEY, SAVE_VERSION, SaveV2, defaultSave } from '../save/schema';
 import { migrateSave, MigrationReport } from '../save/migrate';
+import { createSaveWriter, getLocalStorage, SaveWriter } from '../save/storage';
 
 export interface TreeMigrationReport { dropped: number; refunded: number }
 /** Set once at load; App.tsx reads it to show a toast. */
@@ -44,9 +45,10 @@ const INITIAL_STATE: GameState = saveToState(defaultSave());
 
 /** Load + migrate from localStorage. Falls back to the backup copy if the main blob is unreadable. */
 const loadSave = (): GameState => {
+    const storage = getLocalStorage();
     const tryKey = (key: string): SaveV2 | null => {
         try {
-            const raw = localStorage.getItem(key);
+            const raw = storage?.getItem(key) ?? null;
             if (!raw) return null;
             const parsed = JSON.parse(raw);
             const { save, report } = migrateSave(parsed, nodeExists);
@@ -69,20 +71,38 @@ const loadSave = (): GameState => {
     return INITIAL_STATE;
 };
 
+/** (8A step 2) One debounced writer per page; flushed on pagehide / hidden tab / beforeunload. */
+let writer: SaveWriter | null = null;
+const getWriter = (): SaveWriter => {
+    if (writer) return writer;
+    writer = createSaveWriter(getLocalStorage());
+    if (typeof window !== 'undefined') {
+        const flush = () => { writer?.flush(); };
+        window.addEventListener('pagehide', flush);
+        window.addEventListener('beforeunload', flush);
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+    }
+    return writer;
+};
+/** Write whatever is pending right now (used by resetSave and tests). */
+export const flushSave = () => getWriter().flush();
+
 export const useGameSave = () => {
     const [gameState, setGameState] = useState<GameState>(loadSave);
 
     useEffect(() => {
-        try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave(gameState)));
-        } catch (e) {
-            console.warn("Save failed - likely restricted environment (itch.io/private window):", e);
-        }
+        // Debounced 500 ms; stateToSave stamps savedAt via migrateSave normalisation.
+        const blob = stateToSave(gameState);
+        getWriter().schedule(JSON.stringify(blob), blob.savedAt || Date.now());
     }, [gameState]);
 
     const resetSave = () => {
         try {
-            localStorage.removeItem(SAVE_KEY);
+            // drop anything pending so the debounced write cannot resurrect the save after removeItem
+            getWriter().cancel();
+            const ls = getLocalStorage();
+            ls?.removeItem(SAVE_KEY);
+            ls?.removeItem(SAVE_BACKUP_KEY);
         } catch (e) {
             console.error("Failed to clear save", e);
         }

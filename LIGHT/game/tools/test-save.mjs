@@ -18,6 +18,7 @@ const load = async (entry) => {
 };
 const M = await load('save/migrate.ts');
 const S = await load('save/schema.ts');
+const W = await load('save/storage.ts');
 let C = null;
 try { C = await load('save/codec.ts'); } catch { /* step 3 not there yet */ }
 
@@ -84,6 +85,67 @@ const ok = (name, cond) => eq(name, !!cond, true);
   eq('bad types → defaults', [weird.matter, weird.unlockedAbilityIds, weird.settings.masterVolume], [0, ['root'], 0.8]);
   const future = M.migrateSave({ version: 9, matter: 7 }, nodeExists);
   eq('future version keeps matter', future.save.matter, 7);
+}
+// ---- write-safety (step 2) ----
+{
+  const mkStorage = (failAfterBytes = Infinity) => {
+    const m = new Map(); let used = 0;
+    return {
+      map: m,
+      getItem: (k) => (m.has(k) ? m.get(k) : null),
+      setItem: (k, v) => {
+        const next = used - (m.get(k)?.length ?? 0) + v.length;
+        if (next > failAfterBytes) { const e = new Error('quota'); e.name = 'QuotaExceededError'; throw e; }
+        used = next; m.set(k, v);
+      },
+      removeItem: (k) => { used -= m.get(k)?.length ?? 0; m.delete(k); },
+    };
+  };
+  // fake timers
+  let now = 0; const q = [];
+  const timers = { set: (fn, ms) => { const h = { fn, at: now + ms }; q.push(h); return h; }, clear: (h) => { const i = q.indexOf(h); if (i >= 0) q.splice(i, 1); } };
+  const tick = (ms) => { now += ms; for (const h of q.splice(0).filter(h => h.at <= now)) h.fn(); q.push(...q.splice(0)); };
+  const advance = (ms) => { const end = now + ms; while (q.length && Math.min(...q.map(h => h.at)) <= end) { const h = q.reduce((a, b) => a.at <= b.at ? a : b); q.splice(q.indexOf(h), 1); now = h.at; h.fn(); } now = end; };
+
+  const st = mkStorage();
+  const w = W.createSaveWriter(st, timers);
+  const D1 = Date.UTC(2026, 9, 28, 12), D2 = Date.UTC(2026, 9, 29, 12);
+  for (let i = 0; i < 20; i++) { w.schedule(JSON.stringify({ savedAt: D1, i }), D1); advance(100); }
+  eq('debounce: 20 schedules in 2 s → 0 writes while active', w.writes, 0);
+  advance(500);
+  eq('debounce: one write after 500 ms idle', w.writes, 1);
+  eq('debounce: last blob wins', JSON.parse(st.getItem(S.SAVE_KEY)).i, 19);
+  eq('no backup on first write', st.getItem(S.SAVE_BACKUP_KEY), null);
+  // same day → no rotation
+  w.schedule(JSON.stringify({ savedAt: D1 + 3600e3, i: 20 }), D1 + 3600e3); advance(600);
+  eq('same day: backup not rotated', st.getItem(S.SAVE_BACKUP_KEY), null);
+  // next day → previous blob copied to backup
+  w.schedule(JSON.stringify({ savedAt: D2, i: 21 }), D2); advance(600);
+  eq('next day: backup = previous-day blob', JSON.parse(st.getItem(S.SAVE_BACKUP_KEY)).i, 20);
+  eq('next day: main = new blob', JSON.parse(st.getItem(S.SAVE_KEY)).i, 21);
+  // flush writes pending immediately
+  w.schedule(JSON.stringify({ savedAt: D2, i: 22 }), D2);
+  ok('pending before flush', w.pending);
+  const fr = w.flush();
+  eq('flush writes now', [fr.ok, JSON.parse(st.getItem(S.SAVE_KEY)).i, w.pending], [true, 22, false]);
+  eq('flush with nothing pending → null', w.flush(), null);
+  // cancel drops pending
+  w.schedule('{"i":99}', D2); w.cancel(); advance(600);
+  eq('cancel: nothing written', JSON.parse(st.getItem(S.SAVE_KEY)).i, 22);
+  // quota: retry after dropping backup
+  const small = mkStorage(160);
+  small.setItem(S.SAVE_KEY, JSON.stringify({ savedAt: D1, pad: 'x'.repeat(40) }));
+  const r1 = W.writeSaveNow(small, JSON.stringify({ savedAt: D2, pad: 'y'.repeat(40) }), D2);
+  ok('quota: rotated backup first', r1.rotatedBackup);
+  const r2 = W.writeSaveNow(small, JSON.stringify({ savedAt: D2, pad: 'z'.repeat(60) }), D2);
+  eq('quota: retried after dropping backup and succeeded', [r2.ok, r2.retried, small.getItem(S.SAVE_BACKUP_KEY)], [true, true, null]);
+  const r3 = W.writeSaveNow(small, 'q'.repeat(500), D2);
+  eq('quota: hard fail reported, no throw', [r3.ok, r3.error, W.lastSaveError?.kind], [false, 'quota', 'quota']);
+  const r4 = W.writeSaveNow(null, '{}', D2);
+  eq('no storage: unavailable, no throw', [r4.ok, r4.error], [false, 'unavailable']);
+  ok('isQuotaError code 22', W.isQuotaError({ code: 22 }));
+  ok('isDifferentDay false for 0', !W.isDifferentDay(0, D2));
+  eq('peekSavedAt', W.peekSavedAt('{"matter":1,"savedAt": 1234,"x":2}'), 1234);
 }
 // ---- codec (step 3) ----
 if (C) {
