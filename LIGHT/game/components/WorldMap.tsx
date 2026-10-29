@@ -9,6 +9,7 @@ import React, { useEffect, useRef } from 'react';
 import { CHAPTERS, WAVES_PER_CHAPTER, IS_DEMO, DEMO_MAX_WAVE } from './game/Constants';
 import { mulberry32 } from '../utils/rng';
 import { sfx } from '../audio/hooks';
+import { createNoise2D } from 'simplex-noise';
 
 export const MAP_W = 1024;
 export const MAP_H = 683;
@@ -49,6 +50,10 @@ export const isChapterUnlocked = (i: number, maxWaveReached: number) =>
   maxWaveReached >= chapterFirstWave(i) && (!IS_DEMO || chapterFirstWave(i) <= DEMO_MAX_WAVE);
 export const isChapterCleared = (i: number, defeatedBosses: string[]) => defeatedBosses.includes(CHAPTERS[i].bossId);
 export const isTreasureVisible = (t: MapTreasure, defeatedBosses: string[]) => isChapterCleared(t.from, defeatedBosses);
+/** (7D) Index of the furthest unlocked place (0-based). Everything past it is under fog. */
+export const furthestUnlocked = (maxWaveReached: number) => {
+  let f = 0; for (let i = 0; i < CHAPTERS.length; i++) if (isChapterUnlocked(i, maxWaveReached)) f = i; return f;
+};
 
 // ---------- geometry ----------
 const catmull = (pts: [number, number][], segs = 18): [number, number][] => {
@@ -102,6 +107,55 @@ const wrapLabel = (s: string): string[] => {
   return i > 0 ? [s.slice(0, i), s.slice(i + 1)] : [s];
 };
 
+// ---------- (7D) fog of war ----------
+// One noise-shaped "puff" sprite rendered once (simplex-noise, vendored MIT), then blitted per blob with
+// rotation / scale / alpha. Unreached places get a seeded cluster of puffs; MapReveal (step 2) dissolves them.
+const PUFF = 160;
+let puffCache: { dark: HTMLCanvasElement; light: HTMLCanvasElement } | null = null;
+const buildPuff = (r: number, g: number, b: number, seed: number): HTMLCanvasElement => {
+  const c = document.createElement('canvas'); c.width = c.height = PUFF;
+  const ctx = c.getContext('2d')!; const img = ctx.createImageData(PUFF, PUFF);
+  const rng = mulberry32(seed); const noise = createNoise2D(rng);
+  const half = PUFF / 2;
+  for (let y = 0; y < PUFF; y++) for (let x = 0; x < PUFF; x++) {
+    const dx = (x - half) / half, dy = (y - half) / half; const d = Math.hypot(dx, dy);
+    if (d >= 1) continue;
+    const n = 0.55 + 0.45 * noise(dx * 2.2 + seed * 0.01, dy * 2.2); // 0.1..1
+    const fall = 1 - d * d; const a = Math.max(0, Math.min(1, fall * fall * n * 1.15));
+    const i = (y * PUFF + x) * 4; img.data[i] = r; img.data[i + 1] = g; img.data[i + 2] = b; img.data[i + 3] = Math.round(a * 255);
+  }
+  ctx.putImageData(img, 0, 0); return c;
+};
+const getPuffs = () => puffCache ?? (puffCache = { dark: buildPuff(14, 12, 30, 7), light: buildPuff(110, 96, 150, 19) });
+interface FogBlob { dx: number; dy: number; s: number; rot: number; a: number; ph: number; light: boolean }
+const fogCache = new Map<number, FogBlob[]>();
+const fogBlobsFor = (place: number): FogBlob[] => {
+  let b = fogCache.get(place); if (b) return b;
+  const rng = mulberry32(MAP_SEED ^ (place * 0x9e3779b9));
+  b = Array.from({ length: 22 }, (_, k) => {
+    const ang = rng() * Math.PI * 2, rad = Math.pow(rng(), 0.7) * 120;
+    return { dx: Math.cos(ang) * rad, dy: Math.sin(ang) * rad * 0.8, s: 0.9 + rng() * 1.1, rot: rng() * Math.PI * 2, a: 0.55 + rng() * 0.4, ph: rng() * Math.PI * 2, light: k % 4 === 3 };
+  });
+  fogCache.set(place, b); return b;
+};
+/** Draw the fog cluster over (x, y). `alpha` 1 = fully hidden, 0 = gone (reveal dissolve: blobs shrink + thin from the centre out). */
+export const drawFog = (ctx: CanvasRenderingContext2D, place: number, x: number, y: number, alpha: number, t: number) => {
+  if (alpha <= 0.001) return;
+  const { dark, light } = getPuffs(); const blobs = fogBlobsFor(place);
+  for (const b of blobs) {
+    const dist = Math.hypot(b.dx, b.dy) / 120; // 0 centre .. 1 edge
+    const local = Math.max(0, Math.min(1, (alpha - (1 - dist) * 0.35) / 0.65)); // centre dissolves first
+    if (local <= 0.001) continue;
+    const drift = t === 0 ? 0 : Math.sin(t * 0.35 + b.ph) * 6;
+    const sc = b.s * (0.75 + 0.25 * local) * (PUFF / 160) * 1.0;
+    ctx.save(); ctx.translate(x + b.dx + drift, y + b.dy + drift * 0.5); ctx.rotate(b.rot + (t === 0 ? 0 : t * 0.02));
+    ctx.globalAlpha = (b.light ? 0.22 : b.a) * local;
+    ctx.drawImage(b.light ? light : dark, -PUFF / 2 * sc, -PUFF / 2 * sc, PUFF * sc, PUFF * sc);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+};
+
 // ---------- static layer ----------
 interface Deco { stars: { x: number; y: number; r: number; a: number }[]; dots: { x: number; y: number; r: number; a: number }[][]; rings: { rx: number; ry: number; rot: number }[][]; }
 let decoCache: Deco | null = null;
@@ -145,7 +199,7 @@ const drawDots = (ctx: CanvasRenderingContext2D, poly: [number, number][], step:
   ctx.fill(); ctx.globalAlpha = 1;
 };
 
-interface MapState { maxWaveReached: number; defeatedBosses: string[]; treasuresOpened: string[]; }
+interface MapState { maxWaveReached: number; defeatedBosses: string[]; treasuresOpened: string[]; /** (7D) MapReveal: paint this place lit even if the save does not unlock it yet (fog dissolves on top). */ forceUnlocked?: number; }
 
 const drawNebula = (ctx: CanvasRenderingContext2D, deco: Deco, i: number, x: number, y: number, color: string, alpha: number, blackHole: boolean) => {
   ctx.globalAlpha = alpha;
@@ -170,6 +224,8 @@ const drawNebula = (ctx: CanvasRenderingContext2D, deco: Deco, i: number, x: num
 };
 
 const paintStatic = (ctx: CanvasRenderingContext2D, st: MapState) => {
+  const furthest = Math.max(furthestUnlocked(st.maxWaveReached), st.forceUnlocked ?? -1);
+  const lit = (i: number) => i <= furthest;
   const deco = buildDeco();
   ctx.fillStyle = '#04050b'; ctx.fillRect(0, 0, MAP_W, MAP_H);
   // stars
@@ -177,24 +233,26 @@ const paintStatic = (ctx: CanvasRenderingContext2D, st: MapState) => {
   for (const s of deco.stars) { ctx.globalAlpha = s.a; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
   ctx.globalAlpha = 1;
   // future places (faint, locked, "?")
-  FUTURE_PLACES.forEach((f, k) => {
-    drawNebula(ctx, deco, PLACE_POS.length + k, f.x, f.y, '#7c6aa8', 0.32, false);
-    ctx.fillStyle = 'rgba(148,163,184,0.55)'; ctx.font = 'bold 15px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('?', f.x, f.y + 1);
-    ctx.font = 'bold 11px Orbitron, sans-serif'; ctx.fillStyle = 'rgba(148,163,184,0.38)';
-    wrapLabel(f.name.toUpperCase()).forEach((ln, j) => ctx.fillText(ln, f.x, f.y - 92 + j * 14));
-  });
+  // (7D) future places: a faint glow only — names and glyphs live under the fog until 9A makes them real
+  FUTURE_PLACES.forEach((f, k) => { drawNebula(ctx, deco, PLACE_POS.length + k, f.x, f.y, '#7c6aa8', 0.18, false); });
   // main path
+  // (7D) path: lit up to the furthest reached place, the next segment fades into the fog, the rest is unknown
   segmentPolys.forEach((poly, i) => {
-    const lit = isChapterUnlocked(i + 1, st.maxWaveReached);
-    const col = lit ? '#e2e8f0' : '#64748b';
-    drawDots(ctx, poly, lit ? 7 : 9, col, lit ? 1.3 : 1.0, lit ? 0.85 : 0.35, lit ? 0 : 3);
-    const pts = resample(poly, 4);
-    const mid = pts[Math.floor(pts.length * 0.5)];
-    drawGlyphNode(ctx, mid[0], mid[1], lit ? CHAPTERS[i + 1].color : LOCK_GREY, lit ? 0.9 : 0.45);
-    const q = pts[Math.floor(pts.length * 0.22)];
-    ctx.fillStyle = col; ctx.globalAlpha = lit ? 0.9 : 0.4; ctx.beginPath(); ctx.arc(q[0], q[1], 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-    if (!lit) { const l = pts[Math.floor(pts.length * 0.75)]; drawLock(ctx, l[0], l[1], 9, '#94a3b8'); }
+    if (i > furthest) return; // beyond the fade segment: nothing
+    const isLit = lit(i + 1);
+    if (isLit) {
+      drawDots(ctx, poly, 7, '#e2e8f0', 1.3, 0.85);
+      const pts = resample(poly, 4);
+      const mid = pts[Math.floor(pts.length * 0.5)];
+      drawGlyphNode(ctx, mid[0], mid[1], CHAPTERS[i + 1].color, 0.9);
+      const q = pts[Math.floor(pts.length * 0.22)];
+      ctx.fillStyle = '#e2e8f0'; ctx.globalAlpha = 0.9; ctx.beginPath(); ctx.arc(q[0], q[1], 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+    } else {
+      const pts = resample(poly, 9); const n = Math.floor(pts.length * 0.55);
+      ctx.fillStyle = '#94a3b8';
+      for (let k = 0; k < n; k++) { ctx.globalAlpha = 0.55 * (1 - k / n); ctx.beginPath(); ctx.arc(pts[k][0], pts[k][1], 1.1, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
   });
   // hidden treasure paths (only once the chapter's boss is dead)
   MAP_TREASURES.forEach((t, k) => {
@@ -206,13 +264,19 @@ const paintStatic = (ctx: CanvasRenderingContext2D, st: MapState) => {
   // real places
   CHAPTERS.forEach((ch, i) => {
     const [x, y] = PLACE_POS[i];
-    const unlocked = isChapterUnlocked(i, st.maxWaveReached);
+    const unlocked = lit(i);
     const cleared = isChapterCleared(i, st.defeatedBosses);
-    const color = unlocked ? ch.color : LOCK_GREY;
-    drawNebula(ctx, deco, i, x, y, color, unlocked ? 1 : 0.55, i === CHAPTERS.length - 1);
-    if (!unlocked) drawLock(ctx, x, y + 2, 12, '#cbd5e1');
+    if (!unlocked) { // (7D) under fog: a faint grey glow, no name, no glyph, no lock
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 70);
+      g.addColorStop(0, 'rgba(148,163,184,0.22)'); g.addColorStop(1, 'rgba(148,163,184,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fill();
+      return;
+    }
+    const color = ch.color;
+    drawNebula(ctx, deco, i, x, y, color, 1, i === CHAPTERS.length - 1);
     if (cleared) { ctx.strokeStyle = hexA(ch.color, 0.9); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 46, 0, Math.PI * 2); ctx.stroke();
       ctx.fillStyle = ch.color; ctx.font = 'bold 12px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('✓', x + 38, y - 34); }
+    if (i === st.forceUnlocked) return; // (7D) name + waves are drawn by the reveal pass (letter-spaced fade-in)
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = 'bold 13px Orbitron, sans-serif'; ctx.fillStyle = unlocked ? ch.color : '#94a3b8';
     const lines = wrapLabel(ch.name.toUpperCase());
@@ -233,19 +297,27 @@ export interface WorldMapProps {
   onTreasure?: (id: string, matter: number) => void;
   reduceFlash?: boolean;
   className?: string;
+  /** (7D) MapReveal: 0-based place index being revealed — painted lit under the fog. */
+  revealPlace?: number;
+  /** (7D) MapReveal: fog alpha over `revealPlace` (1 hidden … 0 gone). Other fogged places stay at 1. */
+  revealFog?: number;
+  /** (7D) MapReveal: camera on the virtual 1024×683 canvas — { x, y, zoom }. Default: whole map. */
+  camera?: { x: number; y: number; zoom: number };
+  /** (7D) Hide the place names of fogged/revealing places until this is ≥ 1 (reveal name fade). */
+  revealName?: number;
 }
 
-const WorldMap: React.FC<WorldMapProps> = ({ maxWaveReached, defeatedBosses, current, onSelect, treasuresOpened = [], onTreasure, reduceFlash = false, className = '' }) => {
+const WorldMap: React.FC<WorldMapProps> = ({ maxWaveReached, defeatedBosses, current, onSelect, treasuresOpened = [], onTreasure, reduceFlash = false, className = '', revealPlace = -1, revealFog = 1, camera, revealName = 1 }) => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const staticRef = useRef<HTMLCanvasElement | null>(null);
-  const propsRef = useRef({ maxWaveReached, defeatedBosses, treasuresOpened, current, onSelect, onTreasure, reduceFlash });
-  propsRef.current = { maxWaveReached, defeatedBosses, treasuresOpened, current, onSelect, onTreasure, reduceFlash };
+  const propsRef = useRef({ maxWaveReached, defeatedBosses, treasuresOpened, current, onSelect, onTreasure, reduceFlash, revealPlace, revealFog, camera, revealName });
+  propsRef.current = { maxWaveReached, defeatedBosses, treasuresOpened, current, onSelect, onTreasure, reduceFlash, revealPlace, revealFog, camera, revealName };
   const sizeRef = useRef({ w: 0, h: 0, dpr: 1 });
   const staticDirty = useRef(true);
   const burstRef = useRef<{ x: number; y: number; t: number; label: string } | null>(null);
 
-  useEffect(() => { staticDirty.current = true; }, [maxWaveReached, defeatedBosses, treasuresOpened]);
+  useEffect(() => { staticDirty.current = true; }, [maxWaveReached, defeatedBosses, treasuresOpened, revealPlace]);
 
   useEffect(() => {
     const wrap = wrapRef.current, canvas = canvasRef.current;
@@ -274,13 +346,38 @@ const WorldMap: React.FC<WorldMapProps> = ({ maxWaveReached, defeatedBosses, cur
         sc.width = canvas.width; sc.height = canvas.height;
         const sctx = sc.getContext('2d')!;
         sctx.setTransform(scale, 0, 0, scale, 0, 0);
-        paintStatic(sctx, { maxWaveReached: p.maxWaveReached, defeatedBosses: p.defeatedBosses, treasuresOpened: p.treasuresOpened });
+        paintStatic(sctx, { maxWaveReached: p.maxWaveReached, defeatedBosses: p.defeatedBosses, treasuresOpened: p.treasuresOpened, forceUnlocked: p.revealPlace });
         staticDirty.current = false;
       }
       ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#04050b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // (7D) camera: zoom about (x, y) on the virtual canvas — identity when no camera is given
+      const cam = p.camera ?? { x: MAP_W / 2, y: MAP_H / 2, zoom: 1 };
+      const z = cam.zoom;
+      const camTx = (MAP_W / 2 - cam.x * z) * scale, camTy = (MAP_H / 2 - cam.y * z) * scale;
+      ctx.setTransform(z, 0, 0, z, camTx, camTy);
       ctx.drawImage(staticRef.current!, 0, 0);
-      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      ctx.setTransform(scale * z, 0, 0, scale * z, camTx, camTy);
       const t = p.reduceFlash ? 0 : now / 1000;
+      // (7D) fog of war over every unreached place (drifts unless reduceFlash); the revealing place uses revealFog
+      const furthest = Math.max(furthestUnlocked(p.maxWaveReached), p.revealPlace);
+      for (let i = 0; i < PLACE_POS.length; i++) {
+        if (i <= furthest && i !== p.revealPlace) continue;
+        const a = i === p.revealPlace ? p.revealFog : 1;
+        drawFog(ctx, i, PLACE_POS[i][0], PLACE_POS[i][1], a, t);
+      }
+      FUTURE_PLACES.forEach((f, k) => drawFog(ctx, PLACE_POS.length + k, f.x, f.y, 0.8, t));
+      // (7D) reveal: name letter-spaced in over the dissolving fog
+      if (p.revealPlace >= 0 && p.revealName < 1 && p.revealPlace < CHAPTERS.length) {
+        const ch = CHAPTERS[p.revealPlace]; const [rx, ry] = PLACE_POS[p.revealPlace];
+        ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, p.revealName));
+        ctx.fillStyle = '#04050b'; ctx.globalAlpha *= 0.9; ctx.fillRect(rx - 120, ry - 112, 240, 44); ctx.globalAlpha = Math.max(0, Math.min(1, p.revealName));
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = ch.color; ctx.font = 'bold 13px Orbitron, sans-serif';
+        const spacing = (1 - p.revealName) * 10; const lines = wrapLabel(ch.name.toUpperCase());
+        lines.forEach((ln, j) => { const txt = `${j === 0 ? `${ch.id}. ` : ''}${ln}`; (ctx as any).letterSpacing = `${spacing}px`; ctx.fillText(txt, rx, ry - 96 + j * 15); });
+        (ctx as any).letterSpacing = '0px';
+        ctx.restore();
+      }
       // black-hole swirl (last place)
       const [bx, by] = PLACE_POS[PLACE_POS.length - 1];
       const bhUnlocked = isChapterUnlocked(PLACE_POS.length - 1, p.maxWaveReached);
@@ -330,7 +427,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ maxWaveReached, defeatedBosses, cur
 
     const toMap = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      return [(e.clientX - r.left) * MAP_W / r.width, (e.clientY - r.top) * MAP_H / r.height] as [number, number];
+      const cam = propsRef.current.camera ?? { x: MAP_W / 2, y: MAP_H / 2, zoom: 1 };
+      const vx = (e.clientX - r.left) * MAP_W / r.width, vy = (e.clientY - r.top) * MAP_H / r.height;
+      return [(vx - MAP_W / 2) / cam.zoom + cam.x, (vy - MAP_H / 2) / cam.zoom + cam.y] as [number, number];
     };
     const hit = (mx: number, my: number) => {
       const p = propsRef.current;
