@@ -1,6 +1,6 @@
 import { MutableGameState, ParticleType } from './types';
 import { PlayerStats } from '../../types';
-import { WORLD_SIZE } from './Constants';
+import { WORLD_SIZE, RENDER_CULL_PAD } from './Constants';
 import { drawEnemy } from './renderer/EnemyRenderer';
 import { drawOrbitals } from './renderer/OrbitalRenderer';
 import { renderProjectiles } from './renderer/ProjectileRenderer';
@@ -55,9 +55,21 @@ export const renderGame = (
     drawTelegraphs(ctx, state);
 
     // --- ENEMIES ---
-    state.enemies.forEach(e => {
-        drawEnemy(ctx, e, state.frame);
-    });
+    // (7B) viewport cull (+RENDER_CULL_PAD, bosses + lasers never culled — their beams reach across the screen).
+    // Rule 9: this skips *drawing* only; every enemy still updates.
+    {
+        const cx = state.camera.x + canvasWidth / 2, cy = state.camera.y + canvasHeight / 2;
+        const cullW = viewHalfW + RENDER_CULL_PAD, cullH = viewHalfH + RENDER_CULL_PAD;
+        const es = state.enemies;
+        for (let i = 0; i < es.length; i++) {
+            const e = es[i];
+            if (!e.isBoss) {
+                const r = e.def.size * 2 + 8; // affix ring / shiner halo / shield shell margin
+                if (e.x + r < cx - cullW || e.x - r > cx + cullW || e.y + r < cy - cullH || e.y - r > cy + cullH) continue;
+            }
+            drawEnemy(ctx, e, state.frame);
+        }
+    }
 
     // --- CRIMSON ECLIPSE BEAMS (2C, above the boss body) ---
     drawLasers(ctx, state);

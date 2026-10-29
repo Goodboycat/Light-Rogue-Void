@@ -82,6 +82,7 @@ export const STREAK_ESSENCE_CAP = 0.20;    // cap +20 %
 export const STREAK_BANNER_FRAMES = 110;
 export const PLAYER_IFRAMES = 18;          // 0.3 s
 export const HURT_VIGNETTE_FRAMES = 14;
+export const RENDER_CULL_PAD = 64;        // (7B) px outside the viewport before an entity is skipped by the renderer (never affects simulation)
 export const LOW_HP_PCT = 0.25;            // heartbeat tint below this
 
 // --- POOLS (4A/4B) --- see components/game/Pools.ts. These size the FREE LISTS only (how many dead
