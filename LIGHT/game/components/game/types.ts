@@ -194,6 +194,9 @@ export interface MutableGameState {
     bossAddTimer?: number;        // frames until the next roaming pack
     bossArrival?: { name: string; color: string; frames: number; max: number };
     lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)
+    bossFlags?: import('./logic/BossFeats').BossFightFlags; // (8A) per-fight mechanic flags → feats
+    featQueue?: string[];         // (8A) feats earned this run, drained by SurvivalGame into the save
+    foundEventsCount?: number;    // (8A) found events triggered this run
     /** set by Logic.ts every frame: boss scripts call this from telegraph onFire to hurt the player */
     damagePlayer?: (amt: number) => void;
     // (2C) persistent boss hazards — see logic/enemies/BossHazards.ts

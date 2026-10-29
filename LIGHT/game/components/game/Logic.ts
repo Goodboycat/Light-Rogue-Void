@@ -1,4 +1,5 @@
 
+import { bossHit } from './logic/BossFeats';
 import { MutableGameState, Enemy, ParticleType } from './types';
 import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
@@ -74,7 +75,7 @@ export const updateGame = (
     // (2B) every damage path during a boss fight tags the boss (GameOver death hint); telegraphs call state.damagePlayer
     const rawOnDamage = onDamage; // capture BEFORE reassigning — the wrapper must not call itself (2C fix: stack overflow)
     const bossTaggedDamage = (amt: number) => {
-        if (state.activeBoss) state.lastBossHit = state.activeBoss.def.id;
+        if (state.activeBoss) { state.lastBossHit = state.activeBoss.def.id; bossHit(state); } // (8A) feats
         rawOnDamage(amt);
     };
     onDamage = bossTaggedDamage;

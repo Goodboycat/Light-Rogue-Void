@@ -1,3 +1,4 @@
+import { bossFeats } from './BossFeats';
 import { FOUND_EVENTS, foundEssenceMult, onPylonKilled } from './FoundEvents';
 import { haptic } from '../../../utils/haptics'; // (7B)
 import { showCard } from './WorldInteract';
@@ -76,6 +77,7 @@ export const killEnemy = (
         spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
         castBossDeathBlast(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.size * 5); // (2B+) cinematic finisher
         haptic('bossDeath'); // (7B)
+        (state.featQueue ??= []).push(...bossFeats(state, enemy.def.id)); // (8A) before closeArena resets nothing — flags live until next openArena
         state.activeBoss = undefined;
         state.bossKilledWave = state.bossSpawnedWave;
         closeArena(state); // (2B) ring, telegraphs, boss bullets, enrage all go with the boss

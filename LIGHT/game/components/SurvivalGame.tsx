@@ -23,6 +23,7 @@ import GameOver from './GameOver';
 import { bossHint } from '../data/bossHints';
 import WinGame from './WinGame';
 import type { RunSummaryData } from './RunSummary'; // (7A step 4)
+import type { RunEndReport } from '../save/stats'; // (8A step 4)
 import CinematicOverlay from './CinematicOverlay';
 import MobileControls from './MobileControls';
 import GameOverlay from './GameOverlay';
@@ -75,6 +76,10 @@ interface SurvivalGameProps {
   treasuresOpened?: string[];
   onTreasure?: (id: string, matter: number) => void;
   onRevealSeen?: (bossId: string) => void; // (7D)
+  /** (8A) lifetime stats: fired once per run end (death / win / abandon) */
+  onRunEnd?: (report: RunEndReport) => void;
+  /** (8A) boss feats earned (`<bossId>:<feat>`), drained from state.featQueue right after the kill */
+  onFeats?: (feats: string[]) => void;
 }
 
 const GET_MATURITY = (matter: number) => {
@@ -109,6 +114,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     treasuresOpened,
     onTreasure,
     onRevealSeen,
+    onRunEnd,
+    onFeats,
     onBossDefeated,
     onBlockPauseMenu,
     onOpenTree,
@@ -566,6 +573,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
             // Check if boss just died
             if (wasBossActive && !state.activeBoss && bossId) {
+                if (state.featQueue?.length) { onFeatsRef.current?.(state.featQueue); state.featQueue = undefined; } // (8A) before onBossDefeated so recordBossKill sees them
                 refs.onBossDefeated(bossId);
                 
                 // TRIGGER OUTRO CINEMATIC
@@ -696,6 +704,34 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
   const summaryRef = useRef<RunSummaryData | null>(null);
   if ((gameOver || gameWon) && !summaryRef.current) summaryRef.current = buildRunSummary();
+  // (8A step 4) lifetime stats — exactly one report per run (death / win / abandon)
+  const runEndSentRef = useRef(false);
+  const onRunEndRef = useRef(onRunEnd); onRunEndRef.current = onRunEnd;
+  const onFeatsRef = useRef(onFeats); onFeatsRef.current = onFeats;
+  const sendRunEnd = (outcome: RunEndReport['outcome']) => {
+      if (runEndSentRef.current) return;
+      runEndSentRef.current = true;
+      const st = gameStateRef.current;
+      const sum = summaryRef.current ?? buildRunSummary();
+      const b = st.activeBoss;
+      onRunEndRef.current?.({
+          outcome,
+          startWave: initialWave,
+          wave: gameRefs.current.wave,
+          kills: sum.kills, eliteKills: sum.eliteKills, bossKills: sum.bossKills,
+          essence: sum.essence, matter: sum.matter,
+          relics: sum.relics, shrines: sum.shrines, landmarks: sum.landmarks,
+          events: st.foundEventsCount ?? 0,
+          bestStreak: sum.bestStreak, burstsFired: sum.burstsFired, timeMs: sum.timeMs,
+          deathBossId: outcome === 'death' && b && st.lastBossHit === b.def.id ? b.def.id : undefined,
+          feats: st.featQueue ?? [],
+      });
+      st.featQueue = undefined;
+  };
+  useEffect(() => { if (gameOver) sendRunEnd('death'); }, [gameOver]);
+  useEffect(() => { if (gameWon) sendRunEnd('win'); }, [gameWon]);
+  /** abandon / menu from the breather or pause: still a finished run for the lifetime counters */
+  const leaveToMenu = () => { if (!gameOver && !gameWon) sendRunEnd('abandon'); onReturnToMenu(); };
   const retryChapter = (firstWave: number) => onRestart(firstWave);
 
   return (
@@ -774,7 +810,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             onRevealSeen={onRevealSeen}
             reduceFlash={!!settings.reduceFlash}
             onContinue={() => { setBreather(null); breatherRef.current = null; advanceWaveRef.current(); }}
-            onMenu={() => { setBreather(null); breatherRef.current = null; onReturnToMenu(); }}
+            onMenu={() => { setBreather(null); breatherRef.current = null; leaveToMenu(); }}
           />
       )}
 

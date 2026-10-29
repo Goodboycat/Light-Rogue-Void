@@ -10,6 +10,7 @@
 // Enrage: via the kit (×2 dmg, warn ×0.7).
 // Learnable: the laser hits exactly the drawn beam; the wedge ahead is where it goes next. Walk the same way it turns.
 
+import { laserHit } from '../../BossFeats';
 import { MutableGameState, Enemy, ParticleType } from '../../../types';
 import { VFX } from '../../../Emitters';
 import { createParticle, spawnExplosion } from '../../../Particles';
@@ -58,7 +59,7 @@ const updateLasers = (state: MutableGameState, boss: Enemy, count: number, spin:
         // the beam itself hurts (dash / shield dodge, like every telegraph hit)
         if (L.warm >= 1 && t % LASER_TICK === i) {
             const hit = { kind: 'cone' as const, x: L.x, y: L.y, params: { angle: L.angle, fov: L.half * 2, radius: L.length }, timer: 0, maxTimer: 1, active: false };
-            if (telegraphHitPlayer(state, hit as any, LASER_DMG)) VFX.spark(state, state.player.x, state.player.y, GOLD, 10);
+            if (telegraphHitPlayer(state, hit as any, LASER_DMG)) { laserHit(state); VFX.spark(state, state.player.x, state.player.y, GOLD, 10); } // (8A) feat
         }
     }
     // wedge-ahead telegraphs: one short cone per beam, re-issued every LASER_LEAD/2 frames so it always reads as "next"

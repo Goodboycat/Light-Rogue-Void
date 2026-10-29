@@ -100,6 +100,7 @@ const end = (state: MutableGameState) => {
     if (fe.active) sfx('event_end', 0.7, 0); // (6B)
     fe.active = undefined;
     fe.lastEndFrame = state.frame;
+    state.foundEventsCount = (state.foundEventsCount ?? 0) + 1; // (8A) lifetime discoveries.events
 };
 
 // ---------- Golden Mite (a spawn mutation, not a timed event) ----------

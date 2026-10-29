@@ -7,13 +7,80 @@ import { X, HelpCircle, Lock } from 'lucide-react';
 import { drawEnemy } from './game/renderer/EnemyRenderer';
 import { Enemy, EnemyDef } from './game/types';
 import { loreFor, LORE_KILLS } from '../data/lore';
+import type { LifetimeStats } from '../save/schema'; // (8A step 4)
+import { totalDiscoveries, fmtPlayTime } from '../save/stats';
+import { CHAPTERS } from './game/Constants';
 
 interface ArchivesProps {
     onClose: () => void;
     maxWave: number;
     /** (3B) lifetime kills per enemy id; lore unlocks at LORE_KILLS */
     killCounts?: Record<string, number>;
+    /** (8A step 4) lifetime records — shown in the RECORDS tab */
+    stats?: LifetimeStats;
 }
+
+// (8A step 4) Lifetime records panel.
+const Stat: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
+    <div className="bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2">
+        <div className="text-[10px] font-mono text-slate-500 tracking-widest">{label}</div>
+        <div className="text-lg font-tech font-bold text-white">{value}</div>
+    </div>
+);
+
+const RecordsPanel: React.FC<{ stats: LifetimeStats }> = ({ stats }) => {
+    const bosses = BOSSES.filter(b => !['hive_node', 'doppelganger'].includes(b.id));
+    const feats = Object.keys(stats.feats);
+    return (
+        <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar">
+            <h1 className="text-3xl font-tech font-bold text-white mb-1">RECORDS</h1>
+            <p className="text-xs font-mono text-slate-500 mb-6">LIFETIME · {stats.runs} RUNS · {fmtPlayTime(stats.playTimeMs)} PLAYED</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+                <Stat label="KILLS" value={stats.kills.toLocaleString()} />
+                <Stat label="DEATHS" value={stats.deaths} />
+                <Stat label="ESCAPES" value={stats.wins} />
+                <Stat label="BEST STREAK" value={stats.bestStreak} />
+                <Stat label="MATTER BANKED" value={stats.totalMatter.toLocaleString()} />
+                <Stat label="ESSENCE" value={Math.floor(stats.totalEssence).toLocaleString()} />
+                <Stat label="DISCOVERIES" value={totalDiscoveries(stats)} />
+                <Stat label="BURSTS" value={stats.burstsFired} />
+            </div>
+            <h2 className="text-xs font-mono text-slate-400 tracking-widest mb-2">DISCOVERIES</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+                <Stat label="RELICS" value={stats.discoveries.relics} />
+                <Stat label="SHRINES" value={stats.discoveries.shrines} />
+                <Stat label="LANDMARKS" value={stats.discoveries.landmarks} />
+                <Stat label="EVENTS" value={stats.discoveries.events} />
+            </div>
+            <h2 className="text-xs font-mono text-slate-400 tracking-widest mb-2">BEST WAVE PER CHAPTER</h2>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-8">
+                {CHAPTERS.map((ch, i) => (
+                    <div key={ch.id} className="bg-slate-950/60 border border-slate-800 rounded-lg px-3 py-2" style={{ borderColor: stats.bestWaveByChapter[i] ? ch.color + '66' : undefined }}>
+                        <div className="text-[10px] font-mono text-slate-500 truncate">{ch.id}. {ch.name}</div>
+                        <div className="text-lg font-tech font-bold" style={{ color: stats.bestWaveByChapter[i] ? ch.color : '#475569' }}>{stats.bestWaveByChapter[i] || '—'}</div>
+                    </div>
+                ))}
+            </div>
+            <h2 className="text-xs font-mono text-slate-400 tracking-widest mb-2">BOSSES</h2>
+            <table className="w-full text-xs font-mono mb-8">
+                <thead><tr className="text-slate-500 text-left"><th className="py-1">BOSS</th><th>KILLED</th><th>KILLED YOU</th><th>FEATS</th></tr></thead>
+                <tbody>
+                    {bosses.map(b => {
+                        const bf = feats.filter(f => f.startsWith(b.id + ':')).map(f => f.split(':')[1].toUpperCase());
+                        return (
+                            <tr key={b.id} className="border-t border-slate-800/60">
+                                <td className="py-1.5 font-bold" style={{ color: b.glowColor }}>{b.name}</td>
+                                <td className="text-white">{stats.bossKills[b.id] ?? 0}</td>
+                                <td className="text-red-300">{stats.deathsByBoss[b.id] ?? 0}</td>
+                                <td className="text-amber-300">{bf.length ? bf.join(' · ') : <span className="text-slate-600">—</span>}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
 
 const EnemyPreviewCanvas: React.FC<{ def: EnemyDef }> = ({ def }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -74,7 +141,8 @@ const EnemyPreviewCanvas: React.FC<{ def: EnemyDef }> = ({ def }) => {
     return <canvas ref={canvasRef} width={300} height={300} className="w-full h-full object-contain" />;
 };
 
-const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {} }) => {
+const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {}, stats }) => {
+    const [tab, setTab] = useState<'bestiary' | 'records'>('bestiary');
     const allEnemies = [...ENEMIES, ...BOSSES].sort((a,b) => a.minWave - b.minWave);
     
     // Filter unique enemies by ID
@@ -110,6 +178,16 @@ const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {} }
                         <p className="text-xs text-slate-500 font-mono mt-1">
                             DATA LOG: {unlockedCount}/{uniqueEnemies.length}
                         </p>
+                        {stats && (
+                            <div className="flex gap-1 mt-3">
+                                {(['bestiary', 'records'] as const).map(t => (
+                                    <button key={t} onClick={() => setTab(t)}
+                                        className={`flex-1 text-[10px] font-mono tracking-widest py-1 rounded border ${tab === t ? 'border-purple-500/60 bg-purple-900/30 text-white' : 'border-slate-800 text-slate-500 hover:text-slate-300'}`}>
+                                        {t.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                         {uniqueEnemies.map(enemy => {
@@ -147,6 +225,7 @@ const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {} }
 
                 {/* RIGHT: DETAILS */}
                 <div className="flex-1 relative flex flex-col">
+                    {tab === 'records' && stats ? <RecordsPanel stats={stats} /> : (
                     <AnimatePresence mode="wait">
                         {selectedEnemy && selectedEnemy.minWave <= maxWave ? (
                             <motion.div 
@@ -214,7 +293,7 @@ const Archives: React.FC<ArchivesProps> = ({ onClose, maxWave, killCounts = {} }
                                 <p className="font-tech tracking-widest text-sm">SELECT ENTITY FOR ANALYSIS</p>
                             </div>
                         )}
-                    </AnimatePresence>
+                    </AnimatePresence>)}
                 </div>
             </div>
         </div>

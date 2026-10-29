@@ -5,6 +5,7 @@
 // Design rule: a telegraph is a PROMISE. Nothing deals damage during the warn;
 // `onFire` runs exactly once when the warn ends and is the only place damage happens.
 
+import { resetBossFlags } from '../BossFeats';
 import { MutableGameState, Enemy, Projectile, ParticleType } from '../../types';
 import { VFX } from '../../Emitters';
 import { spawnExplosion } from '../../Particles';
@@ -258,6 +259,7 @@ export const enrageCountdown = (state: MutableGameState): number => {
 export const openArena = (state: MutableGameState, boss: Enemy) => {
     state.arena = { x: state.player.x, y: state.player.y, r: ARENA_RADIUS, pulse: 1, color: boss.def.glowColor };
     state.bossStartFrame = state.frame;
+    resetBossFlags(state); // (8A) feats
     state.bossEnraged = false;
     state.bossAddTimer = 0;
     state.bossArrival = { name: boss.def.name, color: boss.def.glowColor, frames: BOSS_ARRIVAL_FRAMES, max: BOSS_ARRIVAL_FRAMES };

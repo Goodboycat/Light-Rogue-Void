@@ -21,6 +21,7 @@ import { checkAchievements } from './data/achievements';
 import { useGameSave, lastTreeMigration, stateToSave } from './hooks/useGameSave';
 import { usePlayerStats } from './hooks/usePlayerStats';
 import { Settings } from './types';
+import { recordRunStart, recordRunEnd, recordBossKill, recordMatter, ensureStats, RunEndReport } from './save/stats'; // (8A step 4)
 
 // (5A step 6) `?gallery=1` renders the static art sheet instead of the game (docs/ART.md).
 const IS_GALLERY = typeof location !== 'undefined' && new URLSearchParams(location.search).get('gallery') === '1';
@@ -100,7 +101,7 @@ const App: React.FC = () => {
       if (Number.isFinite(debugWave) && debugWave >= 1) wave = Math.min(debugWave, MAX_WAVE);
       performTransition(() => {
           setStartWave(wave);
-          setGameState(p => ({ ...p, isGameRunning: true, isMenuOpen: false }));
+          setGameState(p => ({ ...p, isGameRunning: true, isMenuOpen: false, stats: recordRunStart(p.stats) }));
           setGameKey(k => k + 1);
           setIsPauseBlocked(false); 
       });
@@ -109,6 +110,7 @@ const App: React.FC = () => {
   const handleRestart = (wave: number = 1) => { 
       performTransition(() => {
         setStartWave(wave);
+        setGameState(p => ({ ...p, stats: recordRunStart(p.stats) }));
         setGameKey(k => k + 1); 
         setIsPauseBlocked(false); 
       });
@@ -130,7 +132,7 @@ const App: React.FC = () => {
       setGameState(p => {
           const opened = p.mapTreasuresOpened ?? [];
           if (opened.includes(id)) return p;
-          return { ...p, matter: p.matter + matter, mapTreasuresOpened: [...opened, id] };
+          return { ...p, matter: p.matter + matter, mapTreasuresOpened: [...opened, id], stats: recordMatter(p.stats, matter) };
       });
   }, [setGameState]);
 
@@ -253,17 +255,25 @@ const App: React.FC = () => {
       });
   }, [setGameState]);
 
+  /** (8A step 4) boss feats arrive right before onBossDefeated; keep them until the boss kill is recorded */
+  const pendingFeatsRef = React.useRef<string[]>([]);
+  const handleFeats = useCallback((feats: string[]) => { pendingFeatsRef.current.push(...feats); }, []);
+  const handleRunEnd = useCallback((r: RunEndReport) => {
+      setGameState(p => ({ ...p, stats: recordRunEnd(p.stats, r) }));
+  }, [setGameState]);
+
   const handleBossDefeated = useCallback((bossId: string) => {
+      const feats = pendingFeatsRef.current; pendingFeatsRef.current = [];
       setGameState(p => {
           const newDefeated = p.defeatedBosses.includes(bossId) ? p.defeatedBosses : [...p.defeatedBosses, bossId];
-          const tempState = { ...p, defeatedBosses: newDefeated };
+          const tempState = { ...p, defeatedBosses: newDefeated, stats: recordBossKill(p.stats, bossId, feats) };
           const newUnlocks = checkAchievements(tempState, playerStats, startWave, startWave);
           
           let nextAchievementIds = p.unlockedAchievementIds;
           if (newUnlocks.length > 0) {
               nextAchievementIds = [...p.unlockedAchievementIds, ...newUnlocks];
           }
-          return { ...p, defeatedBosses: newDefeated, unlockedAchievementIds: nextAchievementIds };
+          return { ...p, defeatedBosses: newDefeated, unlockedAchievementIds: nextAchievementIds, stats: tempState.stats };
       });
   }, [playerStats, startWave, setGameState]);
 
@@ -367,7 +377,9 @@ const App: React.FC = () => {
             <SurvivalGame 
                 key={gameKey} 
                 playerStats={playerStats} 
-                onCollectMatter={v => setGameState(p => ({...p, matter: p.matter + v}))} 
+                onCollectMatter={v => setGameState(p => ({...p, matter: p.matter + v, stats: recordMatter(p.stats, v)}))} 
+                onRunEnd={handleRunEnd}
+                onFeats={handleFeats}
                 paused={gameState.isMenuOpen || showArchives || showAchievements || showSettings || showGuide} 
                 onRestart={handleRestart}
                 onReturnToMenu={handleReturnToMenu}
@@ -431,7 +443,7 @@ const App: React.FC = () => {
                   } as any)}
                   className="fixed inset-0 z-[60]"
               >
-                  <Archives onClose={() => { setShowArchives(false); }} maxWave={gameState.maxWaveReached || 1} killCounts={gameState.killCounts ?? {}} />
+                  <Archives onClose={() => { setShowArchives(false); }} maxWave={gameState.maxWaveReached || 1} killCounts={gameState.killCounts ?? {}} stats={ensureStats(gameState.stats)} />
               </motion.div>
           )}
       </AnimatePresence>

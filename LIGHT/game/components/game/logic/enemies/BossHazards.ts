@@ -16,6 +16,7 @@
 //
 // Damage goes through state.damagePlayer (tagged for the death hint, respects i-frames via onPlayerHurt).
 
+import { rockHit } from '../BossFeats';
 import { MutableGameState, Enemy, ParticleType } from '../../types';
 import { createParticle, spawnExplosion } from '../../Particles';
 import { telegraph, bossDamage } from './BossKit';
@@ -125,7 +126,7 @@ export const updateHazards = (state: MutableGameState, boss: Enemy | undefined, 
         }
         if (h.kind === 'rock') { // solid: shove the player (and their velocity) out of the disc
             const dx = p.x - h.x, dy = p.y - h.y, d = Math.hypot(dx, dy) || 1, min = h.radius + p.size * 0.6;
-            if (d < min) { p.x = h.x + (dx / d) * min; p.y = h.y + (dy / d) * min; const vn = p.vx * (dx / d) + p.vy * (dy / d); if (vn < 0) { p.vx -= vn * (dx / d); p.vy -= vn * (dy / d); } }
+            if (d < min) { rockHit(state); p.x = h.x + (dx / d) * min; p.y = h.y + (dy / d) * min; const vn = p.vx * (dx / d) + p.vy * (dy / d); if (vn < 0) { p.vx -= vn * (dx / d); p.vy -= vn * (dy / d); } }
             continue;
         }
         if (h.vx || h.vy) {
