@@ -7,6 +7,7 @@ import {
     chapterIndexOf,
 } from '../Constants';
 import { mulberry32, Rng, pick } from '../../../utils/rng';
+import { getSeedOverride } from '../../../save/daily';
 import {
     LANDMARKS, SHRINES, RELICS, WORLD_EVENTS, WorldPointKind, emptyRunModifiers,
 } from '../../../data/world';
@@ -50,6 +51,7 @@ export interface WorldState {
 
 /** Read `?seed=` once; otherwise Date.now(). Exposed for the debug HUD / sim. */
 export const resolveRunSeed = (): number => {
+    const daily = getSeedOverride(); if (daily !== null) return daily; // (9A) Daily Void
     try {
         if (typeof window !== 'undefined') {
             const s = new URLSearchParams(window.location.search).get('seed');

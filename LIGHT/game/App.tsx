@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import StarBackground from './components/StarBackground';
 import SurvivalGame from './components/SurvivalGame';
 import { Audio } from './audio/AudioManager';
+import { setActiveDaily, getActiveDaily, todayKey, recordDaily, recordEndless } from './save/daily';
 import { MAX_WAVE, RESPEC_TAX } from './components/game/Constants';
 import Archives from './components/Archives';
 import Guidebook from './components/Guidebook'; // (7A step 5)
@@ -110,7 +111,10 @@ const App: React.FC = () => {
   }, []);
 
   // --- GAMEPLAY HANDLERS ---
-  const handleStartGame = (wave: number) => {
+  /** (9A) Daily Void: chapter 1 with today's UTC seed (world points, flavors, affixes, spawns). */
+  const handleStartDaily = () => { setActiveDaily(todayKey()); startRun(1); };
+  const handleStartGame = (wave: number) => { setActiveDaily(null); startRun(wave); };
+  const startRun = (wave: number) => {
       // (2A) `?wave=N` debug override wins over the menu slider.
       const debugWave = typeof location !== 'undefined' ? parseInt(new URLSearchParams(location.search).get('wave') || '', 10) : NaN;
       if (Number.isFinite(debugWave) && debugWave >= 1) wave = Math.min(debugWave, MAX_WAVE);
@@ -140,7 +144,7 @@ const App: React.FC = () => {
   /** (2D) Ending choice made (Stay → endless in 9A; Leave → credits). Persist the flag. */
   const handleEndingSeen = (choice: 'stay' | 'leave') => {
       setGameState(p => ({ ...p, endingSeen: true }));
-      if (choice === 'stay') handleRestart(MAX_WAVE + 1); // (9A) STAY → Endless from wave 61
+      if (choice === 'stay') { setActiveDaily(null); handleRestart(MAX_WAVE + 1); } // (9A) STAY → Endless from wave 61
   };
 
   /** (7C) World-map treasure cache opened: grant matter once, remember the id. */
@@ -275,6 +279,8 @@ const App: React.FC = () => {
   const pendingFeatsRef = React.useRef<string[]>([]);
   const handleFeats = useCallback((feats: string[]) => { pendingFeatsRef.current.push(...feats); }, []);
   const handleRunEnd = useCallback((r: RunEndReport) => {
+      if (getActiveDaily()) recordDaily(r.wave, getActiveDaily()!); // (9A)
+      if (r.wave > MAX_WAVE) recordEndless(r.wave);                  // (9A)
       setGameState(p => ({ ...p, stats: recordRunEnd(p.stats, r) }));
   }, [setGameState]);
 
@@ -358,6 +364,7 @@ const App: React.FC = () => {
              reduceFlash={!!gameState.settings.reduceFlash}
              revealsSeen={gameState.mapRevealsSeen ?? []}
              onRevealSeen={handleRevealSeen}
+             onStartDaily={handleStartDaily}
           />
       )}
 

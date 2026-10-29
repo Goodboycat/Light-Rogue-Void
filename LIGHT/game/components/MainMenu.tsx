@@ -6,6 +6,7 @@ import { CHAPTERS, WAVES_PER_CHAPTER, IS_DEMO, DEMO_MAX_WAVE } from './game/Cons
 import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
 import MapReveal from './MapReveal'; // (7D)
 
+import DailyCard from './DailyCard';
 interface MainMenuProps {
     onStart: (wave: number) => void;
     onOpenSettings: () => void;
@@ -23,6 +24,7 @@ interface MainMenuProps {
     // (7D) place-reveal cinematic once per newly unlocked place (gameState.mapRevealsSeen)
     revealsSeen?: string[];
     onRevealSeen?: (id: string) => void;
+    onStartDaily?: () => void; // (9A)
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({ 
@@ -37,6 +39,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
     defeatedBosses = [],
     treasuresOpened = [],
     onTreasure,
+    onStartDaily,
     reduceFlash = false,
     revealsSeen,
     onRevealSeen,
@@ -198,6 +201,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
                         </div>
                     </section>
                 )}
+
+                {onStartDaily && maxWaveReached > 1 && <DailyCard onStartDaily={onStartDaily} />}{/* (9A) */}
 
                 <div className="relative w-full">
                     {/* START BUTTON */}
