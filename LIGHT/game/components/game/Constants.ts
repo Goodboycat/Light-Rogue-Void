@@ -8,6 +8,15 @@ export const IS_DEMO: boolean =
   typeof location !== 'undefined' && new URLSearchParams(location.search).has('demo');
 
 export const DEMO_MAX_WAVE = 20;
+/** (9B) demo tree cap: nodes costing more than this are locked in `?demo=1`. */
+export const DEMO_TREE_MAX_COST = 5000;
+/** (9B) constellations the demo may open (bosses of chapters 1–2). */
+export const DEMO_BOSSES = ['hive_mind', 'void_warden'];
+/** (9B) where the "buy full" card points. Replace with the real itch page before publishing the demo. */
+export const FULL_GAME_URL = 'https://goodboycat.itch.io/light-rogue-void';
+/** (9B) true when `?demo=1` and this tree node is outside the demo (cost cap or a chapter 3+ constellation). */
+export const demoTreeLocked = (n: { cost: number; requiresBoss?: string }): boolean =>
+  IS_DEMO && (n.cost > DEMO_TREE_MAX_COST || (!!n.requiresBoss && !DEMO_BOSSES.includes(n.requiresBoss)));
 
 /** `?debug=1` exposes `window.__LIGHT = { state, wave, time }` for smoke tests. */
 export const DEBUG: boolean =

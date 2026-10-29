@@ -7,6 +7,7 @@ import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
 import MapReveal from './MapReveal'; // (7D)
 
 import DailyCard from './DailyCard';
+import DemoCard from './DemoCard'; // (9B)
 interface MainMenuProps {
     onStart: (wave: number) => void;
     onOpenSettings: () => void;
@@ -203,6 +204,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
                 )}
 
                 {onStartDaily && maxWaveReached > 1 && <DailyCard onStartDaily={onStartDaily} />}{/* (9A) */}
+                {IS_DEMO && <DemoCard variant="menu" />}{/* (9B) buy-full card */}
 
                 <div className="relative w-full">
                     {/* START BUTTON */}

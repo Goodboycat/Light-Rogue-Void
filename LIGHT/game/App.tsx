@@ -6,7 +6,7 @@ import StarBackground from './components/StarBackground';
 import SurvivalGame from './components/SurvivalGame';
 import { Audio } from './audio/AudioManager';
 import { setActiveDaily, getActiveDaily, todayKey, recordDaily, recordEndless } from './save/daily';
-import { MAX_WAVE, RESPEC_TAX } from './components/game/Constants';
+import { MAX_WAVE, RESPEC_TAX, demoTreeLocked } from './components/game/Constants';
 import Archives from './components/Archives';
 import Guidebook from './components/Guidebook'; // (7A step 5)
 import MainMenu from './components/MainMenu';
@@ -195,6 +195,8 @@ const App: React.FC = () => {
 
   const handleUnlock = (id: string) => {
     const node = ABILITY_TREE_DATA.find(n => n.id === id);
+    // (9B) demo: tree capped — no constellations past boss 2, no node above DEMO_TREE_MAX_COST
+    if (node && demoTreeLocked(node)) { Audio.play('ui_error', { vol: 0.8 }); return; }
     if (node && gameState.matter < node.cost) Audio.play('ui_error', { vol: 0.8 }); // (6B)
     if (node && gameState.matter >= node.cost) {
         Audio.play('ui_unlock'); // (6B)

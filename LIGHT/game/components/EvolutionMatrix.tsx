@@ -4,9 +4,10 @@ import { motion, useMotionValue, animate } from 'framer-motion';
 import { Target, BookOpen, ChevronLeft, ChevronRight, Zap, Settings, LogOut, Trophy, PlayCircle, Search, X, RotateCcw, HelpCircle } from 'lucide-react';
 import { AbilityNodeData, AbilityType, GameState } from '../types';
 import { ABILITY_TREE_DATA, BOSS_DISPLAY_NAMES } from '../data';
-import { RESPEC_TAX } from './game/Constants';
+import { RESPEC_TAX, IS_DEMO, DEMO_TREE_MAX_COST, demoTreeLocked } from './game/Constants';
 import Connection from './Connection';
 import SkillNode from './SkillNode';
+import DemoCard from './DemoCard'; // (9B)
 
 interface EvolutionMatrixProps {
     gameState: GameState;
@@ -36,7 +37,7 @@ export const cheapestPath = (targetId: string, unlocked: string[], defeated: str
     const unl = new Set(unlocked);
     const target = NODE_BY_ID[targetId];
     if (!target || unl.has(targetId)) return null;
-    const bossLocked = (n: AbilityNodeData) => !!n.requiresBoss && !defeated.includes(n.requiresBoss);
+    const bossLocked = (n: AbilityNodeData) => (!!n.requiresBoss && !defeated.includes(n.requiresBoss)) || demoTreeLocked(n); // (9B) demo cap
     if (bossLocked(target)) return null;
     // best[id] = cheapest total cost of locked nodes from an unlocked ancestor down to and including id
     const best: Record<string, number> = {}; const prev: Record<string, string | null> = {};
@@ -77,8 +78,11 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
     onReturnToMenu
 }) => {
     // (1B) Constellation nodes stay locked until their boss is in defeatedBosses.
-    const bossLocked = (n: AbilityNodeData) => !!n.requiresBoss && !(gameState.defeatedBosses || []).includes(n.requiresBoss);
-    const lockLabelFor = (n: AbilityNodeData) => `Defeat ${BOSS_DISPLAY_NAMES[n.requiresBoss!] || n.requiresBoss} to reveal ${n.constellation || 'this constellation'}.`;
+    // (9B) In `?demo=1` the tree is capped too: nodes above DEMO_TREE_MAX_COST and chapter 3+ constellations stay locked.
+    const bossLocked = (n: AbilityNodeData) => (!!n.requiresBoss && !(gameState.defeatedBosses || []).includes(n.requiresBoss)) || demoTreeLocked(n);
+    const lockLabelFor = (n: AbilityNodeData) => demoTreeLocked(n)
+        ? `Full version only (demo tree capped at ${DEMO_TREE_MAX_COST} M).`
+        : `Defeat ${BOSS_DISPLAY_NAMES[n.requiresBoss!] || n.requiresBoss} to reveal ${n.constellation || 'this constellation'}.`;
 
     const scale = useMotionValue(0.1); // Start small for Big Bang expansion
     const dragX = useMotionValue(0);
@@ -292,8 +296,9 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                     <button onClick={() => fitGroup(() => true)} title="Fit whole tree"
                         className="px-2 py-1 rounded bg-slate-900/80 border border-slate-700 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">ALL</button>
                 </div>
-                <div className="text-[9px] font-mono text-slate-500 text-right">● unlocked · ◌ affordable (green) · dashed = not yet reachable · ✦ constellation (boss)</div>
+                <div className="text-[9px] font-mono text-slate-500 text-right">● unlocked · ◌ affordable (green) · dashed = not yet reachable · ✦ constellation (boss){IS_DEMO && ' · 🔒 full version'}</div>
             </div>
+            {IS_DEMO && <DemoCard variant="compact" className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)]" />}{/* (9B) */}
             {preview && previewId && (
                 <div id="path-preview" className="absolute bottom-48 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-slate-900/90 border border-cyan-500/40 rounded-xl px-4 py-2 text-center backdrop-blur-md shadow-xl">
                     <div className="font-tech text-xs text-cyan-200 tracking-wider">{NODE_BY_ID[previewId].title}</div>

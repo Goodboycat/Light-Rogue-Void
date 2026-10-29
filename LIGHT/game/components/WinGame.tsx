@@ -9,6 +9,7 @@ import { Audio } from '../audio/AudioManager';
 import CinematicOverlay from './CinematicOverlay';
 import { OUTRO_SCRIPT } from '../data/cinematics';
 import { IS_DEMO, CHAPTERS } from './game/Constants';
+import DemoCard from './DemoCard'; // (9B)
 import { BOSSES } from '../bosses';
 
 /**
@@ -178,7 +179,10 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
             </motion.p>
 
             {IS_DEMO ? (
-              <ChoiceButton delay={1.5} onClick={onReturnToMenu} label="RETURN TO MENU" sub="" />
+              <div className="flex flex-col items-center gap-6">
+                <DemoCard variant="compact" className="w-[min(92vw,640px)] !bg-amber-500/20 !border-amber-600/60 [&_span]:!text-amber-900" />
+                <ChoiceButton delay={1.5} onClick={onReturnToMenu} label="RETURN TO MENU" sub="" />
+              </div>
             ) : (
               <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-center">
                 <ChoiceButton delay={1.5} onClick={() => choose('stay')} label="STAY" sub="Keep the void company. Endless." />
