@@ -10,6 +10,7 @@
 import { MutableGameState, ParticleType } from '../types';
 import { PlayerStats } from '../../../types';
 import { InputHandler } from '../Input';
+import { haptic } from '../../../utils/haptics'; // (7B)
 import { onEnemyHit, hitStop, shake } from '../Feel';
 import { spawnBigExplosion, screenFlash } from '../BigFx';
 import { VFX } from '../Emitters';
@@ -94,6 +95,7 @@ export const fireLightBurst = (state: MutableGameState, wave: number) => {
     screenFlash(state, 0.55, '#fff7d6');
     shake(state, 10);
     hitStop(state, 4);
+    haptic('burst'); // (7B)
     for (let i = 0; i < 24; i++) {
         const a = (i / 24) * Math.PI * 2;
         createParticle(state, px + Math.cos(a) * 20, py + Math.sin(a) * 20, ParticleType.GLOW, '#fde68a', { speed: 10 + Math.random() * 6, life: 26, size: 3 });

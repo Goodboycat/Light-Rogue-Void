@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { X, Smartphone, MousePointer2, ToggleLeft, ToggleRight, Trash2, AlertTriangle, Zap, Eye, Map, Image, Volume2, VolumeX } from 'lucide-react';
 import { Settings } from '../types';
 import { Audio } from '../audio/AudioManager';
+import { haptic } from '../utils/haptics'; // (7B)
 
 interface SettingsMenuProps {
     settings: Settings;
@@ -145,6 +146,29 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                         </div>
                         <p className="text-[10px] text-slate-500 text-center">
                             AUTO steps the quality by measured fps (&lt; 28 down, &gt; 55 up). LOW: no glow, no shadow blur, no damage numbers, 1× DPR. Never fewer enemies or particles.
+                        </p>
+                    </div>
+
+                    {/* HAPTICS (7B) */}
+                    <div className="space-y-3">
+                        <label className="text-xs font-mono text-emerald-400 uppercase tracking-widest block mb-2">Haptics (phone vibration)</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {(['OFF', 'LIGHT', 'FULL'] as const).map((mode) => (
+                                <button
+                                    key={mode}
+                                    onClick={() => { update('haptics', mode); if (mode !== 'OFF') haptic('hurt', { ...settings, haptics: mode }); }}
+                                    className={`py-3 px-2 rounded-lg border font-tech text-xs tracking-wider transition-all
+                                        ${(settings.haptics ?? 'LIGHT') === mode
+                                            ? 'bg-emerald-900/20 border-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                                            : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-600'}
+                                    `}
+                                >
+                                    {mode}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-[10px] text-slate-500 text-center">
+                            Hurt, dash, Light Burst, boss phase shifts. LIGHT = short single taps. Desktop browsers ignore this.
                         </p>
                     </div>
 

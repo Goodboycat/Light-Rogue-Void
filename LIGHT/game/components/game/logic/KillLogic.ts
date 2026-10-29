@@ -1,4 +1,5 @@
 import { FOUND_EVENTS, foundEssenceMult, onPylonKilled } from './FoundEvents';
+import { haptic } from '../../../utils/haptics'; // (7B)
 import { showCard } from './WorldInteract';
 import { MutableGameState, Enemy, ParticleType } from '../types';
 import { spawnExplosion } from '../Particles';
@@ -74,6 +75,7 @@ export const killEnemy = (
     if (enemy.isBoss) {
         spawnExplosion(state, enemy.x, enemy.y, '#fff', ParticleType.BOSS_AURA);
         castBossDeathBlast(state, enemy.x, enemy.y, enemy.def.glowColor, enemy.size * 5); // (2B+) cinematic finisher
+        haptic('bossDeath'); // (7B)
         state.activeBoss = undefined;
         state.bossKilledWave = state.bossSpawnedWave;
         closeArena(state); // (2B) ring, telegraphs, boss bullets, enrage all go with the boss

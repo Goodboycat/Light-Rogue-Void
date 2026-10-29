@@ -85,6 +85,7 @@ export interface Settings {
     spriteMode?: boolean;   // (5B) default off — blit extracted PNGs instead of procedural drawing
     showMinimap?: boolean;  // (3A) default on
     muted?: boolean;        // (6A) default off — audio/AudioManager.ts reads master/music/sfx + muted
+    haptics?: 'OFF' | 'LIGHT' | 'FULL'; // (7B) default LIGHT — utils/haptics.ts (navigator.vibrate)
 }
 
 export interface GameState {

@@ -40,6 +40,7 @@ const INITIAL_STATE: GameState = {
         reduceFlash: false,
         spriteMode: false,
         showMinimap: true,
+        haptics: 'LIGHT', // (7B)
         muted: false
     }
 };
@@ -71,6 +72,7 @@ export const useGameSave = () => {
                 if (settings.spriteMode === undefined) settings.spriteMode = false; // (5B)
                 if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
                 if (settings.muted === undefined) settings.muted = false; // (6A)
+                if (!['OFF','LIGHT','FULL'].includes(settings.haptics as string)) settings.haptics = 'LIGHT'; // (7B)
                 if (!['LOW','MEDIUM','HIGH','AUTO'].includes(settings.performanceMode)) settings.performanceMode = 'AUTO'; // (7B)
                 if (typeof settings.masterVolume !== 'number') settings.masterVolume = 0.8; // (6A)
                 if (typeof settings.musicVolume !== 'number') settings.musicVolume = 0.6;

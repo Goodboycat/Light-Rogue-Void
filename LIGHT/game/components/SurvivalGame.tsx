@@ -12,6 +12,7 @@ import ChapterCard from './ChapterCard';
 import MapBreather from './MapBreather'; // (7C)
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
+import { haptic, setHapticsMode } from '../utils/haptics'; // (7B)
 import { setSpriteMode } from './game/renderer/SpriteRenderer';
 import { fitCanvas, tickQuality, qualitySetting, installQualityCtx } from './game/Quality'; // (7B)
 // (5B) `?sprites=1` forces sprite mode regardless of the setting
@@ -398,6 +399,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const handleDamage = (amount: number) => {
       // (4A) 0.3 s i-frames after any hit; also pulses the vignette + shake
       if (!onPlayerHurt(gameStateRef.current)) return;
+      haptic('hurt'); // (7B)
       // (3A) Ward shrine: -15 % damage taken (rounded, never below 1)
       let remainingDamage = Math.max(1, Math.round(amount * incomingDamageMult(gameStateRef.current.runModifiers)));
       const shield = gameRefs.current.currentShield;
@@ -500,6 +502,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
             setSpriteMode(SPRITES_FLAG || !!refs.settings.spriteMode); // (5B)
+            setHapticsMode(refs.settings.haptics); // (7B)
             state.showMinimap = refs.settings.showMinimap !== false; // (3A)
             // (3A) run layer: tree stats × shrine/relic modifiers → what every system reads this frame
             const runStats = applyRunModifiers(refs.playerStats, state.runModifiers);

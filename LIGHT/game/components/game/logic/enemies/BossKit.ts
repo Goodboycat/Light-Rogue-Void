@@ -13,6 +13,7 @@ import { spawnEnemy } from './SpawnLogic';
 import { clearHazards } from './BossHazards';
 import { ENEMIES } from '../../../../enemies';
 import { hitStop, shake } from '../../Feel';
+import { haptic } from '../../../../utils/haptics'; // (7B)
 import { sfx, sfxAt } from '../../../../audio/hooks'; // (6B)
 import {
     TELEGRAPH_POOL_SIZE, TELEGRAPH_FLASH_FRAMES,
@@ -199,6 +200,7 @@ export const startPhaseShift = (state: MutableGameState, boss: Enemy) => {
     boss.state.custom = boss.state.custom ?? {};
     boss.state.custom.phaseShiftTimer = BOSS_PHASE_SHIFT_FRAMES;
     sfx('boss_phase', 1, 0); // (6B)
+    haptic('bossPhase'); // (7B)
     boss.projectileImmunity = BOSS_PHASE_SHIFT_FRAMES;
     boss.vx = 0; boss.vy = 0;
     clearBossProjectiles(state);

@@ -1,6 +1,7 @@
 
 import { MutableGameState, ParticleType } from '../types';
 import { onEnemyHit } from '../Feel';
+import { haptic } from '../../../utils/haptics'; // (7B)
 import { PlayerStats } from '../../../types';
 import { createParticle, spawnExplosion } from '../Particles';
 import { WORLD_SIZE } from '../Constants';
@@ -161,6 +162,7 @@ export const updatePlayer = (
 
             state.player.dashTimer = 10 + stats.dashDuration;
             sfx('player_dash'); // (6B)
+            haptic('dash'); // (7B)
             // (3A) Mirror Shard: extra charges skip the cooldown; they refill when a normal cooldown completes
             if ((state.dashChargesLeft ?? 0) > 0) {
                 state.dashChargesLeft!--;
