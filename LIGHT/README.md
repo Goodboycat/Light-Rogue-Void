@@ -6,7 +6,7 @@ Pillars: **storytelling · action · discovery · stressful bosses**.
 
 - Studio: Beato Forge · Dev: Goodboycat · Art inspired by Idle Tower Defense
 - Stack: React 19 + Vite + Canvas 2D (procedural art) · single-file itch.io build · Capacitor APK later
-- Docs: `docs/PLAN.md` (roadmap), `docs/GDD.md` (design), `docs/CONVENTIONS.md` (rules for every chat), `docs/HANDOFF.md` (what the last chat did), `docs/ENEMIES.md` / `docs/BOSSES.md` / `docs/TREE.md` (generated tables), `docs/WORLD.md` (every discoverable point / event), `docs/STORY.md` (full script), `docs/ITCH.md` (how to publish), `prompts/<ID>.md` (one instruction file per chat)
+- Docs: `docs/PLAN.md` (roadmap), `docs/GDD.md` (design), `docs/CONVENTIONS.md` (rules for every chat), `docs/HANDOFF.md` (what the last chat did), `docs/ENEMIES.md` / `docs/BOSSES.md` / `docs/TREE.md` (generated tables), `docs/WORLD.md` (every discoverable point / event), `docs/STORY.md` (full script), `docs/ITCH.md` (how to publish), `docs/MOBILE.md` (quality profiles, phone checklist, bench numbers), `prompts/<ID>.md` (one instruction file per chat)
 
 ## Quick start
 ```bash
@@ -42,14 +42,14 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 7C | World Map (owner request): `components/WorldMap.tsx` procedural seeded star chart (6 places + 4 faint `?` future places, dotted Catmull-Rom path, locks, ✓ rings, pulsing current, black-hole swirl, `@` glyph nodes) replaces `#chapter-select` in the menu (START shows place + waves N–N+9); `MapBreather.tsx` freezes the run on the map after bosses 1–5 (CONTINUE → chapter card, RETURN TO MENU, Esc/Enter/Space); 6 hidden treasure caches revealed per cleared boss grant matter once (`gameState.mapTreasuresOpened`, optional field, no SAVE_VERSION bump); `docs/GDD.md` World Map, `docs/WORLD.md`, PLAN 13b. |
 | 7A | UI polish: tree UX (zoom 0.5–2.5, search, Dijkstra path preview + total cost, arc legend = fit buttons), RESPEC (`RESPEC_TAX` 20 %, confirm, keeps `spark`), HUD layout (safe-area insets, low-contrast plates, boss bar below top row, burst meter under matter, nothing over the joystick), run summary on GameOver/WinGame (waves/kills/elites/bosses/essence→matter/found/streak/time + new-in-bestiary, TREE / RETRY chapter / MENU), Guidebook (`data/guidebook.ts` + `components/Guidebook.tsx`, menu + pause), pause ABANDON RUN confirm. |
 | 7D | Map mystery + cinematics (owner request): world-map fog of war (seeded simplex puffs over unreached places, faint glow only, path fades one segment past the furthest reached place), `MapReveal.tsx` place-reveal cinematic (pan+zoom, fog dissolve, name letter-spaced in, `music_sting_reveal`; in `MapBreather` after a boss and once in the menu via `gameState.mapRevealsSeen`), `data/cinematics.ts` shot lists (6 bossIntro + 6 bossOutro + 6 openers + 6 preBoss push-ins + ending), `logic/Cinematic.ts` player (frozen sim, live render, camera pan/zoom via `state.camera` + `cinematicZoom`, fx, actor presence, skip after 1 s) + `StoryCinematicOverlay.tsx` (letterbox + lines); hooked at boss spawn / boss death (→ then map reveal) / chapter opener / pre-boss (noFreeze) / ending (WinGame `skipOutro`); `docs/STORY.md` now lists shots. Not eyeballed in a browser (credits). |
+| 7B | Mobile QA: `game/Quality.ts` LOW/MEDIUM/HIGH + AUTO (detail only — glow, shadowBlur gate, floaters, particle size, DPR cap 1/1.5/2; rule 9, no count caps), floating touch sticks + dash/burst/pause buttons (pointer ids, 8 px dead zone, no 300 ms delay, `touch-action: none`), safe-area HUD + landscape corner layout (`100dvh`), `utils/haptics.ts` OFF/LIGHT/FULL, enemy draw culling (+64 px) + `renderer/EnemyBatcher.ts` (plain enemies one Path2D fill per tint; LOW always, else ≥ 120 visible), `tools/bench.mjs` wave-40 4× CPU throttle: **LOW 32.4 fps** (30.9 ms avg / 37.3 p95), MEDIUM 18.6 fps, `docs/MOBILE.md`. No real-device pass (sandbox). |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 7B 8A 8B 9A 9B 10
+Next: 8A 8B 9A 9B 10
 
 | Chat | Summary |
 |------|---------|
-| 7B | Mobile QA: touch, safe areas, performance mode, 60 fps on mid phones. |
 | 8A | Save v2: migrations, export/import, run stats, achievements v2. |
 | 8B | Balance: headless sim (`npm run sim`), curves for 60 waves + endless. |
 | 9A | Endless mode + daily seed. |
