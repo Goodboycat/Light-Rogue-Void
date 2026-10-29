@@ -77,6 +77,7 @@ const AchievementList: React.FC<AchievementListProps> = ({ unlockedIds, onClose 
                                         <p className="text-xs text-slate-400 leading-tight">
                                             {ach.description}
                                         </p>
+                                        <p className="text-[10px] font-mono text-yellow-500/80 mt-0.5">+{ach.reward.toLocaleString()} MATTER</p>
                                     </div>
 
                                     {isUnlocked && (

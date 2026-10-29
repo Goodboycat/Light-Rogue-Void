@@ -17,7 +17,8 @@ import TransitionOverlay from './components/TransitionOverlay';
 import Gallery from './components/Gallery';
 
 import { ABILITY_TREE_DATA } from './data';
-import { checkAchievements } from './data/achievements';
+import { checkAchievements, achievementReward } from './data/achievements';
+import AchievementToast, { AchievementToastItem } from './components/AchievementToast'; // (8A step 5)
 import { useGameSave, lastTreeMigration, stateToSave } from './hooks/useGameSave';
 import { usePlayerStats } from './hooks/usePlayerStats';
 import { Settings } from './types';
@@ -31,6 +32,20 @@ const App: React.FC = () => {
   const { gameState, setGameState, resetSave, exportCode, previewImport, applyImport } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
   const [migrationToast, setMigrationToast] = useState(lastTreeMigration);
+  // (8A step 5) achievement unlock flow: grant reward matter + queue a toast; pure on the save state.
+  const [achToasts, setAchToasts] = useState<AchievementToastItem[]>([]);
+  const toastKeyRef = React.useRef(0);
+  const unlockAchievements = useCallback(<T extends { unlockedAchievementIds: string[]; matter: number; stats?: any }>(p: T, ids: string[]): T => {
+      if (ids.length === 0) return p;
+      const fresh = ids.filter(id => !p.unlockedAchievementIds.includes(id));
+      if (fresh.length === 0) return p;
+      const reward = achievementReward(fresh);
+      queueMicrotask(() => {
+          setAchToasts(t => [...t, ...fresh.map(id => ({ key: ++toastKeyRef.current, id }))]);
+          Audio.play('ui_unlock');
+      });
+      return { ...p, unlockedAchievementIds: [...p.unlockedAchievementIds, ...fresh], matter: p.matter + reward, stats: p.stats ? recordMatter(p.stats, reward) : p.stats };
+  }, []);
   useEffect(() => {
     if (!migrationToast) return;
     const t = setTimeout(() => setMigrationToast(null), 7000);
@@ -267,62 +282,33 @@ const App: React.FC = () => {
       setGameState(p => {
           const newDefeated = p.defeatedBosses.includes(bossId) ? p.defeatedBosses : [...p.defeatedBosses, bossId];
           const tempState = { ...p, defeatedBosses: newDefeated, stats: recordBossKill(p.stats, bossId, feats) };
-          const newUnlocks = checkAchievements(tempState, playerStats, startWave, startWave);
-          
-          let nextAchievementIds = p.unlockedAchievementIds;
-          if (newUnlocks.length > 0) {
-              nextAchievementIds = [...p.unlockedAchievementIds, ...newUnlocks];
-          }
-          return { ...p, defeatedBosses: newDefeated, unlockedAchievementIds: nextAchievementIds, stats: tempState.stats };
+          return unlockAchievements(tempState, checkAchievements(tempState, playerStats, startWave, startWave));
       });
-  }, [playerStats, startWave, setGameState]);
+  }, [playerStats, startWave, setGameState, unlockAchievements]);
 
   const handleUpdateMaxWave = useCallback((wave: number) => {
       setGameState(p => {
           const newMax = Math.max(p.maxWaveReached || 1, wave);
           const tempState = { ...p, maxWaveReached: newMax };
-          const newUnlocks = checkAchievements(tempState, playerStats, wave, startWave);
-          
-          let nextAchievementIds = p.unlockedAchievementIds;
-          if (newUnlocks.length > 0) {
-              nextAchievementIds = [...p.unlockedAchievementIds, ...newUnlocks];
-          }
-
-          return {
-              ...p,
-              maxWaveReached: newMax,
-              unlockedAchievementIds: nextAchievementIds
-          };
+          return unlockAchievements(tempState, checkAchievements(tempState, playerStats, wave, startWave));
       });
-  }, [playerStats, startWave, setGameState]);
+  }, [playerStats, startWave, setGameState, unlockAchievements]);
 
   const handleUpdateMaxMaturity = useCallback((level: number) => {
       setGameState(p => {
           if (level > (p.maxMaturityAchieved || 0)) {
               const tempState = { ...p, maxMaturityAchieved: level };
-              const newUnlocks = checkAchievements(tempState, playerStats, startWave, startWave);
-              let nextAchievementIds = p.unlockedAchievementIds;
-              if (newUnlocks.length > 0) {
-                  nextAchievementIds = [...p.unlockedAchievementIds, ...newUnlocks];
-              }
-              return { ...p, maxMaturityAchieved: level, unlockedAchievementIds: nextAchievementIds };
+              return unlockAchievements(tempState, checkAchievements(tempState, playerStats, startWave, startWave));
           }
           return p;
       });
-  }, [playerStats, startWave, setGameState]);
+  }, [playerStats, startWave, setGameState, unlockAchievements]);
 
-  // Check achievements on upgrade/matter collection occasionally
+  // (8A step 5) sweep: matter / tree / lifetime-stats achievements (also in the menu, so stat-based ones land after a run ends)
   useEffect(() => {
-     if(!isInMainMenu) {
-        const newUnlocks = checkAchievements(gameState, playerStats, startWave, startWave);
-        if (newUnlocks.length > 0) {
-             setGameState(p => ({
-                 ...p,
-                 unlockedAchievementIds: [...p.unlockedAchievementIds, ...newUnlocks]
-             }));
-        }
-     }
-  }, [gameState.matter, gameState.unlockedAbilityIds, isInMainMenu, playerStats, startWave, setGameState]);
+     const newUnlocks = checkAchievements(gameState, playerStats, startWave, startWave);
+     if (newUnlocks.length > 0) setGameState(p => unlockAchievements(p, newUnlocks));
+  }, [gameState.matter, gameState.unlockedAbilityIds, gameState.stats, gameState.seenEnemyIds, isInMainMenu, playerStats, startWave, setGameState, unlockAchievements]);
 
   return (
     <div 
@@ -330,6 +316,9 @@ const App: React.FC = () => {
       onContextMenu={(e) => e.preventDefault()}
     >
       <TransitionOverlay isVisible={isTransitioning} duration={1.0} />
+
+      {/* (8A step 5) achievement unlock toasts */}
+      <AchievementToast items={achToasts} onDone={k => setAchToasts(t => t.filter(i => i.key !== k))} />
 
       {/* (1B) one-time toast after the skill-tree migration */}
       <AnimatePresence>

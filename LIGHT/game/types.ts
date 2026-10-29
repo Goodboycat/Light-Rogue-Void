@@ -70,6 +70,7 @@ export interface Achievement {
     title: string;
     description: string;
     icon: string;
+    reward: number; // (8A step 5) matter granted on unlock
     condition: (state: GameState, stats: PlayerStats, currentWave: number, sessionStartWave: number) => boolean;
 }
 
