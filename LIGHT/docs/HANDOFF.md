@@ -6,6 +6,10 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
+## 8B (in progress) — balance
+- Steps 1–3 committed (sim, Constants curves, boss TTK). **Step 4 done**: `game/tools/tree-cost.mjs` (reads `out/sim/summary.jsonl` budget:N rows, else built-in table). Tree = 408 nodes / 77.7M matter (Off 18.2M, Def 19.9M, Util 18.0M, Const 21.7M). Depth band 50+ is 15–17M of each arc (~85%). Measured ess/run vs owned matter: 0→19, 2k→613 (w10), 30k→18.6k (w19), 300k→93k (w30), 1M+→~220k plateau (bot walls at Crimson Eclipse w30). Model (cheapest-first): 25% tree run 114, 50% run 203, **Offense full run 234**, Def 254, Util 277; full tree never (bosses 4–6 constellations need w40+). Offense-first ordering changes nothing (costs are depth-gated). Verdict for step 5/6: depth-50 tier ×100 is the wall; income plateau is the bot ceiling, not the curve.
+- Next: step 5 death-cause table + outlier patch, step 6 docs/BALANCE.md, finish.
+
 ## 8A (this chat) — Save v2: DONE (steps 1–6 committed by the previous 8A chat, this chat did the finish)
 Gate at finish: `npm run typecheck` 0 errors, `npm run test:save` **67 passed / 0 failed**, `npm run build` green (1 640 kB JS / 408 kB gz), itch zip built. Nothing was eyeballed in a browser (credits) — 8B: open Settings → SAVE TRANSFER and the Archives RECORDS tab once.
 - **Schema** `save/schema.ts`: `SAVE_VERSION = 2`, `SAVE_KEY = 'light_escapes_void_save_v1'` (key name kept on purpose — the version lives inside the JSON), `SAVE_BACKUP_KEY = 'light_save_backup'`, `SaveV2` (every `gameState.*` field 1B–7D + `stats: LifetimeStats` + `savedAt`), `defaultSave()`.
