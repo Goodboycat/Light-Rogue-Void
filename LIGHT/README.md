@@ -46,15 +46,15 @@ bash LIGHT/game/tools/next.sh   # prints the next chat ID + its prompt file
 | 7B | Mobile QA: `game/Quality.ts` LOW/MEDIUM/HIGH + AUTO (detail only — glow, shadowBlur gate, floaters, particle size, DPR cap 1/1.5/2; rule 9, no count caps), floating touch sticks + dash/burst/pause buttons (pointer ids, 8 px dead zone, no 300 ms delay, `touch-action: none`), safe-area HUD + landscape corner layout (`100dvh`), `utils/haptics.ts` OFF/LIGHT/FULL, enemy draw culling (+64 px) + `renderer/EnemyBatcher.ts` (plain enemies one Path2D fill per tint; LOW always, else ≥ 120 visible), `tools/bench.mjs` wave-40 4× CPU throttle: **LOW 32.4 fps** (30.9 ms avg / 37.3 p95), MEDIUM 18.6 fps, `docs/MOBILE.md`. No real-device pass (sandbox). |
 | 8A | Save v2: `save/schema.ts` (`SAVE_VERSION` 2, typed `SaveV2` + `LifetimeStats` + defaults), `save/migrate.ts` chain v0→v1→v2 (3 fixtures, `npm run test:save` 67 checks), `save/storage.ts` write-safety (500 ms debounce, flush on pagehide/hidden/beforeunload, quota retry, `light_save_backup` rotated once per day), `save/codec.ts` `LIGHT1.<base64url(JSON+crc32)>` export/import (`components/SaveTransfer.tsx` in Settings: copy code / `.light` file / paste or drop → validate → confirm overwrite), `save/stats.ts` lifetime records (kills, bosses per id + feats, best wave per chapter, matter, discoveries, deaths per boss) in Archives RECORDS tab, `logic/BossFeats.ts` per-fight flags, achievements v2 (30 data-driven, matter rewards, `AchievementToast.tsx`), `docs/SAVE.md`. Not eyeballed in a browser (credits). |
 | 8B | Balance: `npm run sim` bot + presets/`--boss`/`--god`, named curves in `Constants.ts`, `BOSS_HP_MULT` tuned (TTK 37–143 s), `tools/tree-cost.mjs` (77.7M tree, Offense full ≈ run 234), death-cause table + Crimson Eclipse laser patch (full tree 0/6 → 6/6), `docs/BALANCE.md`. **Fixed itch crash** (`save/storage.ts` unbound setTimeout → Illegal invocation); itch build smoke-tested in a browser, 0 errors. |
+| 9A | Endless (STAY → wave 61+, `ENDLESS_SCALE`, bosses 1–5 return with mutators from `data/mutators.ts`, WATCHER endless pool) + Daily Void (UTC date seed, streak, 30-day history, share code + verify, `save/daily.ts`). Pre-step: budget sweep re-run after the Eclipse patch (`docs/BALANCE.md`). itch build browser-smoke-tested, 0 errors. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 
 ### Next (in order)
-Next: 9A 9B 10
+Next: 9B 10
 
 | Chat | Summary |
 |------|---------|
 | 8B | Balance: headless sim (`npm run sim`), curves for 60 waves + endless. |
-| 9A | Endless mode + daily seed. |
 | 9B | Jam package: itch page copy, screenshots, trailer shot list, final README. |
 | 10 | Capacitor APK. No prompt file — not a sandbox chat. |
 
