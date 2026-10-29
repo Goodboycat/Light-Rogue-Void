@@ -1,6 +1,6 @@
 
 import { EnemyDef } from './components/game/types';
-import { bossIndexOf } from './components/game/Constants';
+import { bossIndexOf, isEndlessWave, endlessBossIndex } from './components/game/Constants';
 import { ParticleType } from './components/game/types';
 
 export const BOSSES: EnemyDef[] = [
@@ -118,7 +118,7 @@ export const BOSSES: EnemyDef[] = [
     }
 ];
 
-export const getBossForWave = (wave: number): EnemyDef => BOSSES[bossIndexOf(wave)];
+export const getBossForWave = (wave: number): EnemyDef => isEndlessWave(wave) ? BOSSES[endlessBossIndex(wave)] : BOSSES[bossIndexOf(wave)]; // (9A) endless cycles bosses 1–5
 
 // (2C) Boss-only minions: spawnWeight 0 so the director never rolls them; boss scripts spawn them via spawnEnemy(..., def).
 export const BOSS_MINIONS: Record<string, EnemyDef> = {

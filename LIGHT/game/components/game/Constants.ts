@@ -45,6 +45,24 @@ export const chapterIndexOf = (wave: number): number =>
 
 export const chapterOf = (wave: number): ChapterDef => CHAPTERS[chapterIndexOf(wave) - 1];
 
+// --- ENDLESS (9A) --- waves past MAX_WAVE after choosing STAY. Pure functions of the wave number (sim-friendly).
+export const isEndlessWave = (wave: number): boolean => wave > MAX_WAVE;
+/** Endless wave index: 61 → 1, 70 → 10 … */
+export const endlessDepth = (wave: number): number => Math.max(0, wave - MAX_WAVE);
+/** Extra multiplier on enemy + boss HP in endless: +6 %/wave linear, compounding ×1.15 every 10 waves. 1 at ≤ 60. */
+export const ENDLESS_HP_PER_WAVE = 0.06;
+export const ENDLESS_HP_PER_TEN = 1.15;
+export const ENDLESS_SCALE = (wave: number): number => {
+  const d = endlessDepth(wave); if (d <= 0) return 1;
+  return (1 + d * ENDLESS_HP_PER_WAVE) * Math.pow(ENDLESS_HP_PER_TEN, Math.floor(d / WAVES_PER_CHAPTER));
+};
+/** Bosses 1–5 return in order every 10 endless waves (Darkness stays dead). 0-based BOSSES index. */
+export const ENDLESS_BOSS_POOL = 5;
+export const endlessBossIndex = (wave: number): number => (Math.ceil(endlessDepth(wave) / WAVES_PER_CHAPTER) - 1 + ENDLESS_BOSS_POOL * 1000) % ENDLESS_BOSS_POOL;
+/** Palette chapter for display only (cycles 1→6 in endless); gameplay keeps chapterIndexOf (clamped to 6). */
+export const paletteChapterOf = (wave: number): ChapterDef =>
+  isEndlessWave(wave) ? CHAPTERS[(Math.ceil(endlessDepth(wave) / WAVES_PER_CHAPTER) - 1) % CHAPTER_COUNT] : chapterOf(wave);
+
 /** Boss index (0-based into BOSSES) for a wave. */
 export const bossIndexOf = (wave: number): number => chapterIndexOf(wave) - 1;
 
@@ -70,7 +88,7 @@ export const ENEMY_HP_QUAD = 0.5;
 /** Global enemy HP multiplier per chapter (index 0 = chapter 1). */
 export const ENEMY_HP_CHAPTER_MULT = [1, 1, 1, 1, 1, 1];
 export const enemyHpAt = (baseHp: number, hpScaling: number, wave: number): number =>
-  Math.max(1, Math.round((baseHp + wave * hpScaling + wave * wave * ENEMY_HP_QUAD) * ENEMY_HP_CHAPTER_MULT[chapterIndexOf(wave) - 1]));
+  Math.max(1, Math.round((baseHp + wave * hpScaling + wave * wave * ENEMY_HP_QUAD) * ENEMY_HP_CHAPTER_MULT[chapterIndexOf(wave) - 1] * ENDLESS_SCALE(wave)));
 export const ENEMY_SPEED_PER_WAVE = 0.05;
 export const enemySpeedAt = (baseSpeed: number, wave: number): number => baseSpeed + wave * ENEMY_SPEED_PER_WAVE;
 /** Contact damage (player HP is small integers: 3 fresh). EXPLODE adds its burst in the same hit. */
@@ -84,7 +102,9 @@ export const essenceRewardAt = (base: number, wave: number): number => base * (1
 export const MATTER_PER_ESSENCE = 1;
 /** Boss HP = def.baseHp × BOSS_HP_MULT[chapter-1]. */
 export const BOSS_HP_MULT = [0.6, 1.4, 0.8, 1.5, 1.6, 2.5]; // (8B step 3) sim-tuned: god-mode TTK with the expected tree → 60–120 s (docs/BALANCE.md)
-export const bossHpFor = (baseHp: number, wave: number): number => Math.round(baseHp * BOSS_HP_MULT[chapterIndexOf(wave) - 1]);
+export const bossHpFor = (baseHp: number, wave: number): number =>
+  isEndlessWave(wave) ? Math.round(baseHp * BOSS_HP_MULT[endlessBossIndex(wave)] * ENDLESS_SCALE(wave)) // (9A) returning boss keeps its own chapter mult
+                      : Math.round(baseHp * BOSS_HP_MULT[chapterIndexOf(wave) - 1]);
 /** Special (x5 flavor) waves: enemy HP / essence multipliers while a flavor is active. */
 export const SPECIAL_WAVE_HP_MULT = 1;
 export const SPECIAL_WAVE_ESSENCE_MULT = 1;

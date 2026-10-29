@@ -71,7 +71,7 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
   const choose = (choice: 'stay' | 'leave') => {
     sfx(choice === 'stay' ? 'ending_stay' : 'ending_leave', 1, 0); // (6B)
     onEndingSeen?.(choice);
-    if (choice === 'stay') { onReturnToMenu(); return; }
+    if (choice === 'stay') { if (!onEndingSeen) onReturnToMenu(); return; } // (9A) App starts Endless (wave 61) from onEndingSeen
     setStage('credits');
   };
 

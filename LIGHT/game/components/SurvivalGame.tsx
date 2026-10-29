@@ -7,7 +7,7 @@ import { updateGame } from './game/Logic';
 import { resetDirector } from './game/logic/Director';
 import { resetLightBurst } from './game/logic/LightBurst';
 import { startWaveFlavor } from './game/waveFlavors';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef, isBossWave, CHAPTER_CARD_MS, WAVES_PER_CHAPTER } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef, isBossWave, CHAPTER_CARD_MS, WAVES_PER_CHAPTER, isEndlessWave, endlessDepth, paletteChapterOf } from './game/Constants';
 import ChapterCard from './ChapterCard';
 import MapBreather from './MapBreather'; // (7C)
 import { renderGame } from './game/Renderer';
@@ -295,7 +295,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       const state = gameStateRef.current;
       const nextWave = refs.wave + 1;
 
-      if ((IS_DEMO && nextWave > DEMO_MAX_WAVE) || nextWave > MAX_WAVE) {
+      if ((IS_DEMO && nextWave > DEMO_MAX_WAVE) || (nextWave > MAX_WAVE && initialWave <= MAX_WAVE)) { // (9A) endless runs (started at 61+) never win
           setGameWon(true); Audio.music("music_ending", 2000); // (6B)
           setTimeRemaining(0);
           return false;
@@ -308,7 +308,11 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
       setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
       const ci = chapterIndexOf(nextWave);
-      if (ci !== chapterIndexOf(nextWave - 1)) {
+      if (isEndlessWave(nextWave)) {
+          // (9A) endless: palette cycles every 10 waves, WATCHER pool line on 61/71/…
+          if (endlessDepth(nextWave) % WAVES_PER_CHAPTER === 1) onChapterChange?.(paletteChapterOf(nextWave));
+          setStoryLines(storyLinesForWave(nextWave));
+      } else if (ci !== chapterIndexOf(nextWave - 1)) {
           showChapterCard(nextWave); // (3B step 5) new chapter
           // (7D) opener = cinematic (lines spoken inside it), not the free caption
           setStoryLines(null);
@@ -583,7 +587,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     // (7D) ending cinematic over the live arena, then WinGame (its own outro is skipped)
                     Audio.music("music_ending", 2000); // (6B)
                     playStoryCinematicRef.current('ending', { bossPos: deathPos, onEnd: () => setGameWon(true) });
-                } else if (playStoryCinematicRef.current(`bossOutro_${bossId}`, {
+                } else if (!isEndlessWave(refs.wave) && playStoryCinematicRef.current(`bossOutro_${bossId}`, { // (9A) no story outro for returning bosses
                     bossPos: deathPos,
                     onEnd: () => {
                         const killedWave = state.bossKilledWave ?? refs.wave;

@@ -185,7 +185,22 @@ export const STORY_BEAT_WAVES: Record<'opener' | 'mid' | 'preBoss', number> = {
 };
 
 /** Caption lines (non-pausing) to show when `wave` begins, or null. Boss beats are not included. */
+/** (9A) Endless: WATCHER speaks once every 10 endless waves (61, 71, …), cycling this pool. */
+export const ENDLESS_WATCHER_LINES: StoryLine[] = [
+    W('You stayed. The void did not expect company.'),
+    W('Old shapes return. They remember being beaten.'),
+    W('There is no seam left to close. Only a light to keep.'),
+    W('Every star you pass was once a spark that stayed.'),
+    W('The dark has nothing new. It has more.'),
+    W('Count the waves if you like. The void stopped counting.'),
+    W('You are the brightest thing out here. That is the problem.'),
+    W('Still lit. Still here. Still enough.'),
+];
 export const storyLinesForWave = (wave: number): StoryLine[] | null => {
+    if (wave > CHAPTERS.length * WAVES_PER_CHAPTER) { // (9A) endless
+        const d = wave - CHAPTERS.length * WAVES_PER_CHAPTER;
+        return d % WAVES_PER_CHAPTER === 1 ? [ENDLESS_WATCHER_LINES[Math.floor(d / WAVES_PER_CHAPTER) % ENDLESS_WATCHER_LINES.length]] : null;
+    }
     if (wave < 1 || wave > CHAPTERS.length * WAVES_PER_CHAPTER) return null;
     const chapter = Math.ceil(wave / WAVES_PER_CHAPTER);
     const offset = ((wave - 1) % WAVES_PER_CHAPTER) + 1;

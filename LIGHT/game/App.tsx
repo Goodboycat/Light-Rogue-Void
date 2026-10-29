@@ -138,8 +138,9 @@ const App: React.FC = () => {
   };
 
   /** (2D) Ending choice made (Stay → endless in 9A; Leave → credits). Persist the flag. */
-  const handleEndingSeen = (_choice: 'stay' | 'leave') => {
+  const handleEndingSeen = (choice: 'stay' | 'leave') => {
       setGameState(p => ({ ...p, endingSeen: true }));
+      if (choice === 'stay') handleRestart(MAX_WAVE + 1); // (9A) STAY → Endless from wave 61
   };
 
   /** (7C) World-map treasure cache opened: grant matter once, remember the id. */
