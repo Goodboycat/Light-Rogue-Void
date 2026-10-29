@@ -697,7 +697,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
   return (
     <div className={`absolute inset-0 ${!paused && !gameOver && !gameWon && !activeCinematic ? 'cursor-none' : ''}`}>
-      <canvas ref={canvasRef} className="block" />
+      <canvas ref={canvasRef} className="block touch-none select-none" style={{ touchAction: 'none' }} />
       
       {activeCinematic && (
           <CinematicOverlay 

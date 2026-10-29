@@ -32,13 +32,16 @@ export class InputHandler {
     };
 
     handleMouseMove = (e: MouseEvent) => {
+        // (7B) compat mouse events synthesised from touches must not steal aim from the virtual stick
+        if ((e as any).sourceCapabilities?.firesTouchEvents) return;
         this.mouseX = e.clientX;
         this.mouseY = e.clientY;
         // If mouse moves, we assume virtual aim is inactive to allow switching
         this.virtualAimActive = false;
     };
 
-    handleMouseDown = () => {
+    handleMouseDown = (e: MouseEvent) => {
+        if ((e as any).sourceCapabilities?.firesTouchEvents) return; // (7B)
         this.isMouseDown = true;
     };
 

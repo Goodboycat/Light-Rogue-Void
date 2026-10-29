@@ -168,3 +168,7 @@ export const BURST_KNOCKBACK = 14;
 
 // (7A) Respec: refund every unlocked node except `spark`, minus this tax.
 export const RESPEC_TAX = 0.2;
+
+// (7B) touch controls — floating sticks
+export const TOUCH_DEAD_ZONE_PX = 8;      // thumb must move this far before the stick registers
+export const TOUCH_STICK_RADIUS_PX = 56;  // full deflection ring radius (CSS px)
