@@ -28,14 +28,16 @@ interface WinGameProps {
   /** (7A) run summary shown on the choice screen */
   summary?: RunSummaryData | null;
   onOpenTree?: () => void;
+  /** (7D) the ending cinematic already played over the live arena — start at the choice. */
+  skipOutro?: boolean;
 }
 
 type Stage = 'outro' | 'choice' | 'credits';
 
 const WHISPERS = WATCHER_WHISPERS; // (3B step 7) single source in data/story.ts
 
-const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSeen, stats, summary, onOpenTree }) => {
-  const [stage, setStage] = useState<Stage>(IS_DEMO ? 'choice' : 'outro');
+const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSeen, stats, summary, onOpenTree, skipOutro }) => {
+  const [stage, setStage] = useState<Stage>(IS_DEMO || skipOutro ? 'choice' : 'outro');
   const [seamPhase, setSeamPhase] = useState<'wash' | 'tear' | 'bloom'>('wash');
   const [flicker, setFlicker] = useState(false);
   const [whisper, setWhisper] = useState<{ text: string; side: number; key: number } | null>(null);

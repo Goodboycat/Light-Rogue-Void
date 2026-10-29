@@ -7,7 +7,7 @@ import { updateGame } from './game/Logic';
 import { resetDirector } from './game/logic/Director';
 import { resetLightBurst } from './game/logic/LightBurst';
 import { startWaveFlavor } from './game/waveFlavors';
-import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef, isBossWave } from './game/Constants';
+import { WORLD_SIZE, IS_DEMO, DEMO_MAX_WAVE, MAX_WAVE, waveKillQuota, waveTimerSec, DEBUG, chapterIndexOf, CHAPTERS, ChapterDef, isBossWave, CHAPTER_CARD_MS, WAVES_PER_CHAPTER } from './game/Constants';
 import ChapterCard from './ChapterCard';
 import MapBreather from './MapBreather'; // (7C)
 import { renderGame } from './game/Renderer';
@@ -27,8 +27,12 @@ import GameOverlay from './GameOverlay';
 import BossBar, { BossBarInfo } from './BossBar';
 import { isPhaseShifting, enrageCountdown } from './game/logic/enemies/BossKit';
 import { INTRO_SCRIPT, CinematicLine } from '../data/cinematics';
-import { BOSS_SCRIPTS } from '../data/bossCinematics';
-import { storyLinesForWave, StoryLine } from '../data/story';
+import { storyLinesForWave, StoryLine, STORY_BEAT_WAVES } from '../data/story';
+import StoryCinematicOverlay from './StoryCinematicOverlay'; // (7D)
+import { storyCinematic } from '../data/cinematics'; // (7D)
+import { startCinematic, updateCinematic, skipCinematic, cinematicFreezes, resolveCinematicLines, CinematicState } from './game/logic/Cinematic'; // (7D)
+import { updateShake } from './game/Feel'; // (7D) decay while the sim is frozen
+import { updateBigFx } from './game/BigFx'; // (7D)
 import StoryCaption from './StoryCaption';
 import { MATURITY_LEVELS } from '../data/maturity';
 import { LIGHT_PHRASES } from '../data/lightPhrases';
@@ -127,6 +131,27 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [breather, setBreather] = useState<number | null>(null);
   const breatherRef = useRef<number | null>(null);
   breatherRef.current = breather;
+  // (7D) storyline cinematic mirror for the overlay (the player itself lives on state.cinematic)
+  const [storyCine, setStoryCine] = useState<{ id: string; lines: StoryLine[]; noFreeze: boolean } | null>(null);
+  const storyCineRef = useRef<CinematicState | null>(null);
+  /** Start a storyline cinematic by id (data/cinematics.ts). Returns false when the id is unknown or one already plays. */
+  const playStoryCinematic = (id: string, opts: { onEnd?: () => void; bossPos?: { x: number; y: number } } = {}): boolean => {
+      const state = gameStateRef.current;
+      const cine = storyCinematic(id);
+      if (!cine || state.cinematic) { opts.onEnd?.(); return false; }
+      const lines = resolveCinematicLines(cine.lines);
+      startCinematic(state, cine, {
+          bossPos: opts.bossPos,
+          onEnd: () => { storyCineRef.current = null; setStoryCine(null); opts.onEnd?.(); },
+      });
+      storyCineRef.current = state.cinematic ?? null;
+      if (!cine.noFreeze) setStoryCine({ id, lines, noFreeze: false });
+      return true;
+  };
+  const playStoryCinematicRef = useRef(playStoryCinematic);
+  playStoryCinematicRef.current = playStoryCinematic;
+  const handleStorySkip = useCallback(() => { skipCinematic(gameStateRef.current); }, []);
+
   /** Boss of `w` died: show the map before the next chapter (never after the last boss). */
   const completeBossWave = (w: number) => {
       if (w < MAX_WAVE && isBossWave(w)) { setBreather(w); Audio.music('music_title', 1500); }
@@ -207,8 +232,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
   // Block Pause Menu when in cinematic or end states
   useEffect(() => {
-      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon || breather !== null);
-  }, [activeCinematic, gameOver, gameWon, breather, onBlockPauseMenu]);
+      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon || breather !== null || !!storyCine);
+  }, [activeCinematic, gameOver, gameWon, breather, storyCine, onBlockPauseMenu]);
 
   // Use a Ref for game state access inside the loop
   const gameRefs = useRef({ 
@@ -273,8 +298,17 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       refs.wave = nextWave; // keep the loop in sync before React re-renders
       if (nextWave > refs.maxWaveReached) refs.onUpdateMaxWave(nextWave);
       setCurrentPhrase(LIGHT_PHRASES[Math.min(nextWave, LIGHT_PHRASES.length - 1)]);
-      setStoryLines(storyLinesForWave(nextWave)); // (3B) null on waves without a beat
-      if (chapterIndexOf(nextWave) !== chapterIndexOf(nextWave - 1)) showChapterCard(nextWave); // (3B step 5) new chapter
+      const ci = chapterIndexOf(nextWave);
+      if (ci !== chapterIndexOf(nextWave - 1)) {
+          showChapterCard(nextWave); // (3B step 5) new chapter
+          // (7D) opener = cinematic (lines spoken inside it), not the free caption
+          setStoryLines(null);
+          window.setTimeout(() => playStoryCinematicRef.current(`opener_${ci}`), CHAPTER_CARD_MS);
+      } else {
+          setStoryLines(storyLinesForWave(nextWave)); // (3B) null on waves without a beat
+          // (7D) pre-boss lines (wave x9) get a 1.5 s push-in, no freeze
+          if ((nextWave - 1) % WAVES_PER_CHAPTER + 1 === STORY_BEAT_WAVES.preBoss) playStoryCinematicRef.current(`preBoss_${ci}`);
+      }
 
       state.enemies.forEach(e => { if (!e.isBoss) e.carried = true; });
       state.waveKills = 0;
@@ -298,8 +332,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
           if (cinematic === INTRO_SCRIPT) {
               onIntroComplete();
-              setStoryLines(storyLinesForWave(gameRefs.current.wave)); // (3B) chapter 1 opener after the intro
               showChapterCard(gameRefs.current.wave); // (3B step 5) chapter 1 card after the intro
+              window.setTimeout(() => playStoryCinematicRef.current('opener_1'), CHAPTER_CARD_MS); // (7D) opener cinematic
           }
           
           const state = gameStateRef.current;
@@ -442,10 +476,24 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             return;
         }
 
+        // (7D) STORYLINE CINEMATIC — frozen sim, live render, camera driven by Cinematic.ts
+        {
+            const state = gameStateRef.current;
+            if (state.cinematic && cinematicFreezes(state) && !refs.paused && !refs.gameOver && !refs.gameWon) {
+                state.frame++;
+                updateParticles(state); updateShake(state); updateBigFx(state);
+                updateCinematic(state, performance.now(), canvas.width, canvas.height);
+                renderGame(ctx, state, applyRunModifiers(refs.playerStats, state.runModifiers), canvas.width, canvas.height, refs.maturityScale, refs.color);
+                anim = requestAnimationFrame(loop);
+                return;
+            }
+        }
+
         // NORMAL GAME LOOP
         if (!refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null) {
             const state = gameStateRef.current;
             const wasBossActive = !!state.activeBoss;
+            updateCinematic(state, performance.now(), canvas.width, canvas.height); // (7D) noFreeze push-ins / zoom ease-back
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
             setSpriteMode(SPRITES_FLAG || !!refs.settings.spriteMode); // (5B)
@@ -516,12 +564,20 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 
                 // TRIGGER OUTRO CINEMATIC
                 // Check specifically if an outro script exists AND is not empty
-                const outroScript = BOSS_SCRIPTS[bossId]?.outro;
-                if (outroScript && outroScript.length > 0) {
-                    refs.onTransition(() => setActiveCinematic(outroScript));
-                } else if (bossId === 'darkness') {
-                    // Darkness has no outro text, but triggers WIN immediately
-                    setGameWon(true); Audio.music("music_ending", 2000); // (6B)
+                const deathPos = { x: state.player.x, y: state.player.y };
+                if (bossId === 'darkness') {
+                    // (7D) ending cinematic over the live arena, then WinGame (its own outro is skipped)
+                    Audio.music("music_ending", 2000); // (6B)
+                    playStoryCinematicRef.current('ending', { bossPos: deathPos, onEnd: () => setGameWon(true) });
+                } else if (playStoryCinematicRef.current(`bossOutro_${bossId}`, {
+                    bossPos: deathPos,
+                    onEnd: () => {
+                        const killedWave = state.bossKilledWave ?? refs.wave;
+                        state.bossKilledWave = undefined;
+                        completeBossWaveRef.current(killedWave); // (7C) map breather / reveal after the outro
+                    },
+                })) {
+                    // outro playing — completion happens in onEnd
                 } else {
                     // No outro script: boss death completes the wave immediately (2A)
                     const killedWave = state.bossKilledWave ?? refs.wave;
@@ -535,9 +591,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 // Boss just appeared this frame in Logic.ts
                 const id = state.activeBoss.def.id;
                 Audio.music('music_boss', 1500); Audio.duck(0.5, 2500); // (6B)
-                if (BOSS_SCRIPTS[id]?.intro) {
-                    refs.onTransition(() => setActiveCinematic(BOSS_SCRIPTS[id].intro!));
-                }
+                playStoryCinematicRef.current(`bossIntro_${id}`); // (7D) camera on the boss, lines, back to the spark
             }
 
             // --- REGEN LOGIC (Per Frame) ---
@@ -574,7 +628,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     timerInterval = setInterval(() => {
         const refs = gameRefs.current;
         // Don't tick timer if cinematic is active
-        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null) {
+        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null && !cinematicFreezes(gameStateRef.current)) {
             
             phraseTimerRef.current += 1;
             if (phraseTimerRef.current >= 5) {
@@ -650,7 +704,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           />
       )}
 
-      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && breather === null && (
+      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && breather === null && !storyCine && (
           <MobileControls input={inputInstance} onOpenMenu={onTogglePause} burstUnlocked={!!burstHud} burstReady={!!burstHud?.ready} />
       )}
 
@@ -673,8 +727,13 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           </div>
       )}
 
-      {!activeCinematic && !gameOver && !gameWon && (
+      {!activeCinematic && !gameOver && !gameWon && !storyCine && (
           <StoryCaption lines={storyLines} seq={wave} raised={!!settings.showTouchControls} />
+      )}
+
+      {/* (7D) storyline cinematic: letterbox + lines + skip; camera runs in the loop */}
+      {storyCine && !gameOver && !gameWon && !paused && (
+          <StoryCinematicOverlay id={storyCine.id} lines={storyCine.lines} noFreeze={storyCine.noFreeze} raised={!!settings.showTouchControls} onSkip={handleStorySkip} />
       )}
 
       {!activeCinematic && !gameOver && !gameWon && (
@@ -734,6 +793,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             onReturnToMenu={onReturnToMenu}
             onEndingSeen={onEndingSeen}
             stats={{ kills: gameStateRef.current.totalKills || 0, wave }}
+            skipOutro
             summary={summaryRef.current}
             onOpenTree={onOpenTree}
           />

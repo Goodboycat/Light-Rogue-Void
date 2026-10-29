@@ -16,6 +16,8 @@ interface Props {
     seq: number;
     /** Raise the caption when the touch controls are visible. */
     raised?: boolean;
+    /** (7D) hold after a line is typed; cinematics pass a shorter one. Default STORY_CAPTION_HOLD_MS. */
+    holdMs?: number;
 }
 
 const VOICE_LABEL: Record<StoryLine['voice'], string> = {
@@ -24,7 +26,7 @@ const VOICE_LABEL: Record<StoryLine['voice'], string> = {
     WATCHER: '???',
 };
 
-const StoryCaption: React.FC<Props> = ({ lines, seq, raised }) => {
+const StoryCaption: React.FC<Props> = ({ lines, seq, raised, holdMs }) => {
     const [idx, setIdx] = useState(0);
     const [shown, setShown] = useState(0);
     const [visible, setVisible] = useState(false);
@@ -49,7 +51,7 @@ const StoryCaption: React.FC<Props> = ({ lines, seq, raised }) => {
             timer.current = window.setTimeout(() => {
                 if (idx + 1 < lines.length) { setIdx(idx + 1); setShown(0); }
                 else setVisible(false);
-            }, STORY_CAPTION_HOLD_MS);
+            }, holdMs ?? STORY_CAPTION_HOLD_MS);
         }
         return () => { if (timer.current) window.clearTimeout(timer.current); };
     }, [visible, lines, idx, shown]);

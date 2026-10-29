@@ -198,6 +198,11 @@ export interface MutableGameState {
     damagePlayer?: (amt: number) => void;
     // (2C) persistent boss hazards — see logic/enemies/BossHazards.ts
     hazards?: import('./logic/enemies/BossHazards').Hazard[];
+    // (7D) storyline cinematic player — see logic/Cinematic.ts. While `cinematic` is set and
+    // not `noFreeze`, SurvivalGame runs updateCinematic instead of updateGame (sim frozen).
+    cinematic?: import('./logic/Cinematic').CinematicState;
+    /** render zoom about the screen centre (1 = normal); eased back to 1 when nothing plays */
+    cinematicZoom?: number;
     playerInRubble?: boolean;      // 90 % slow this frame (PlayerLogic reads it)
     // (2C) Crimson Eclipse — live rotating beams + blackout (renderer/LaserRenderer.ts, Renderer.ts eclipse overlay)
     lasers?: import('./logic/enemies/bosses/CrimsonEclipse').Laser[];

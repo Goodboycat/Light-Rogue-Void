@@ -28,6 +28,10 @@ export const renderGame = (
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
     ctx.save();
+    // (7D) cinematic zoom about the screen centre; world rect visible grows/shrinks by 1/zoom
+    const zoom = state.cinematicZoom ?? 1;
+    if (zoom !== 1) { ctx.translate(canvasWidth / 2, canvasHeight / 2); ctx.scale(zoom, zoom); ctx.translate(-canvasWidth / 2, -canvasHeight / 2); }
+    const viewHalfW = canvasWidth / 2 / zoom, viewHalfH = canvasHeight / 2 / zoom;
     // (4A) camera shake offset (rounded so sprites stay crisp)
     ctx.translate(-Math.round(state.camera.x + (state.shakeX ?? 0)), -Math.round(state.camera.y + (state.shakeY ?? 0)));
 
@@ -57,7 +61,7 @@ export const renderGame = (
     drawLasers(ctx, state);
 
     // --- PROJECTILES ---
-    renderProjectiles(ctx, state, { cx: state.camera.x + canvasWidth / 2, cy: state.camera.y + canvasHeight / 2, halfW: canvasWidth / 2, halfH: canvasHeight / 2 });
+    renderProjectiles(ctx, state, { cx: state.camera.x + canvasWidth / 2, cy: state.camera.y + canvasHeight / 2, halfW: viewHalfW, halfH: viewHalfH });
 
     // --- BACK ORBITALS (Behind Player) ---
     if (stats.projectileCount > 0) {
@@ -78,7 +82,7 @@ export const renderGame = (
     // (4A) batched by colour/alpha into Path2D; GLOW uses cached sprites; culled to the viewport
     drawParticlesBatched(ctx, state.particles, {
         centerX: state.camera.x + canvasWidth / 2, centerY: state.camera.y + canvasHeight / 2,
-        halfW: canvasWidth / 2, halfH: canvasHeight / 2, margin: 64,
+        halfW: viewHalfW, halfH: viewHalfH, margin: 64,
     });
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
