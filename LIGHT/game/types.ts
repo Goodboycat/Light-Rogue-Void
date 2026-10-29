@@ -79,7 +79,7 @@ export interface Settings {
     masterVolume: number;
     musicVolume: number;
     sfxVolume: number;
-    performanceMode: 'LOW' | 'MEDIUM' | 'HIGH';
+    performanceMode: 'LOW' | 'MEDIUM' | 'HIGH' | 'AUTO'; // (7B) AUTO = Quality.ts controller steps by measured fps
     screenShake?: boolean;  // (4A) default on
     reduceFlash?: boolean;  // (4A) default off
     spriteMode?: boolean;   // (5B) default off — blit extracted PNGs instead of procedural drawing

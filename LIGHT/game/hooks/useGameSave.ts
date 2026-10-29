@@ -35,7 +35,7 @@ const INITIAL_STATE: GameState = {
         masterVolume: 0.8,
         musicVolume: 0.6,
         sfxVolume: 1.0,
-        performanceMode: 'MEDIUM',
+        performanceMode: 'AUTO', // (7B)
         screenShake: true,
         reduceFlash: false,
         spriteMode: false,
@@ -71,6 +71,7 @@ export const useGameSave = () => {
                 if (settings.spriteMode === undefined) settings.spriteMode = false; // (5B)
                 if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
                 if (settings.muted === undefined) settings.muted = false; // (6A)
+                if (!['LOW','MEDIUM','HIGH','AUTO'].includes(settings.performanceMode)) settings.performanceMode = 'AUTO'; // (7B)
                 if (typeof settings.masterVolume !== 'number') settings.masterVolume = 0.8; // (6A)
                 if (typeof settings.musicVolume !== 'number') settings.musicVolume = 0.6;
                 if (typeof settings.sfxVolume !== 'number') settings.sfxVolume = 1.0;

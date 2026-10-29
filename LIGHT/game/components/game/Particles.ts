@@ -1,3 +1,4 @@
+import { quality } from './Quality'; // (7B)
 import { MutableGameState, ParticleType } from './types';
 import { acquireParticle, swapRemoveParticle, } from './Pools';
 
@@ -22,7 +23,8 @@ export const createParticle = (
     }
 
     const life = options.life ?? (30 + Math.random() * 20);
-    const size = options.size ?? (Math.random() * 4 + 2);
+    // (7B) quality lowers particle *size* (detail), never the count — rule 9
+    const size = (options.size ?? (Math.random() * 4 + 2)) * quality.particleDetail;
 
     // (4A) pooled: reuse a recycled particle. (4B) no cap — rule 9
     const p = acquireParticle();

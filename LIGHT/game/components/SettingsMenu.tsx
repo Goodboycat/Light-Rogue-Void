@@ -128,8 +128,8 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                     {/* PERFORMANCE MODE */}
                     <div className="space-y-4">
                         <label className="text-xs font-mono text-emerald-400 uppercase tracking-widest block mb-2">Performance & Visuals</label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {['LOW', 'MEDIUM', 'HIGH'].map((mode) => (
+                        <div className="grid grid-cols-4 gap-2">
+                            {['AUTO', 'LOW', 'MEDIUM', 'HIGH'].map((mode) => (
                                 <button
                                     key={mode}
                                     onClick={() => update('performanceMode', mode)}
@@ -144,7 +144,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ settings, onUpdateSettings,
                             ))}
                         </div>
                         <p className="text-[10px] text-slate-500 text-center">
-                            Adjusts background star density. Use LOW for older devices.
+                            AUTO steps the quality by measured fps (&lt; 28 down, &gt; 55 up). LOW: no glow, no shadow blur, no damage numbers, 1× DPR. Never fewer enemies or particles.
                         </p>
                     </div>
 

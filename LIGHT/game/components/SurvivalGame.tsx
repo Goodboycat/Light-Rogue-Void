@@ -13,6 +13,7 @@ import MapBreather from './MapBreather'; // (7C)
 import { renderGame } from './game/Renderer';
 import { onPlayerHurt, setFeelSettings } from './game/Feel';
 import { setSpriteMode } from './game/renderer/SpriteRenderer';
+import { fitCanvas, tickQuality, qualitySetting, installQualityCtx } from './game/Quality'; // (7B)
 // (5B) `?sprites=1` forces sprite mode regardless of the setting
 const SPRITES_FLAG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('sprites') === '1';
 import { applyRunModifiers, incomingDamageMult } from './game/logic/RunStats'; // (3A)
@@ -432,6 +433,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext('2d')!;
+    installQualityCtx(ctx); // (7B) shadowBlur gated by the quality profile
     const input = new InputHandler();
     setInputInstance(input);
     resetLightBurst(gameStateRef.current); // (3B step 6) meter starts empty every run
@@ -441,8 +443,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
     const loop = () => {
         const refs = gameRefs.current;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // (7B) quality profile (AUTO steps by measured fps) → DPR-capped backing store; all drawing stays in CSS px
+        tickQuality(performance.now(), qualitySetting(refs.settings));
+        const { w: viewW, h: viewH } = fitCanvas(canvas, ctx);
 
         // CINEMATIC MODE RENDERER
         if (refs.activeCinematic) {
@@ -452,11 +455,11 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             
             // PITCH BLACK BACKGROUND FOR ALL CINEMATICS
             ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, viewW, viewH);
 
             // Render particles on top of cinematic bg
             ctx.save();
-            ctx.translate(canvas.width / 2 - state.camera.x, canvas.height / 2 - state.camera.y);
+            ctx.translate(viewW / 2 - state.camera.x, viewH / 2 - state.camera.y);
             // If intro, center particles. If game cinematic, use world coords relative to cam.
             if (refs.activeCinematic === INTRO_SCRIPT) {
                  ctx.translate(state.camera.x, state.camera.y); // Cancel out cam for intro centered
@@ -482,8 +485,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             if (state.cinematic && cinematicFreezes(state) && !refs.paused && !refs.gameOver && !refs.gameWon) {
                 state.frame++;
                 updateParticles(state); updateShake(state); updateBigFx(state);
-                updateCinematic(state, performance.now(), canvas.width, canvas.height);
-                renderGame(ctx, state, applyRunModifiers(refs.playerStats, state.runModifiers), canvas.width, canvas.height, refs.maturityScale, refs.color);
+                updateCinematic(state, performance.now(), viewW, viewH);
+                renderGame(ctx, state, applyRunModifiers(refs.playerStats, state.runModifiers), viewW, viewH, refs.maturityScale, refs.color);
                 anim = requestAnimationFrame(loop);
                 return;
             }
@@ -493,7 +496,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
         if (!refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null) {
             const state = gameStateRef.current;
             const wasBossActive = !!state.activeBoss;
-            updateCinematic(state, performance.now(), canvas.width, canvas.height); // (7D) noFreeze push-ins / zoom ease-back
+            updateCinematic(state, performance.now(), viewW, viewH); // (7D) noFreeze push-ins / zoom ease-back
             // (4A) feel toggles + HP mirror for the low-HP tint
             setFeelSettings({ screenShake: refs.settings.screenShake !== false, reduceFlash: !!refs.settings.reduceFlash });
             setSpriteMode(SPRITES_FLAG || !!refs.settings.spriteMode); // (5B)
@@ -532,7 +535,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 (v) => { onCollectMatter(v); setSessionMatter(m => m + v); },
                 handleDamage,
                 (id) => refs.onEnemySeen(id),
-                canvas.width, canvas.height, refs.maturityScale, refs.color,
+                viewW, viewH, refs.maturityScale, refs.color,
                 refs.settings.mouseMovementEnabled
             );
 
@@ -621,7 +624,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 }
             }
         }
-        renderGame(ctx, gameStateRef.current, applyRunModifiers(refs.playerStats, gameStateRef.current.runModifiers), canvas.width, canvas.height, refs.maturityScale, refs.color);
+        renderGame(ctx, gameStateRef.current, applyRunModifiers(refs.playerStats, gameStateRef.current.runModifiers), viewW, viewH, refs.maturityScale, refs.color);
         anim = requestAnimationFrame(loop);
     };
 

@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react';
 interface StarBackgroundProps {
   unlockedCount: number;
   totalCount: number;
-  performanceMode?: 'LOW' | 'MEDIUM' | 'HIGH';
+  performanceMode?: 'LOW' | 'MEDIUM' | 'HIGH' | 'AUTO'; // (7B) AUTO renders as MEDIUM
   /** (3B step 5) chapter palette accent; null = plain white stars. Eased in over ~2 s. */
   tint?: string | null;
 }
@@ -15,7 +15,8 @@ const hexToRgb = (hex: string): [number, number, number] => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 
-const StarBackground: React.FC<StarBackgroundProps> = ({ unlockedCount, totalCount, performanceMode = 'MEDIUM', tint = null }) => {
+const StarBackground: React.FC<StarBackgroundProps> = ({ unlockedCount, totalCount, performanceMode: perfProp = 'MEDIUM', tint = null }) => {
+  const performanceMode = perfProp === 'AUTO' ? 'MEDIUM' : perfProp; // (7B)
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const starsRef = useRef<Float32Array | null>(null);
   const currentMaxRef = useRef(0);

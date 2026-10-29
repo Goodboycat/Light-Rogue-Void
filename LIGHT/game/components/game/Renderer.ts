@@ -15,6 +15,7 @@ import { arenaOutsideFactor } from './logic/enemies/BossKit';
 import { drawBigFx, drawScreenFlash } from './BigFx';
 import { drawWorldPoints, drawWorldArrow, drawWorldCard } from './renderer/WorldRenderer'; // (3A)
 import { drawMinimap } from './renderer/MinimapRenderer'; // (3A)
+import { quality } from './Quality'; // (7B)
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -26,6 +27,7 @@ export const renderGame = (
     currentStageColor: string
 ) => {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    const baseTransform = ctx.getTransform(); // (7B) DPR scale set by Quality.fitCanvas — screen-space passes restore to this
     
     ctx.save();
     // (7D) cinematic zoom about the screen centre; world rect visible grows/shrinks by 1/zoom
@@ -83,7 +85,7 @@ export const renderGame = (
     drawParticlesBatched(ctx, state.particles, {
         centerX: state.camera.x + canvasWidth / 2, centerY: state.camera.y + canvasHeight / 2,
         halfW: viewHalfW, halfH: viewHalfH, margin: 64,
-    });
+    }, quality.glow);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
 
@@ -91,13 +93,13 @@ export const renderGame = (
     drawBigFx(ctx, state);
 
     // --- DAMAGE NUMBERS (4A, world space) ---
-    drawFloaters(ctx, state);
+    if (quality.floaters) drawFloaters(ctx, state); // (7B) LOW drops damage numbers
 
     // --- ECLIPSE (2C): black out the world, then redraw only what must stay readable in the dark ---
     const ecl = eclipseStrength(state);
     if (ecl > 0) {
         ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setTransform(baseTransform);
         drawEclipse(ctx, state, canvasWidth, canvasHeight);
         ctx.restore();
         drawHazards(ctx, state);
