@@ -38,7 +38,7 @@ await page.addInitScript(({ mode }) => {
     }));
 }, { mode: MODE });
 await page.goto(url, { waitUntil: 'networkidle' });
-const start = page.locator('button', { hasText: /begin|start|enter|play/i }).first();
+const start = page.locator('button', { hasText: /initialize|begin|start|enter|play/i }).first();
 await start.waitFor({ timeout: 15000 });
 await start.click();
 await page.waitForFunction(() => (window).__LIGHT && (window).__LIGHT.state && (window).__LIGHT.state.frame > 10, null, { timeout: 20000 });
