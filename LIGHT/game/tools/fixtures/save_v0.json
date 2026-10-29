@@ -1,0 +1,11 @@
+{
+  "matter": 1500,
+  "unlockedAbilityIds": ["root", "node_3_7_abc", "node_1_2_xyz"],
+  "seenEnemyIds": ["mite", "drifter"],
+  "unlockedAchievementIds": ["kill_boss_1"],
+  "defeatedBosses": ["hive_mind", "void_warden"],
+  "maxWaveReached": 23,
+  "maxMaturityAchieved": 4,
+  "hasSeenIntro": true,
+  "settings": { "inputMode": "MOBILE", "masterVolume": 0.5, "musicVolume": 0.4, "sfxVolume": 1 }
+}

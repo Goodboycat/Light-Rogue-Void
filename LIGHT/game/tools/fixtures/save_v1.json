@@ -1,0 +1,16 @@
+{
+  "matter": 48210,
+  "unlockedAbilityIds": ["root"],
+  "seenEnemyIds": ["mite", "drifter", "hive_mind"],
+  "unlockedAchievementIds": ["kill_boss_1", "archive_25"],
+  "defeatedBosses": ["hive_mind", "void_warden", "crimson_eclipse"],
+  "maxWaveReached": 34,
+  "maxMaturityAchieved": 6,
+  "hasSeenIntro": true,
+  "endingSeen": false,
+  "landmarksSeen": ["lm_shattered_gate", "lm_sleeping_titan"],
+  "killCounts": { "mite": 812, "drifter": 240, "hive_mind": 2, "void_warden": 1, "crimson_eclipse": 1 },
+  "mapTreasuresOpened": ["cache_1"],
+  "mapRevealsSeen": ["hive_mind", "void_warden"],
+  "settings": { "showTouchControls": false, "mouseMovementEnabled": true, "masterVolume": 0.8, "musicVolume": 0.6, "sfxVolume": 1, "performanceMode": "HIGH", "screenShake": true, "reduceFlash": false, "spriteMode": true, "showMinimap": true, "haptics": "OFF", "muted": false }
+}

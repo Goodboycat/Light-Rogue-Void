@@ -13,6 +13,7 @@
     "itch": "bash tools/itch.sh",
     "typecheck": "NODE_OPTIONS=--max-old-space-size=3000 tsc --noEmit -p .",
     "sim": "node tools/sim.mjs",
+    "test:save": "node tools/test-save.mjs",
     "art": "npm run build && node tools/extract-art.mjs"
   },
   "dependencies": {

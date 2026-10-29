@@ -2,140 +2,79 @@
 import { useState, useEffect } from 'react';
 import { GameState } from '../types';
 import { getNode } from '../data';
-
-/** (1B) Flat refund per unknown node id. The old tree was random per device so
- *  we cannot know the real price; 20 matter is the depth-0 price. */
-const LEGACY_REFUND_PER_NODE = 20;
+import { SAVE_KEY, SAVE_BACKUP_KEY, SAVE_VERSION, SaveV2, defaultSave } from '../save/schema';
+import { migrateSave, MigrationReport } from '../save/migrate';
 
 export interface TreeMigrationReport { dropped: number; refunded: number }
 /** Set once at load; App.tsx reads it to show a toast. */
 export let lastTreeMigration: TreeMigrationReport | null = null;
+/** (8A) full migration report of the load (for `?debug=1` / HANDOFF numbers). */
+export let lastMigration: MigrationReport | null = null;
 
-const SAVE_KEY = 'light_escapes_void_save_v1';
+const nodeExists = (id: string) => !!getNode(id);
 
-const INITIAL_STATE: GameState = {
-    matter: 0,
-    unlockedAbilityIds: ['root'],
-    seenEnemyIds: [],
-    unlockedAchievementIds: [],
-    defeatedBosses: [],
-    maxWaveReached: 1,
-    maxMaturityAchieved: 0,
+/** SaveV2 → GameState (runtime flags off). */
+export const saveToState = (s: SaveV2): GameState => ({
+    matter: s.matter,
+    unlockedAbilityIds: s.unlockedAbilityIds,
+    seenEnemyIds: s.seenEnemyIds,
+    unlockedAchievementIds: s.unlockedAchievementIds,
+    defeatedBosses: s.defeatedBosses,
+    maxWaveReached: s.maxWaveReached,
+    maxMaturityAchieved: s.maxMaturityAchieved,
     isGameRunning: false,
     isMenuOpen: false,
-    hasSeenIntro: false,
-    endingSeen: false,
-    landmarksSeen: [],
-    killCounts: {}, // (3B)
-    mapTreasuresOpened: [], // (7C)
-    mapRevealsSeen: [], // (7D)
-    settings: {
-        showTouchControls: true,
-        mouseMovementEnabled: true,
-        masterVolume: 0.8,
-        musicVolume: 0.6,
-        sfxVolume: 1.0,
-        performanceMode: 'AUTO', // (7B)
-        screenShake: true,
-        reduceFlash: false,
-        spriteMode: false,
-        showMinimap: true,
-        haptics: 'LIGHT', // (7B)
-        muted: false
-    }
+    hasSeenIntro: s.hasSeenIntro,
+    endingSeen: s.endingSeen,
+    landmarksSeen: s.landmarksSeen,
+    killCounts: s.killCounts,
+    mapTreasuresOpened: s.mapTreasuresOpened,
+    mapRevealsSeen: s.mapRevealsSeen,
+    stats: s.stats,
+    settings: s.settings,
+});
+
+/** GameState → SaveV2 (what is written). Runs through migrateSave so the blob is always normalised. */
+export const stateToSave = (g: GameState): SaveV2 => {
+    const { save } = migrateSave({ version: SAVE_VERSION, ...g, savedAt: Date.now() }, nodeExists);
+    return save;
+};
+
+const INITIAL_STATE: GameState = saveToState(defaultSave());
+
+/** Load + migrate from localStorage. Falls back to the backup copy if the main blob is unreadable. */
+const loadSave = (): GameState => {
+    const tryKey = (key: string): SaveV2 | null => {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            const { save, report } = migrateSave(parsed, nodeExists);
+            lastMigration = report;
+            if (report.droppedNodes > 0) {
+                lastTreeMigration = { dropped: report.droppedNodes, refunded: report.refunded };
+                console.info(`[LIGHT] tree migration: dropped ${report.droppedNodes} legacy nodes, refunded ${report.refunded} matter`);
+            }
+            if (report.from !== report.to) console.info(`[LIGHT] save migrated v${report.from} → v${report.to}:`, report.steps);
+            return save;
+        } catch (e) {
+            console.error(`[LIGHT] failed to load save (${key})`, e);
+            return null;
+        }
+    };
+    const main = tryKey(SAVE_KEY);
+    if (main) return saveToState(main);
+    const backup = tryKey(SAVE_BACKUP_KEY);
+    if (backup) { console.warn('[LIGHT] main save unreadable — restored from backup'); return saveToState(backup); }
+    return INITIAL_STATE;
 };
 
 export const useGameSave = () => {
-    const [gameState, setGameState] = useState<GameState>(() => {
-        try {
-            const saved = localStorage.getItem(SAVE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                
-                // Migration for old settings
-                let settings = parsed.settings || {};
-                if (settings.inputMode) {
-                    if (settings.inputMode === 'MOBILE') {
-                        settings.showTouchControls = true;
-                        settings.mouseMovementEnabled = false; // Old mobile didn't have mouse move usually
-                    } else {
-                        settings.showTouchControls = false;
-                        settings.mouseMovementEnabled = true;
-                    }
-                    delete settings.inputMode;
-                }
-                // Ensure defaults for new fields if migration didn't cover it or fresh save
-                if (settings.showTouchControls === undefined) settings.showTouchControls = true;
-                if (settings.mouseMovementEnabled === undefined) settings.mouseMovementEnabled = true;
-                if (settings.screenShake === undefined) settings.screenShake = true; // (4A)
-                if (settings.reduceFlash === undefined) settings.reduceFlash = false; // (4A)
-                if (settings.spriteMode === undefined) settings.spriteMode = false; // (5B)
-                if (settings.showMinimap === undefined) settings.showMinimap = true; // (3A)
-                if (settings.muted === undefined) settings.muted = false; // (6A)
-                if (!['OFF','LIGHT','FULL'].includes(settings.haptics as string)) settings.haptics = 'LIGHT'; // (7B)
-                if (!['LOW','MEDIUM','HIGH','AUTO'].includes(settings.performanceMode)) settings.performanceMode = 'AUTO'; // (7B)
-                if (typeof settings.masterVolume !== 'number') settings.masterVolume = 0.8; // (6A)
-                if (typeof settings.musicVolume !== 'number') settings.musicVolume = 0.6;
-                if (typeof settings.sfxVolume !== 'number') settings.sfxVolume = 1.0;
-
-                // (1B) Tree migration: the seeded tree has stable ids; any id from the
-                // old random tree is dropped and refunded so the save never dangles.
-                const rawIds: string[] = Array.isArray(parsed.unlockedAbilityIds) ? parsed.unlockedAbilityIds : ['root'];
-                const keptIds = rawIds.filter(id => !!getNode(id));
-                if (!keptIds.includes('root')) keptIds.unshift('root');
-                const droppedCount = rawIds.length - rawIds.filter(id => !!getNode(id)).length;
-                if (droppedCount > 0) {
-                    const refund = droppedCount * LEGACY_REFUND_PER_NODE;
-                    parsed.matter = (parsed.matter || 0) + refund;
-                    lastTreeMigration = { dropped: droppedCount, refunded: refund };
-                    console.info(`[LIGHT] tree migration: dropped ${droppedCount} legacy nodes, refunded ${refund} matter`);
-                }
-                parsed.unlockedAbilityIds = keptIds;
-
-                return {
-                    ...INITIAL_STATE,
-                    ...parsed,
-                    // Ensure defaults for potentially missing fields in old saves
-                    maxWaveReached: parsed.maxWaveReached || 1,
-                    maxMaturityAchieved: parsed.maxMaturityAchieved || 0,
-                    unlockedAchievementIds: parsed.unlockedAchievementIds || [],
-                    defeatedBosses: parsed.defeatedBosses || [],
-                    hasSeenIntro: parsed.hasSeenIntro || false,
-                    endingSeen: !!parsed.endingSeen,
-                    landmarksSeen: Array.isArray(parsed.landmarksSeen) ? parsed.landmarksSeen : [], // (3A)
-                    mapTreasuresOpened: Array.isArray(parsed.mapTreasuresOpened) ? parsed.mapTreasuresOpened : [], // (7C)
-                    mapRevealsSeen: Array.isArray(parsed.mapRevealsSeen) ? parsed.mapRevealsSeen : undefined, // (7D) legacy saves: undefined → menu shows no reveal
-                    killCounts: parsed.killCounts && typeof parsed.killCounts === 'object' ? parsed.killCounts : {}, // (3B)
-                    isGameRunning: false, // Always start at menu
-                    isMenuOpen: false,
-                    settings: { ...INITIAL_STATE.settings, ...settings }
-                };
-            }
-        } catch (e) {
-            console.error("Failed to load save", e);
-        }
-        return INITIAL_STATE;
-    });
+    const [gameState, setGameState] = useState<GameState>(loadSave);
 
     useEffect(() => {
         try {
-            const saveState = {
-                matter: gameState.matter,
-                unlockedAbilityIds: gameState.unlockedAbilityIds,
-                seenEnemyIds: gameState.seenEnemyIds,
-                unlockedAchievementIds: gameState.unlockedAchievementIds,
-                defeatedBosses: gameState.defeatedBosses,
-                maxWaveReached: gameState.maxWaveReached,
-                maxMaturityAchieved: gameState.maxMaturityAchieved,
-                hasSeenIntro: gameState.hasSeenIntro,
-                endingSeen: !!gameState.endingSeen,
-                landmarksSeen: gameState.landmarksSeen ?? [], // (3A)
-                killCounts: gameState.killCounts ?? {}, // (3B)
-                mapTreasuresOpened: gameState.mapTreasuresOpened ?? [], // (7C)
-                mapRevealsSeen: gameState.mapRevealsSeen ?? [], // (7D)
-                settings: gameState.settings
-            };
-            localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
+            localStorage.setItem(SAVE_KEY, JSON.stringify(stateToSave(gameState)));
         } catch (e) {
             console.warn("Save failed - likely restricted environment (itch.io/private window):", e);
         }

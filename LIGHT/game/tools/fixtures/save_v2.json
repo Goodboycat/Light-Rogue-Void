@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "savedAt": 1767225600000,
+  "matter": 120000,
+  "unlockedAbilityIds": ["root"],
+  "seenEnemyIds": ["mite"],
+  "unlockedAchievementIds": [],
+  "defeatedBosses": ["hive_mind"],
+  "maxWaveReached": 12,
+  "maxMaturityAchieved": 2,
+  "hasSeenIntro": true,
+  "endingSeen": false,
+  "landmarksSeen": [],
+  "killCounts": { "mite": 40 },
+  "mapTreasuresOpened": [],
+  "mapRevealsSeen": [],
+  "stats": { "runs": 3, "deaths": 2, "wins": 0, "kills": 41, "bossKills": { "hive_mind": 1 }, "deathsByBoss": { "void_warden": 1 }, "bestWaveByChapter": [10, 12], "totalMatter": 130000, "totalEssence": 9000, "discoveries": { "relics": 1, "shrines": 2, "landmarks": 0, "events": 3 }, "bestStreak": 31, "burstsFired": 7, "playTimeMs": 1234567, "feats": { "crimson_eclipse:no_laser": true } },
+  "settings": { "showTouchControls": true, "mouseMovementEnabled": true, "masterVolume": 0.8, "musicVolume": 0.6, "sfxVolume": 1, "performanceMode": "AUTO", "screenShake": true, "reduceFlash": false, "spriteMode": false, "showMinimap": true, "haptics": "LIGHT", "muted": false }
+}
