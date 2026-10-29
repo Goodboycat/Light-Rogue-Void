@@ -3,7 +3,7 @@
 //
 // Usage (from LIGHT/game):
 //   npm run sim -- --tree=<preset> [--from=1] [--to=60] [--runs=3] [--seed=1] [--quiet]
-//   presets: fresh | offense | defense | utility | full | budget:<matter>   (budget = cheapest-first buy)
+//   presets: fresh | offense | defense | utility | offdef | full | budget:<matter>   (budget = cheapest-first buy)
 //   --boss=<1..6>   boss TTK mode: start at that boss wave with full HP, report kill time only
 //
 // Bot: aims at the nearest enemy, moves away from the centroid of enemies within 420 px, stays in
@@ -27,6 +27,8 @@ const RUNS = Number(args.runs || 3);
 const SEED = Number(args.seed || 1);
 const QUIET = !!args.quiet;
 const BOSS = args.boss ? Number(args.boss) : 0;
+const GOD = !!args.god; // --god: damage is tallied but never kills (pure TTK / DPS measurement)
+const DMG_BY = {};      // damage taken by source across all runs (death-cause table)
 
 // Minimal browser shims so the game modules import cleanly.
 globalThis.window = globalThis; globalThis.location = { search: '' };
@@ -64,6 +66,7 @@ export const presetIds = (p) => {
   if (p === 'offense') return closure(n => n.type === 'OFFENSE');
   if (p === 'defense') return closure(n => n.type === 'DEFENSE');
   if (p === 'utility') return closure(n => n.type === 'UTILITY');
+  if (p === 'offdef') return closure(n => n.type === 'OFFENSE' || n.type === 'DEFENSE');
   if (p === 'full') return TREE.map(n => n.id);
   if (p.startsWith('budget:')) return buyCheapest(Number(p.slice(7)));
   throw new Error('unknown preset ' + p);
@@ -115,7 +118,7 @@ function runOnce(preset, run, from, to) {
     if (!M.onPlayerHurt(state)) return;
     let rem = Math.max(1, Math.round(amount * M.incomingDamageMult(state.runModifiers)));
     const abs = Math.min(shield, rem); shield -= abs; rem -= abs;
-    if (rem > 0) { hp = Math.max(0, hp - rem); w.dmg += rem; lastCause = tagCause(); if (hp <= 0) dead = { wave, cause: lastCause }; }
+    if (rem > 0) { lastCause = tagCause(); DMG_BY[lastCause] = (DMG_BY[lastCause] || 0) + rem; w.dmg += rem; hp = Math.max(GOD ? 1 : 0, hp - rem); if (hp <= 0) dead = { wave, cause: lastCause }; }
     shieldCd = Math.max(1, 5 - stats.healthRegen * 0.5) * 60;
     w.hpMin = Math.min(w.hpMin, hp);
   };
@@ -210,7 +213,7 @@ function runOnce(preset, run, from, to) {
 
 // ------------------------------------------------------------------ main
 fs.mkdirSync(outDir, { recursive: true });
-const tag = PRESET.replace(/[:]/g, '_') + (BOSS ? `_boss${BOSS}` : '');
+const tag = PRESET.replace(/[:]/g, '_') + (BOSS ? `_boss${BOSS}` : '') + (GOD ? '_god' : '');
 const from = BOSS ? BOSS * C.WAVES_PER_CHAPTER : FROM, to = BOSS ? BOSS * C.WAVES_PER_CHAPTER : TO;
 const all = [], summary = [];
 const t0 = Date.now();
@@ -227,6 +230,7 @@ const median = waves[Math.floor(waves.length / 2)];
 const causes = {}; summary.forEach(s => { if (s.dead) causes[s.dead.cause] = (causes[s.dead.cause] || 0) + 1; });
 const avgEss = Math.round(summary.reduce((a, s) => a + s.essence, 0) / summary.length);
 const ttks = BOSS ? summary.map(s => s.rows[0]?.boss_ttk).filter(Boolean) : [];
-const line = { preset: PRESET, boss: BOSS || undefined, runs: RUNS, from, to, medianWave: median, waves, wins: summary.filter(s => s.won).length, avgEssence: avgEss, causes, ttks, wallSec: ((Date.now() - t0) / 1000).toFixed(0) };
+const dmgTop = Object.entries(DMG_BY).sort((a, b) => b[1] - a[1]).slice(0, 6);
+const line = { preset: PRESET, god: GOD || undefined, dmgTop, boss: BOSS || undefined, runs: RUNS, from, to, medianWave: median, waves, wins: summary.filter(s => s.won).length, avgEssence: avgEss, causes, ttks, wallSec: ((Date.now() - t0) / 1000).toFixed(0) };
 fs.appendFileSync(path.join(outDir, 'summary.jsonl'), JSON.stringify(line) + '\n');
 console.log('SUMMARY ' + JSON.stringify(line));

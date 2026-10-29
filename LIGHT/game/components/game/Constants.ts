@@ -83,7 +83,7 @@ export const essenceRewardAt = (base: number, wave: number): number => base * (1
 /** Matter banked per essence picked up (essence and matter are the same currency today). */
 export const MATTER_PER_ESSENCE = 1;
 /** Boss HP = def.baseHp × BOSS_HP_MULT[chapter-1]. */
-export const BOSS_HP_MULT = [1, 1, 1, 1, 1, 1];
+export const BOSS_HP_MULT = [0.6, 1.4, 0.8, 1.5, 1.6, 2.5]; // (8B step 3) sim-tuned: god-mode TTK with the expected tree → 60–120 s (docs/BALANCE.md)
 export const bossHpFor = (baseHp: number, wave: number): number => Math.round(baseHp * BOSS_HP_MULT[chapterIndexOf(wave) - 1]);
 /** Special (x5 flavor) waves: enemy HP / essence multipliers while a flavor is active. */
 export const SPECIAL_WAVE_HP_MULT = 1;
