@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayerStats, Settings } from '../types';
 import { MutableGameState, ParticleType } from './game/types';
 import { InputHandler } from './game/Input';
