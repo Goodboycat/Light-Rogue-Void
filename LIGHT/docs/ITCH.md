@@ -14,6 +14,9 @@ bash LIGHT/game/tools/itch.sh      # -> LIGHT/out/light-rogue-void-itch.zip
 5. Save → **View page** — it must show the menu within ~3 s on a 4G phone (zip is 1.45 MB / 151 files, 2.6 MB inflated; sprites load lazily and only matter with "Sprite mode" on).
 6. itch limits: 1000 files / 500 MB per HTML zip — we are at 151 files. `itch.sh` aborts if `index.html` is not at the zip root or `sprites/atlas.json` is missing.
 
+## 8B fix (2026-10-29): blank page from the 8A build
+`save/storage.ts:102` passed bare `setTimeout` as a method → `TypeError: Illegal invocation` on first render in every browser (node tests did not catch it). Fixed with arrow wrappers. The rebuilt zip was smoke-tested over HTTPS with Playwright: menu renders, 0 JS errors. **Before every upload:** `npm run typecheck` → `bash game/tools/itch.sh` → serve `out/light-rogue-void-itch/` and open it in a browser.
+
 ## Why the last upload showed a blank page (fixed 2026-10-29, 7A finish)
 `components/MainMenu.tsx` used `IS_DEMO` / `DEMO_MAX_WAVE` without importing them → `ReferenceError: IS_DEMO is not defined` on first render, so every build since 7C crashed before the menu. The same pass fixed three more latent crashes caught by `npm run typecheck` (`SurvivalGame` never destructured `defeatedBosses/treasuresOpened/onTreasure` → breather crash after boss 1; `Gallery.tsx` wrong types path; `EnemyRenderer` enrage ring read a non-existent field). **`npm run typecheck` is now clean (0 errors) and is part of the gate — run it before every itch build.** Smoke-tested over HTTPS with Playwright: title renders, menu shows, zero JS errors (only the Tailwind CDN warning + favicon 404).
 

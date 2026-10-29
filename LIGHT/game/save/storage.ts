@@ -99,7 +99,7 @@ export const writeSaveNow = (storage: StorageLike | null, json: string, nowMs: n
  */
 export const createSaveWriter = (
     storage: StorageLike | null,
-    timers: { set: (fn: () => void, ms: number) => any; clear: (h: any) => void } = { set: setTimeout, clear: clearTimeout },
+    timers: { set: (fn: () => void, ms: number) => any; clear: (h: any) => void } = { set: (fn, ms) => globalThis.setTimeout(fn, ms), clear: (h) => globalThis.clearTimeout(h) }, // (8B) arrow-wrapped: bare setTimeout as a method → "Illegal invocation" in browsers (itch crash),
     debounceMs = SAVE_DEBOUNCE_MS,
 ) => {
     let pending: { json: string; at: number } | null = null;

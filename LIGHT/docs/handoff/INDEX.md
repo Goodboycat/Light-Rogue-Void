@@ -2,6 +2,7 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
+- `8B` — Balance (newest, in HANDOFF.md)
 - `8A.md` — Save v2
 - `7B.md` — mobile QA
 - `7D.md` — map mystery + storyline cinematics
