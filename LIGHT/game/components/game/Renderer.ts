@@ -16,6 +16,12 @@ import { drawBigFx, drawScreenFlash } from './BigFx';
 import { drawWorldPoints, drawWorldArrow, drawWorldCard } from './renderer/WorldRenderer'; // (3A)
 import { drawMinimap } from './renderer/MinimapRenderer'; // (3A)
 import { quality } from './Quality'; // (7B)
+import { isPlainEnemy, shouldBatchEnemies, drawEnemiesBatched } from './renderer/EnemyBatcher'; // (7B 5b)
+import type { Enemy } from './types';
+
+// (7B 5b) reusable scratch lists for the enemy pass (no per-frame allocation)
+const visibleScratch: Enemy[] = [];
+const plainScratch: Enemy[] = [];
 
 export const renderGame = (
     ctx: CanvasRenderingContext2D,
@@ -61,14 +67,26 @@ export const renderGame = (
         const cx = state.camera.x + canvasWidth / 2, cy = state.camera.y + canvasHeight / 2;
         const cullW = viewHalfW + RENDER_CULL_PAD, cullH = viewHalfH + RENDER_CULL_PAD;
         const es = state.enemies;
+        // (7B 5b) two passes: count + collect visible, then plain ones go through the batcher when the crowd is large
+        let visible = 0, plainN = 0;
+        const plain = plainScratch;
         for (let i = 0; i < es.length; i++) {
             const e = es[i];
             if (!e.isBoss) {
                 const r = e.def.size * 2 + 8; // affix ring / shiner halo / shield shell margin
                 if (e.x + r < cx - cullW || e.x - r > cx + cullW || e.y + r < cy - cullH || e.y - r > cy + cullH) continue;
             }
+            visibleScratch[visible++] = e;
+        }
+        const batch = shouldBatchEnemies(visible);
+        for (let i = 0; i < visible; i++) {
+            const e = visibleScratch[i];
+            if (batch && isPlainEnemy(e)) { plain[plainN++] = e; continue; }
             drawEnemy(ctx, e, state.frame);
         }
+        if (plainN) drawEnemiesBatched(ctx, plain, plainN, state.frame);
+        for (let i = 0; i < visible; i++) visibleScratch[i] = undefined as any; // drop refs
+        for (let i = 0; i < plainN; i++) plain[i] = undefined as any;
     }
 
     // --- CRIMSON ECLIPSE BEAMS (2C, above the boss body) ---
