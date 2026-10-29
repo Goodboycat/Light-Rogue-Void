@@ -5,6 +5,7 @@
 // Design rule: a telegraph is a PROMISE. Nothing deals damage during the warn;
 // `onFire` runs exactly once when the warn ends and is the only place damage happens.
 
+import { MUTATORS, MutatorId, hasMut, MUT_HASTED_WARN_MULT, MUT_MIRROR_RADIUS_MULT, MUT_SWARMED_ADD_MULT } from '../../../../data/mutators';
 import { resetBossFlags } from '../BossFeats';
 import { MutableGameState, Enemy, Projectile, ParticleType } from '../../types';
 import { VFX } from '../../Emitters';
@@ -80,7 +81,7 @@ export const telegraph = (
         t.active = false;
         t.onFire?.(state, t); // keep the promise before reuse
     }
-    const frames = Math.max(1, Math.round(state.bossEnraged ? warnFrames * BOSS_ENRAGE_WARN_MULT : warnFrames));
+    const frames = Math.max(1, Math.round((state.bossEnraged ? warnFrames * BOSS_ENRAGE_WARN_MULT : warnFrames) * (hasMut(state.bossMutators, 'HASTED') ? MUT_HASTED_WARN_MULT : 1))); // (9A)
     t.kind = kind; t.x = x; t.y = y;
     t.params = { color: state.activeBoss?.def.glowColor ?? '#ef4444', ...params };
     t.timer = frames; t.maxTimer = frames; t.active = true; t.onFire = onFire;
@@ -257,12 +258,12 @@ export const enrageCountdown = (state: MutableGameState): number => {
 
 // ---------------------------------------------------------------- arena
 export const openArena = (state: MutableGameState, boss: Enemy) => {
-    state.arena = { x: state.player.x, y: state.player.y, r: ARENA_RADIUS, pulse: 1, color: boss.def.glowColor };
+    state.arena = { x: state.player.x, y: state.player.y, r: ARENA_RADIUS * (hasMut(state.bossMutators, 'MIRROR') ? MUT_MIRROR_RADIUS_MULT : 1), pulse: 1, color: boss.def.glowColor }; // (9A) Mirror Arena
     state.bossStartFrame = state.frame;
     resetBossFlags(state); // (8A) feats
     state.bossEnraged = false;
     state.bossAddTimer = 0;
-    state.bossArrival = { name: boss.def.name, color: boss.def.glowColor, frames: BOSS_ARRIVAL_FRAMES, max: BOSS_ARRIVAL_FRAMES };
+    state.bossArrival = { name: boss.def.name + (state.bossMutators?.length ? ' · ' + state.bossMutators.map(m => MUTATORS[m as MutatorId]?.name ?? m).join(' + ') : ''), color: boss.def.glowColor, frames: BOSS_ARRIVAL_FRAMES, max: BOSS_ARRIVAL_FRAMES };
     sfx('boss_arrive', 1, 0); // (6B)
     shake(state, 14, 12);
 };
@@ -272,6 +273,7 @@ export const closeArena = (state: MutableGameState) => {
     state.bossStartFrame = undefined;
     state.bossEnraged = false;
     state.bossAddTimer = undefined;
+    state.bossMutators = undefined; // (9A)
     state.bossArrival = undefined;
     cancelTelegraphs(state);
     clearBossProjectiles(state);
@@ -303,7 +305,7 @@ export const arenaEdgePoint = (state: MutableGameState, radiusScale = 0.95): { x
 export const updateBossAdds = (state: MutableGameState, boss: Enemy, wave: number, onEnemySeen: (id: string) => void) => {
     if (state.bossAddTimer === undefined) return;
     if (state.bossAddTimer > 0) { state.bossAddTimer--; return; }
-    state.bossAddTimer = BOSS_ADD_INTERVAL_SEC * 60;
+    state.bossAddTimer = Math.round(BOSS_ADD_INTERVAL_SEC * 60 * (hasMut(state.bossMutators, 'SWARMED') ? MUT_SWARMED_ADD_MULT : 1)); // (9A) Swarmed
 
     const count = BOSS_ADD_PACK_MIN + Math.floor(Math.random() * (BOSS_ADD_PACK_MAX - BOSS_ADD_PACK_MIN + 1));
     const at = arenaEdgePoint(state, 0.9);

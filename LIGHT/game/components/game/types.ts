@@ -191,6 +191,8 @@ export interface MutableGameState {
     arena?: { x: number; y: number; r: number; pulse: number; color: string };
     bossStartFrame?: number;      // state.frame when the boss became active (enrage timer)
     bossEnraged?: boolean;
+    /** (9A) endless boss mutators active for the current boss (data/mutators.ts) */
+    bossMutators?: string[];
     bossAddTimer?: number;        // frames until the next roaming pack
     bossArrival?: { name: string; color: string; frames: number; max: number };
     lastBossHit?: string;         // boss id of the last thing that hurt the player (death hint)

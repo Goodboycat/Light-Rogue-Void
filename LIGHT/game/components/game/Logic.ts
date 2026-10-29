@@ -2,9 +2,10 @@ import { bossHpFor } from './Constants'; // (8B)
 
 import { bossHit } from './logic/BossFeats';
 import { MutableGameState, Enemy, ParticleType } from './types';
-import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES } from './Constants';
+import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES, isEndlessWave, endlessDepth } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
+import { mutatorsForEndlessWave, hasMut, MUT_ECLIPSED_HP_MULT, MUT_ECLIPSED_SPEED_MULT, MUT_TWIN_ECHOES } from '../../data/mutators';
 import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
 import { updateHazards } from './logic/enemies/BossHazards';
 import { updateBigFx } from './BigFx';
@@ -106,8 +107,12 @@ export const updateGame = (
             state: { timer: 0, phase: 1 }, projectileImmunity: 0, isBoss: true,
             blackHoleTimer: 0
         };
+        // (9A) endless: returning boss gets 1–2 mutators (data/mutators.ts)
+        state.bossMutators = isEndlessWave(wave) ? mutatorsForEndlessWave(endlessDepth(wave)) : undefined;
+        if (hasMut(state.bossMutators, 'ECLIPSED')) { boss.maxHp = boss.hp = Math.round(boss.hp * MUT_ECLIPSED_HP_MULT); boss.speed *= MUT_ECLIPSED_SPEED_MULT; }
         state.enemies.push(boss);
         state.activeBoss = boss;
+        if (hasMut(state.bossMutators, 'TWIN')) for (let i = 0; i < MUT_TWIN_ECHOES; i++) spawnEnemy(state, wave, onEnemySeen, undefined, undefined, undefined, { elite: true });
         state.bossSpawnedWave = wave; // Mark as spawned for this wave
         VFX.castBossSpawn(state, 0, -600, bossDef.glowColor);
         onEnemySeen(bossDef.id);
