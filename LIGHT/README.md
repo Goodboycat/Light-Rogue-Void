@@ -61,14 +61,13 @@ Every id in `game/audio/sfxIds.ts` has a Ludo.ai prompt in `docs/AUDIO_LUDO.md`.
 Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE) and `docs/ref/` is left out; the finished prompts 0C–8A and the map reference image are in `LIGHT_extras.zip`.
 
 ## Progress
-Finished chats 0 → 9A are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
+Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: 9B 10
+Next: 10
 
 | Chat | Summary |
 |------|---------|
-| 9B | Jam package: itch page, screenshots, trailer, demo review, final README, checklist. Steps 1–5 done; step 6 + finish pending. |
 | 10 | Capacitor APK. No prompt file — not a sandbox chat. |
 
 Branches: `main` = LIGHT, `original-complete` = the boring-but-complete original, `fixed-fork` = the rejected AI roguelike (read with `bash LIGHT/game/tools/fork.sh <path>`). Next chat: read `prompts/NEXT_CHAT.md`.
