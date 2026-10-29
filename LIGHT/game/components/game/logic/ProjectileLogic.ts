@@ -9,6 +9,7 @@ import { swapRemoveProjectile } from '../Pools';
 export const updateProjectiles = (state: MutableGameState, onDamage: (amt: number) => void, playerStats?: PlayerStats) => {
     for (let i = state.projectiles.length - 1; i >= 0; i--) {
         const p = state.projectiles[i];
+        if (!p) continue; // (8B) an inner pass (FIRE_BLAST breaking boss bullets, boss clear) can shrink the array under us
         p.life--;
 
         // Update Warmup
@@ -37,7 +38,9 @@ export const updateProjectiles = (state: MutableGameState, onDamage: (amt: numbe
 
         // 4. Lifecycle
         if (shouldDestroy || p.life <= 0) {
-            swapRemoveProjectile(state.projectiles, i); // (4A) O(1), recycled
+            // (8B) inner removals may have moved `p`; remove it by identity, never a stale index
+            const idx = state.projectiles[i] === p ? i : state.projectiles.indexOf(p);
+            if (idx >= 0) swapRemoveProjectile(state.projectiles, idx); // (4A) O(1), recycled
         }
     }
 };

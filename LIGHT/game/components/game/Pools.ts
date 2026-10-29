@@ -52,6 +52,7 @@ export const releaseProjectile = (p: Projectile): void => {
 };
 
 export const swapRemoveProjectile = (arr: Projectile[], i: number): void => {
+    if (i < 0 || i >= arr.length) return; // (8B) stale index guard
     const removed = arr[i];
     const last = arr.length - 1;
     if (i !== last) arr[i] = arr[last];

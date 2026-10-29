@@ -145,6 +145,31 @@ function runOnce(preset, run, from, to) {
     for (const q of state.projectiles) if (q.isEnemy) { const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < 220) { const wgt = 2 / Math.max(30, d); cx += (q.x - p.x) * wgt; cy += (q.y - p.y) * wgt; cn += wgt; } }
     let mx = 0, my = 0;
     if (cn > 0) { mx = -cx; my = -cy; }
+    // hunt: healthy + target is isolated (≤ 2 others within 140 px of it) → close in to ram it
+    if (near && !near.isBoss && hp / runStats().maxHealth > 0.5) {
+      let crowd = 0; for (const e of state.enemies) if (e !== near && Math.hypot(e.x - near.x, e.y - near.y) < 140) crowd++;
+      if (crowd <= 2) { mx = (near.x - p.x) / nd; my = (near.y - p.y) / nd; }
+    }
+    // threat avoidance (a player reads telegraphs): push out of warn circles / lines / cones, hazards, lasers
+    let threat = false;
+    const away = (ux, uy, k) => { const l = Math.hypot(ux, uy) || 1; mx += ux / l * k; my += uy / l * k; threat = true; };
+    const segPush = (x0, y0, ang, len, half) => { // distance to a ray; push perpendicular
+      const ux = Math.cos(ang), uy = Math.sin(ang), rx = p.x - x0, ry = p.y - y0, t = rx * ux + ry * uy;
+      if (t < -half || t > len + half) return; const px = rx - ux * t, py = ry - uy * t, d = Math.hypot(px, py);
+      if (d < half + 40) away(d > 0.1 ? px : -uy, d > 0.1 ? py : ux, 6);
+    };
+    for (const t of state.telegraphs || []) {
+      if (!t.active) continue; const pr = t.params, dx = p.x - t.x, dy = p.y - t.y, d = Math.hypot(dx, dy);
+      if (t.kind === 'circle' && d < (pr.radius || 0) + 30) away(dx, dy, 6);
+      else if (t.kind === 'ring' && d < (pr.radius || 0) + 20 && d > (pr.innerRadius || 0) - 20) away(-dx, -dy, 6);
+      else if (t.kind === 'line') segPush(t.x, t.y, pr.angle || 0, pr.length || 2000, (pr.width || 30) / 2);
+      else if (t.kind === 'cone' && d < (pr.radius || 0) + 30) { let da = Math.atan2(dy, dx) - (pr.angle || 0); da = Math.atan2(Math.sin(da), Math.cos(da)); if (Math.abs(da) < (pr.fov || 0.5) / 2 + 0.15) away(-Math.sin(pr.angle || 0) * Math.sign(da || 1), Math.cos(pr.angle || 0) * Math.sign(da || 1), 6); }
+    }
+    for (const h of state.hazards || []) {
+      if (h.kind === 'beam') segPush(h.x - Math.cos(h.angle || 0) * 3000, h.y - Math.sin(h.angle || 0) * 3000, h.angle || 0, 6000, h.radius);
+      else { const dx = p.x - h.x, dy = p.y - h.y, d = Math.hypot(dx, dy); if (d < h.radius + 30) away(dx, dy, 4); }
+    }
+    for (const L of state.lasers || []) segPush(L.x, L.y, L.angle, L.length, (L.half || 0.09) * Math.hypot(p.x - L.x, p.y - L.y) + 20);
     // orbit a little so the bot doesn't pin itself to a wall
     mx += -my * 0.35; my += mx * 0.35;
     const home = state.arena ? { x: state.arena.x, y: state.arena.y, r: state.arena.r * 0.7 } : { x: 0, y: 0, r: C.WORLD_SIZE * 0.35 };
