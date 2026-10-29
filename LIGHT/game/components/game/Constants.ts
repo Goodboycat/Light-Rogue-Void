@@ -64,6 +64,31 @@ export const CARRIED_REWARD_MULT = 1.1;
 /** If nothing is alive and quota is unmet, force a spawn this often (frames). */
 export const STARVE_SPAWN_FRAMES = 20;
 
+// --- BALANCE CURVES (8B) --- everything the sim (`npm run sim`) tunes lives here. See docs/BALANCE.md.
+/** Quadratic term of enemy HP: base + wave·hpScaling + wave²·ENEMY_HP_QUAD (makes 40+ hurt). */
+export const ENEMY_HP_QUAD = 0.5;
+/** Global enemy HP multiplier per chapter (index 0 = chapter 1). */
+export const ENEMY_HP_CHAPTER_MULT = [1, 1, 1, 1, 1, 1];
+export const enemyHpAt = (baseHp: number, hpScaling: number, wave: number): number =>
+  Math.max(1, Math.round((baseHp + wave * hpScaling + wave * wave * ENEMY_HP_QUAD) * ENEMY_HP_CHAPTER_MULT[chapterIndexOf(wave) - 1]));
+export const ENEMY_SPEED_PER_WAVE = 0.05;
+export const enemySpeedAt = (baseSpeed: number, wave: number): number => baseSpeed + wave * ENEMY_SPEED_PER_WAVE;
+/** Contact damage (player HP is small integers: 3 fresh). EXPLODE adds its burst in the same hit. */
+export const ENEMY_CONTACT_DMG = 1;
+export const ENEMY_EXPLODE_DMG = 3;
+export const enemyContactDmg = (behavior: string): number => (behavior === 'EXPLODE' ? ENEMY_EXPLODE_DMG : ENEMY_CONTACT_DMG);
+/** Essence per kill = def.essenceReward × (1 + wave·ESSENCE_PER_WAVE). */
+export const ESSENCE_PER_WAVE = 0;
+export const essenceRewardAt = (base: number, wave: number): number => base * (1 + wave * ESSENCE_PER_WAVE);
+/** Matter banked per essence picked up (essence and matter are the same currency today). */
+export const MATTER_PER_ESSENCE = 1;
+/** Boss HP = def.baseHp × BOSS_HP_MULT[chapter-1]. */
+export const BOSS_HP_MULT = [1, 1, 1, 1, 1, 1];
+export const bossHpFor = (baseHp: number, wave: number): number => Math.round(baseHp * BOSS_HP_MULT[chapterIndexOf(wave) - 1]);
+/** Special (x5 flavor) waves: enemy HP / essence multipliers while a flavor is active. */
+export const SPECIAL_WAVE_HP_MULT = 1;
+export const SPECIAL_WAVE_ESSENCE_MULT = 1;
+
 // --- ACTION FEEL (4A) --- see components/game/Feel.ts
 export const HIT_STOP_MAX_FRAMES = 4;      // longest freeze
 export const HIT_STOP_MIN_INTERVAL = 10;   // frames between freezes

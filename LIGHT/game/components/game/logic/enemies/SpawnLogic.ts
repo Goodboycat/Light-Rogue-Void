@@ -1,3 +1,4 @@
+import { enemyHpAt, enemySpeedAt, SPECIAL_WAVE_HP_MULT } from '../../Constants'; // (8B)
 
 import { tryMakeGoldenMite, applyGoldenMite } from '../FoundEvents';
 import { EnemyDef, Enemy, MutableGameState } from '../../types';
@@ -44,10 +45,10 @@ export const spawnEnemy = (state: MutableGameState, wave: number, onSpawn?: (id:
     
     // Quadratic HP Scaling: Base + (Wave * Scaling) + (Wave^2 * 0.5)
     // This ensures enemies get much tougher past wave 40-50
-    const hp = Math.max(1, Math.round((def.baseHp + (wave * def.hpScaling) + (wave * wave * 0.5)) * (opts?.hpMult ?? 1)));
+    const hp = Math.max(1, Math.round(enemyHpAt(def.baseHp, def.hpScaling, wave) * (opts?.hpMult ?? 1) * (state.flavor ? SPECIAL_WAVE_HP_MULT : 1))); // (8B) Constants curve
     
     // Speed also scales slightly
-    const speed = def.baseSpeed + (wave * 0.05);
+    const speed = enemySpeedAt(def.baseSpeed, wave); // (8B)
 
     const enemy: Enemy = {
         x: ex, y: ey,

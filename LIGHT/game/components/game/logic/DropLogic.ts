@@ -1,3 +1,4 @@
+import { MATTER_PER_ESSENCE } from '../Constants'; // (8B)
 import { MutableGameState } from '../types';
 import { onBurstEssence } from './LightBurst';
 import { PlayerStats } from '../../../types';
@@ -26,7 +27,7 @@ export const updateDrops = (state: MutableGameState, stats: PlayerStats, maturit
             // Collected
             if (drop.relicId) { collectRelic(state, drop.relicId); sfx('pickup_relic', 1, 0); swapRemoveDrop(state.drops, i); continue; } // (3A)
             sfx('pickup_essence', undefined, 0.12); // (6B) throttled 45 ms in sfxIds
-            const amount = drop.value * stats.essenceMultiplier * (1 + (state.runModifiers?.essenceMult ?? 0)); // (3A) Greed / Crown
+            const amount = MATTER_PER_ESSENCE * drop.value * stats.essenceMultiplier * (1 + (state.runModifiers?.essenceMult ?? 0)); // (3A) Greed / Crown
             state.essenceCollected = (state.essenceCollected ?? 0) + amount; // (7A) run summary
             onCollect(amount);
             onBurstEssence(state, drop.value); // (3B step 6)

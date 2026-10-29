@@ -1,3 +1,4 @@
+import { enemyContactDmg } from '../Constants'; // (8B)
 
 import { MutableGameState, ParticleType } from '../types';
 import { onEnemyHit } from '../Feel';
@@ -87,7 +88,7 @@ export const updateEnemies = (state: MutableGameState, stats: PlayerStats, matur
                 } else {
                     // Normal Collision (Player takes damage)
                     // (4A) one call per contact: i-frames would swallow a second onDamage, so EXPLODE adds its 2 here
-                    onDamage(enemy.def.behavior === 'EXPLODE' ? 3 : 1); 
+                    onDamage(enemyContactDmg(enemy.def.behavior)); // (8B) Constants
                     const angle = Math.atan2(dy, dx);
                     // (4B) VAMPIRIC: a landed touch heals allies within VAMPIRIC_RADIUS
                     if (enemy.affixes && enemy.affixes.indexOf('VAMPIRIC') >= 0 && state.frame - (enemy.state.custom?.lastVamp ?? -999) > 30) {

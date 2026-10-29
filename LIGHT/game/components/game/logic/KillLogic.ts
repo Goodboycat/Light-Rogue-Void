@@ -1,3 +1,4 @@
+import { essenceRewardAt, SPECIAL_WAVE_ESSENCE_MULT } from '../Constants'; // (8B)
 import { bossFeats } from './BossFeats';
 import { FOUND_EVENTS, foundEssenceMult, onPylonKilled } from './FoundEvents';
 import { haptic } from '../../../utils/haptics'; // (7B)
@@ -39,7 +40,7 @@ export const killEnemy = (
     const eliteMult = enemy.affixes && enemy.affixes.length ? ELITE_ESSENCE_MULT : 1; // (4B)
     // (3A step 7) found events: Golden Mite ×25, Essence Tide ×2, pylon pays its own burst
     const miteMult = enemy.isGoldenMite ? FOUND_EVENTS.miteEssenceMult : 1;
-    const reward = Math.round(enemy.def.essenceReward * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state) * eliteMult * (state.flavorEssenceMult ?? 1) * miteMult * foundEssenceMult(state));
+    const reward = Math.round(essenceRewardAt(enemy.def.essenceReward, state.currentWave ?? 1) * (state.flavor ? SPECIAL_WAVE_ESSENCE_MULT : 1) * (enemy.carried ? CARRIED_REWARD_MULT : 1) * streakEssenceMult(state) * eliteMult * (state.flavorEssenceMult ?? 1) * miteMult * foundEssenceMult(state));
     if (enemy.isTreasurePylon) onPylonKilled(state, enemy);
     if (enemy.isGoldenMite) showCard(state, 'Golden Mite caught', '×25 essence.', '#fbbf24', 'Fast enough.', 120);
     state.drops.push(acquireDrop(enemy.x, enemy.y, reward));

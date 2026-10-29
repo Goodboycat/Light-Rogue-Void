@@ -1,3 +1,4 @@
+import { bossHpFor } from './Constants'; // (8B)
 
 import { bossHit } from './logic/BossFeats';
 import { MutableGameState, Enemy, ParticleType } from './types';
@@ -100,7 +101,7 @@ export const updateGame = (
         const bossDef = getBossForWave(wave);
         const boss: Enemy = {
             x: 0, y: -600, vx: 0, vy: 0,
-            hp: bossDef.baseHp, maxHp: bossDef.baseHp,
+            hp: bossHpFor(bossDef.baseHp, wave), maxHp: bossHpFor(bossDef.baseHp, wave), // (8B)
             def: bossDef, speed: bossDef.baseSpeed, size: bossDef.size, color: bossDef.color,
             state: { timer: 0, phase: 1 }, projectileImmunity: 0, isBoss: true,
             blackHoleTimer: 0
