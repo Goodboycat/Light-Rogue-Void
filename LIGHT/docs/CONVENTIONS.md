@@ -26,7 +26,7 @@ Read `docs/CONVENTIONS.md`, `docs/HANDOFF.md`, then `prompts/<ID>.md`.
    - **Culling**: skip drawing anything outside the viewport + 64 px; cheap LOD when counts are large (smaller glow, no outlines) — quantity stays, detail drops.
    - **Spatial hashing** for enemy↔projectile / enemy↔enemy checks once counts pass a few hundred (uniform grid, rebuilt per frame).
    - **Budget targets** (goals to *measure*, not limits to *enforce*): 60 fps desktop with 500+ enemies and 2000+ particles on screen; 30+ fps mid phone via quality profiles (7B) that lower *detail* (glow, DPR, floaters), never *counts*.
-10. **Finish the chat properly:** update README "Done"/"Next" tables, write `docs/HANDOFF.md` (what's done, what's half-done, exact file/line pointers, known bugs), build the itch zip, upload it as `light-rogue-void-itch`, push, report in chat.
+10. **Finish the chat properly:** update README "Done"/"Next" tables, write `docs/HANDOFF.md` (it holds **only the newest entry**: first copy the old one to `docs/handoff/<its ID>.md` + add it to `docs/handoff/INDEX.md`, then replace the entry in HANDOFF.md, keeping its header — what's done, what's half-done, exact file/line pointers, known bugs), build the itch zip, upload it as `light-rogue-void-itch`, push, report in chat.
 11. **Chain IDs.** After a handoff is finished and pushed, the same chat runs `bash LIGHT/game/tools/next.sh` and continues with the next ID (full finish routine again for that ID). One ID = one handoff; several handoffs per chat are expected. Report after each one — the chat can be cut at any moment.
 
 ## Code map (original engine)

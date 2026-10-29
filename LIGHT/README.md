@@ -7,6 +7,7 @@ Pillars: **storytelling · action · discovery · stressful bosses**.
 - Studio: Beato Forge · Dev: Goodboycat · Art inspired by Idle Tower Defense
 - Stack: React 19 + Vite + Canvas 2D (procedural art) · single-file itch.io build · Capacitor APK later
 - Docs: `docs/PLAN.md` (roadmap), `docs/GDD.md` (design), `docs/CONVENTIONS.md` (rules for every chat), `docs/HANDOFF.md` (what the last chat did), `docs/ENEMIES.md` / `docs/BOSSES.md` / `docs/TREE.md` (generated tables), `docs/WORLD.md` (every discoverable point / event), `docs/STORY.md` (full script), `docs/ITCH.md` (how to publish), `docs/MOBILE.md` (quality profiles, phone checklist, bench numbers), `prompts/<ID>.md` (one instruction file per chat)
+- Trimmed package: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE) and `docs/ref/` is left out; the finished prompts 0C–8A and the map reference image are in `LIGHT_extras.zip` — unzip it over `LIGHT/` to restore the full repo. `docs/HANDOFF.md` is the newest entry only; older ones are in `docs/handoff/`.
 
 ## Quick start
 ```bash
