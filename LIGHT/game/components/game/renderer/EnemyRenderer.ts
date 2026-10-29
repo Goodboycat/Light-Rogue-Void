@@ -73,7 +73,7 @@ const drawBossPhaseOverlay = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame
     ctx.globalCompositeOperation = 'lighter';
     ctx.shadowBlur = 0;
     // (5A) enrage: a fast red heartbeat ring expanding from the body edge (every 0.5 s) + red rim
-    if (enemy.state.bossEnraged) {
+    if (enemy.state.custom?.enraged) {
         const t = ((frame % 30) / 30);
         ctx.globalAlpha = (1 - t) * 0.7;
         ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 3 + 3 * (1 - t);

@@ -15,7 +15,7 @@ import { AFFIXES } from '../data/affixes';
 import { LANDMARKS, SHRINES, RELICS, WORLD_EVENTS } from '../data/world';
 import { CHAPTERS } from './game/Constants';
 import type { Enemy, MutableGameState, Projectile } from './game/types';
-import type { EnemyDef } from './types';
+import type { EnemyDef } from './game/types';
 import type { WorldPoint } from './game/logic/WorldLogic';
 
 export const GALLERY_CELL = 160;

@@ -27,6 +27,6 @@ Continue **LIGHT (Light Rogue Void)**, my passion project. You may not finish ev
 5. Push. Then report to me in chat: what you did, what you skipped and why, and the exact prompt for the next chat (update this file `prompts/NEXT_CHAT.md` if anything about the setup changed).
 6. **Then continue with the next ID** (`bash LIGHT/game/tools/next.sh`) in this same chat, repeating steps 1–5 for it. Stop only when credits are nearly out — always leave the repo pushed with README/HANDOFF current.
 
-`npm run typecheck` has one pre-existing error in `components/ErrorBoundary.tsx` — ignore it, `npm run build` is the gate.
+`npm run typecheck` is clean since 7A — it is part of the gate together with `npm run build` (the build does NOT catch missing imports; typecheck does — that is what broke the itch upload once).
 
 Do not ask me to confirm the plan. Do not ask me to choose. Report, don't ask.

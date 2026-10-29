@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Settings, MessageSquare, X, Mail, BookOpen } from 'lucide-react';
-import { CHAPTERS, WAVES_PER_CHAPTER } from './game/Constants';
+import { CHAPTERS, WAVES_PER_CHAPTER, IS_DEMO, DEMO_MAX_WAVE } from './game/Constants';
 import WorldMap, { isChapterUnlocked } from './WorldMap'; // (7C)
 
 interface MainMenuProps {

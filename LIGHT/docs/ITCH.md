@@ -14,6 +14,9 @@ bash LIGHT/game/tools/itch.sh      # -> LIGHT/out/light-rogue-void-itch.zip
 5. Save → **View page** — it must show the menu within ~3 s on a 4G phone (zip is 1.45 MB / 151 files, 2.6 MB inflated; sprites load lazily and only matter with "Sprite mode" on).
 6. itch limits: 1000 files / 500 MB per HTML zip — we are at 151 files. `itch.sh` aborts if `index.html` is not at the zip root or `sprites/atlas.json` is missing.
 
+## Why the last upload showed a blank page (fixed 2026-10-29, 7A finish)
+`components/MainMenu.tsx` used `IS_DEMO` / `DEMO_MAX_WAVE` without importing them → `ReferenceError: IS_DEMO is not defined` on first render, so every build since 7C crashed before the menu. The same pass fixed three more latent crashes caught by `npm run typecheck` (`SurvivalGame` never destructured `defeatedBosses/treasuresOpened/onTreasure` → breather crash after boss 1; `Gallery.tsx` wrong types path; `EnemyRenderer` enrage ring read a non-existent field). **`npm run typecheck` is now clean (0 errors) and is part of the gate — run it before every itch build.** Smoke-tested over HTTPS with Playwright: title renders, menu shows, zero JS errors (only the Tailwind CDN warning + favicon 404).
+
 ## Checks done in the 4B chat (2026-10-28)
 - `unzip -l` → exactly one entry `index.html` (1 479 882 bytes). No `assets/` folder, no absolute `/` paths (`base: './'`).
 - Served from a static server and opened with Playwright over HTTPS: page title *Light Rogue Void* renders, **zero JS errors**, only the expected `cdn.tailwindcss.com should not be used in production` warning.
