@@ -65,7 +65,7 @@ const StoryCaption: React.FC<Props> = ({ lines, seq, raised, holdMs }) => {
         <aside
             id="story-caption"
             className={`absolute left-0 right-0 flex justify-center pointer-events-none select-none px-4 ${raised ? 'bottom-36 md:bottom-16' : 'bottom-12'}`}
-            style={{ zIndex: 30 }}
+            style={{ zIndex: 30, paddingBottom: 'env(safe-area-inset-bottom, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}
         >
             <div
                 className="max-w-xl w-full text-center rounded-md px-4 py-2"
