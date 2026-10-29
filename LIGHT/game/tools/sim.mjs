@@ -154,12 +154,12 @@ function runOnce(preset, run, from, to) {
       if (crowd <= 2) { mx = (near.x - p.x) / nd; my = (near.y - p.y) / nd; }
     }
     // threat avoidance (a player reads telegraphs): push out of warn circles / lines / cones, hazards, lasers
-    let threat = false;
+    let threat = false, crossX = 0, crossY = 0;
     const away = (ux, uy, k) => { const l = Math.hypot(ux, uy) || 1; mx += ux / l * k; my += uy / l * k; threat = true; };
     const segPush = (x0, y0, ang, len, half) => { // distance to a ray; push perpendicular
       const ux = Math.cos(ang), uy = Math.sin(ang), rx = p.x - x0, ry = p.y - y0, t = rx * ux + ry * uy;
       if (t < -half || t > len + half) return; const px = rx - ux * t, py = ry - uy * t, d = Math.hypot(px, py);
-      if (d < half + 40) away(d > 0.1 ? px : -uy, d > 0.1 ? py : ux, 6);
+      if (d < half + 40) { away(d > 0.1 ? px : -uy, d > 0.1 ? py : ux, 6); crossX = -(d > 0.1 ? px : -uy); crossY = -(d > 0.1 ? py : ux); }
     };
     for (const t of state.telegraphs || []) {
       if (!t.active) continue; const pr = t.params, dx = p.x - t.x, dy = p.y - t.y, d = Math.hypot(dx, dy);
@@ -183,7 +183,12 @@ function runOnce(preset, run, from, to) {
     if (near) { input.mouseX = 640 + (near.x - p.x); input.mouseY = 360 + (near.y - p.y); }
     // dash on cooldown: ram the nearest enemy when close + healthy, otherwise dash away
     input.isMouseDown = false;
-    if (p.dashCooldownTimer <= 0 && near) {
+    if (threat && p.dashCooldownTimer <= 0 && p.dashTimer <= 0) {
+      // a player dashes through what they can't outrun (dash = i-frames vs telegraphs / lasers): cross beams, leave circles
+      const cl = Math.hypot(crossX, crossY), dl = Math.hypot(mx, my) || 1;
+      input.virtualMove.x = cl > 0 ? crossX / cl : mx / dl; input.virtualMove.y = cl > 0 ? crossY / cl : my / dl;
+      input.isMouseDown = true;
+    } else if (p.dashCooldownTimer <= 0 && near) {
       const ram = nd < 220 && (hp / runStats().maxHealth > 0.34 || stats.superDashLevel > 0) && !(near.isBoss && nd > 160);
       if (ram) { input.virtualMove.x = (near.x - p.x) / nd; input.virtualMove.y = (near.y - p.y) / nd; }
       input.isMouseDown = ram || nd < 120;
