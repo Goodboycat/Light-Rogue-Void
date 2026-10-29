@@ -8,7 +8,8 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ## 8B (in progress) — balance
 - Steps 1–3 committed (sim, Constants curves, boss TTK). **Step 4 done**: `game/tools/tree-cost.mjs` (reads `out/sim/summary.jsonl` budget:N rows, else built-in table). Tree = 408 nodes / 77.7M matter (Off 18.2M, Def 19.9M, Util 18.0M, Const 21.7M). Depth band 50+ is 15–17M of each arc (~85%). Measured ess/run vs owned matter: 0→19, 2k→613 (w10), 30k→18.6k (w19), 300k→93k (w30), 1M+→~220k plateau (bot walls at Crimson Eclipse w30). Model (cheapest-first): 25% tree run 114, 50% run 203, **Offense full run 234**, Def 254, Util 277; full tree never (bosses 4–6 constellations need w40+). Offense-first ordering changes nothing (costs are depth-gated). Verdict for step 5/6: depth-50 tier ×100 is the wall; income plateau is the bot ceiling, not the curve.
-- Next: step 5 death-cause table + outlier patch, step 6 docs/BALANCE.md, finish.
+- **Step 5 done**: death causes over 12 budget sweeps (36 runs): crimson_eclipse 15, hive_mind 6, void_warden 4, rest ≤2 each; damage taken top: eclipse 235, e9 Whale 232, warden 194, e18 Kamikaze 173. Outlier = Eclipse lasers (full 78M tree 0/6 at --boss=3; lasers off → 6/6). Patch `components/game/logic/enemies/bosses/CrimsonEclipse.ts:24-25` LASER_DMG 3→1, LASER_TICK 8→14 → full tree 6/6, TTK 31–49 s; offense-only still 0/6 (e18 + eclipse). Not re-swept the budget curve after the patch (credits) — next chat may re-run `npm run sim -- --tree=budget:1000000 --runs=3` to see the w30 wall move.
+- Next: step 6 docs/BALANCE.md, finish.
 
 ## 8A (this chat) — Save v2: DONE (steps 1–6 committed by the previous 8A chat, this chat did the finish)
 Gate at finish: `npm run typecheck` 0 errors, `npm run test:save` **67 passed / 0 failed**, `npm run build` green (1 640 kB JS / 408 kB gz), itch zip built. Nothing was eyeballed in a browser (credits) — 8B: open Settings → SAVE TRANSFER and the Archives RECORDS tab once.

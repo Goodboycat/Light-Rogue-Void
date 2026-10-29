@@ -21,8 +21,8 @@ import { updateBossKit, telegraph, telegraphHitPlayer, telegraphContains, fireBo
 const RED = '#ef4444';
 const CRIMSON = '#dc2626';
 const GOLD = '#fbbf24';
-const LASER_DMG = 3;           // per tick (every LASER_TICK frames) while standing in a beam
-const LASER_TICK = 8;
+const LASER_DMG = 1;           // per tick while standing in a beam (8B step 5: was 3 — 15/36 sim deaths, full tree 0/6)
+const LASER_TICK = 14;         // (8B step 5: was 8)
 const LASER_LEN = 820;
 const LASER_HALF = 0.09;       // half-angle of the live beam (rad) — ~10° total
 const LASER_LEAD = 42;         // frames ahead the wedge telegraph shows (≈0.7 s)
