@@ -9,6 +9,13 @@ import { opener_4 } from './opener_4';
 import { opener_5 } from './opener_5';
 import { opener_6 } from './opener_6';
 import { menu_loop } from './menu_loop';
+// (M3) boss intros — ids are `boss_intro_<bossId>` (bosses.ts ids)
+import { boss_intro_hive_mind } from './boss_intro_hive_mind';
+import { boss_intro_void_warden } from './boss_intro_void_warden';
+import { boss_intro_crimson_eclipse } from './boss_intro_crimson_eclipse';
+import { boss_intro_neutron_star } from './boss_intro_neutron_star';
+import { boss_intro_entropy_titan } from './boss_intro_entropy_titan';
+import { boss_intro_darkness } from './boss_intro_darkness';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -19,6 +26,12 @@ export const SCENES: Record<string, SceneDef> = {
   opener_4,
   opener_5,
   opener_6,
+  boss_intro_hive_mind,
+  boss_intro_void_warden,
+  boss_intro_crimson_eclipse,
+  boss_intro_neutron_star,
+  boss_intro_entropy_titan,
+  boss_intro_darkness,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
