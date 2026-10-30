@@ -86,6 +86,7 @@ One chat ≈ one ID. If a chat runs out of credits mid-ID it must still: commit 
 | M0 | Cinematic engine + `title_seam` + `menu_loop` + MainMenu rebuilt as a film (`docs/handoff/M0.md`). |
 | M1 | Chapter openers 1–3 as film scenes (`opener_1..3`), SurvivalGame film hook, `tools/cinebench.mjs` (`docs/handoff/M1.md`). |
 | M2 | Chapter openers 4–6 (`opener_4..6`, opener_6 stretched to 17 s via `OpenerTiming`), registry-driven hook; cinebench ms/frame for all six openers — `ctx.filter` blur identified as the dominant cost (`docs/HANDOFF.md`). |
+| M3 | Boss intros ×6 as film scenes (`boss_intro_<bossId>`, `bossKit.ts` shared spine), hooked at boss spawn before `BossBar`; cinebench per shot (`docs/HANDOFF.md`). |
 | 9B | Jam package: `docs/ITCH_PAGE.md`, `tools/shots.mjs`, `docs/TRAILER.md`, demo tree cap + `DemoCard` buy-full (`demoTreeLocked`, `FULL_GAME_URL`), product README, `docs/CHECKLIST.md`. itch zip 1.48 MB, 0 JS errors in `?demo=1`. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 

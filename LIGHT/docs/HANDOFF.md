@@ -6,42 +6,46 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M2 — Chapter openers 4–6 as film scenes (+ M2 step 4 measurements for all six openers): DONE
-Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.73 MB / 439 kB gzip). Scenes + hook were pushed by the previous chat (commits `ff58854 … 4e94e8c`); this chat did step 4 (measure) and step 5 (finish). **Note for the owner:** the `LIGHT.tar.gz` you attached was older than `origin/main` (it predated M1's finish) — the GitHub repo is the source of truth; this chat worked from `origin/main`.
+## M3 — Boss intros ×6 as film scenes + spawn hook + cinebench: DONE
+Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.77 MB / 451 kB gzip). Steps 1–2 (bossKit + six scenes + registry) were pushed by the previous chat (commits `67e4ad3`, `3942c56`); this chat did step 3 (hook, `c613eca`), step 4 (measure) and step 5 (finish). The GitHub repo is the source of truth; this chat cloned `origin/main`.
 
 **Files**
-- `game/cinematic/scenes/openerKit.ts` — `OpenerTiming` + `STD` (l.19–20); every helper (`chapterCard`, `darkLine`, `lightLine`, `turnSpark`, `openerPost`, `openerZoom`) takes a timing so a scene can stretch the spine. `openerZoom(tm, darkPush, lightOut)`.
-- `game/cinematic/scenes/opener_4.ts` **Abandoned Machinery** (13 s): gear rows on rails in 4 parallax depths (`wheel`/`far`/`mid`/`near`), one sodium lamp swinging on its cable with an orange cone + 1100 sinking motes; shot 3 the lamp gutters and dies, the gears wake and spin in unison with violet arcs, the hub of the great wheel is an iris; payoff: every tooth catches amber, the wheel turns the other way.
-- `game/cinematic/scenes/opener_5.ts` **Void Wastes** (13 s): indigo plane with a perspective crack grid (`drawCracks`, one stroke per colour), stars dying one by one, three eyes on the horizon → thirty → the horizon itself is a lid that opens; hanging ash stops mid-fall; payoff: amber ripples across the cracks. Camera `focus` track (l.177) racks to the horizon.
-- `game/cinematic/scenes/opener_6.ts` **Seam of the Void** (17 s — the longest; `SEAM: OpenerTiming = { place 2.6, dark 6.0, turn 11.5, light 13.5, end 17 }` l.27): pure black with a slow tilt, a white-hot diagonal hairline (`SEAM_ANG −0.16`, `SEAM_LEN 3400`) widens into a lens with 110 eyes + tendrils, frame rolls 14°, the crack is a lid and slams shut; 2 s heartbeat black (the longest black of the game); payoff: the other side has lights in it, LIGHT line arrives late (13.5 s + 0.5).
-- `game/cinematic/scenes/index.ts` — all six `opener_n` registered; `?cinematic=opener_4..6` plays them.
-- `game/components/SurvivalGame.tsx` l.185–199 — the M1 hook unchanged; `playOpener(w)` looks up `opener_<chapterIndexOf(w)>` so chapters 4–6 are covered by the registry, no per-chapter code. Pause/hide/resume contract: `film` set → sim loop returns early (l.487), wave timer frozen, HUD/MobileControls/captions/BossBar unmounted, pause blocked (l.269), `<CinematicPlayer z={500}/>` (l.781) covers the run; `onDone` → `setFilm(null)` resumes.
+- `game/cinematic/scenes/bossKit.ts` — shared spine. `BossTiming` + `BT = { rise 2.2, turn 5.4, name 7.8, end 10.0 }` (l.16–17); `arenaDark` (shot 1: warm pool under the spark gutters, ink closes from the edges, motes sink → black), `bossLine` (typed line, 1.6 s type), `bossName` (label "IT HAS NOTICED YOU" → name glyph by glyph → colour rule → cut to black), `bossPost` (grain/vignette/aberration spine), `bossZoom`, `bossShakes`, `bossCues` (boss_telegraph → ambush_ring + story_line → boss_phase → boss_arrive + boss_enrage), `bossLines`. Every scene takes a timing so one can stretch (Darkness does).
+- `game/cinematic/scenes/boss_intro_hive_mind.ts` (10 s) wall of mandibles, 4 parallax tiers of ink crescents with chitin rims, 600 yellow eyes open in the gaps at the turn, the wall snaps shut on the lens.
+- `boss_intro_void_warden.ts` (10 s) cathedral of violet pillars in 3 depths, a faceless helm, a vertical blade of absence that deletes the pillars behind it; the visor wakes a cold point that tracks the lens; the blade splits the frame and the halves slide apart.
+- `boss_intro_crimson_eclipse.ts` (10 s) the only warm sky of the game — an amber sun with corona + god-rays — eaten by a crimson ring; the black inside the ring has a pupil; totality turns the world red.
+- `boss_intro_neutron_star.ts` (10 s) no body — the hero is the camera: a roll that keeps accelerating, lensing rings pulling the star field inward, aberration peaking at the turn when the point blinks; collapse in 0.3 s, roll snaps to 0.
+- `boss_intro_entropy_titan.ts` (10 s) dead plain under acid-green glow, 3 ridgelines; the far mountain lifts a shoulder/arm; the summit's cracks are eyes; it stands, the plain shatters in rings (zoom 0.78 at the stand).
+- `boss_intro_darkness.ts` (11 s, `rise 3.0` — the black stays 0.8 s longer) the Eye from `title_seam` filling the frame: a violet seam that is a closed lid, hundreds of small eyes, the lid opens to an iris r 1200, the pupil locks on the lens and then dilates until the frame is black again. Name lands in white, no colour.
+- Each scene file starts with its storyboard table (shot | s | framing | camera | changes | text | audio id). Structure everywhere: setup (arena dark) → escalation (the silhouette) → turn (it notices the camera, one inverted frame) → payoff (name slam).
+- `game/cinematic/scenes/index.ts` — all six `boss_intro_<bossId>` registered (ids = `bosses.ts` ids); `?cinematic=boss_intro_hive_mind` etc. plays them.
+- `game/components/SurvivalGame.tsx` — **the hook** (step 3): `playBossIntro(bossId)` l.200–209 looks up `boss_intro_<bossId>` and `setFilm(scene)`, else falls back to the 7D in-sim `bossIntro_<id>` cinematic. Called from the boss-spawn check (l.~648, "Boss just appeared this frame in Logic.ts") right after `Audio.music('music_boss')`. `BossBar` JSX (l.~800) is gated on `!film`, so the bar first appears the frame after `onDone`. Pause/hide/resume contract unchanged from M1 (sim loop early return, wave timer frozen, HUD/MobileControls/captions unmounted, pause blocked, `<CinematicPlayer z={500}/>`). Endless returning bosses also get the intro (no `isEndlessWave` gate — the 7D path had none either; M4/9A owner may want to skip it on repeats).
 
-**Measured — `tools/cinebench.mjs`** (sandbox Chromium headless-shell on **swiftshader software GL**, so every number is an UPPER bound; the MOVIE.md targets ≤ 6 ms desktop / ≤ 14 ms phone-class are for real GPUs and are **not** verifiable in this sandbox — M10 owns the device pass). Desktop = 1920×1080 dpr1; phone = 390×844 dpr2 + CPU 4×. avg ms/frame per shot (max in brackets).
+**Measured — `tools/cinebench.mjs`** (sandbox Chromium headless-shell on **swiftshader software GL** → every number is an UPPER bound; MOVIE.md targets ≤ 6 / ≤ 14 ms are for real GPUs and not verifiable here — M10 owns the device pass). All runs `--noblur` (M2 showed blur dominates software GL; blur-on numbers would only re-measure the filter). Desktop = 1920×1080 dpr1; phone = 390×844 dpr2 + CPU 4×. avg ms/frame per shot (max).
 
-| scene | mode | s1 card | s2 place | s3 Darkness | s4 black | s5 spark |
-|---|---|---|---|---|---|---|
-| opener_1 | desktop, blur on | 3.6 (31) | 127 (137) | 313 (418) | 2.5 (4) | 77 (130) |
-| opener_1 | phone, noblur | 7.9 (61) | 73 (111) | 208 (388) | 3.8 (7) | 155 (198) |
-| opener_2 | phone, noblur | 9.4 (114) | 87 (147) | 203 (272) | 3.5 (7) | 168 (268) |
-| opener_3 | phone, noblur | 9.3 (116) | 63 (96) | 186 (311) | 5.0 (20) | 203 (263) |
-| opener_4 | desktop, blur on | 4.7 (70) | **334 (460)** | **690 (1167)** | 2.4 (5) | 61 (99) |
-| opener_4 | desktop, noblur | 5.0 (76) | 75 (132) | 106 (146) | 2.4 (5) | 62 (66) |
-| opener_4 | phone, noblur | 10 (129) | 78 (137) | 153 (250) | 4.2 (16) | 105 (139) |
-| opener_5 | desktop, blur on | — **did not finish in 100 s** (rack-focus blur on 3 full-frame layers in software GL) | | | | |
-| opener_5 | desktop, noblur | 4.0 (53) | 15.5 (19) | 76 (145) | 2.9 (6) | 54 (111) |
-| opener_5 | phone, noblur | 9.4 (113) | 24 (48) | 126 (225) | 4.0 (17) | 95 (125) |
-| opener_6 | desktop, blur on | 4.6 (74) | 26 (68) | 69 (111) | 10.6 (25) | 53 (108) |
-| opener_6 | desktop, noblur | 4.5 (74) | 17.5 (23) | 65 (105) | 9.2 (15) | 46 (57) |
-| opener_6 | phone, noblur | 8.8 (53) | 28 (42) | 100 (166) | 11 (37) | 89 (138) |
+| scene | mode | s1 arena dark | s2 silhouette | s3 turn (hard cut) | s4 name slam |
+|---|---|---|---|---|---|
+| boss_intro_hive_mind | desktop | 46 (120) | 47 (159) | 96 (156) | 91 (156) |
+| boss_intro_hive_mind | phone | 56 (198) | 55 (155) | 123 (200) | 106 (190) |
+| boss_intro_void_warden | desktop | 43 (100) | 24 (73) | 54 (59) | 64 (125) |
+| boss_intro_void_warden | phone | 59 (91) | 34 (131) | 78 (124) | 77 (178) |
+| boss_intro_crimson_eclipse | desktop | 41 (91) | 71 (121) | 131 (149) | **164 (197)** |
+| boss_intro_crimson_eclipse | phone | 55 (76) | 102 (227) | 215 (256) | **321 (394)** |
+| boss_intro_neutron_star | desktop | 40 (99) | 66 (117) | 111 (168) | 92 (151) |
+| boss_intro_neutron_star | phone | 61 (167) | 103 (198) | 176 (231) | 130 (195) |
+| boss_intro_entropy_titan | desktop | 43 (101) | 31 (82) | 87 (101) | 87 (135) |
+| boss_intro_entropy_titan | phone | 55 (95) | 45 (143) | 133 (179) | 107 (181) |
+| boss_intro_darkness | desktop | 43 (134) | 89 (160) | 143 (207) | 131 (250) |
+| boss_intro_darkness | phone | 70 (200) | 111 (185) | 204 (261) | 165 (249) |
 
-Reading the table (what matters for M10, not for M3):
-- **`ctx.filter` blur is the single dominant cost** in software GL: opener_4 s3 goes 690 → 106 ms when blur is off; opener_5 cannot finish with it on. On a GPU the filter is cheap, but the §2 rule "≤ 3 blurred elements per frame" is already exceeded by rack focus: opener_4 has 4 `depth` layers, opener_5 has 4 (`stars`/`horizon`/`eyes` at depth 1 + `ash`), each a full-frame layer. **M10 should**: (a) bind `engineFlags.blur` to the quality profile / a one-time GPU probe, (b) quantise `blur` to 2–3 steps and cache the blurred layer to an offscreen canvas while the step is unchanged, or (c) drop `depth` from the far layers in opener_4/5 and fake depth with alpha/tint only.
-- Without blur, s3 (the Darkness shot) and s5 (the spark payoff) are the heavy shots everywhere: eyes + tendrils + embers + 3-blit aberration (s3), embers + rays + bokeh at zoom-out (s5). Card and black shots are ≤ 11 ms even throttled — the engine's fixed per-frame cost (post stack) is fine.
-- opener_6 is the cheapest of the six despite being the longest and the most layered — it is mostly black with one lens; its s4 (2 s heartbeat black) costs 10 ms because the heartbeat flash + grain stay on.
-- Relative ordering (noblur phone s3): opener_1 208 > 2 203 > 3 186 > 4 153 > 5 126 > 6 100 — the M1 scenes are heavier than the M2 ones (dust devils / spores / shard ghosts are per-particle paths, not a batched Path2D).
+Reading the table (for M10, not for M4):
+- **Shot 1 (`arenaDark`) costs 40–60 ms everywhere** even though it is nearly black — the openers' black shot was 2–5 ms. The kit's shot 1 draws the ink closing as many soft radial gradients + sinking motes every frame; it is identical in all six scenes so one fix in `bossKit.ts` (cache the ink mask to an offscreen canvas, re-blit with alpha) fixes six intros.
+- **Crimson Eclipse s4 is the heaviest shot of the film so far** (164 desktop / 321 phone): totality = corona crown of crimson fire (many additive radial gradients) + god-rays + bokeh + the red sky wash + name slam, all full-frame at once. Candidates: quantise the corona to a pre-rendered sprite rotated per frame, cap god-rays, drop the bokeh under the name.
+- Void Warden and Entropy Titan are the cheapest (pillars / ridgelines are a few Path2D strokes); Neutron Star's cost is the 3-blit aberration + star-field streaks, Darkness's is the iris sprite at r 1200 + hundreds of small eyes + tendrils.
+- Ordering (phone s3 turn): eclipse 215 > darkness 204 > neutron 176 > titan 133 > hive 123 > warden 78.
 
 **Known soft spots**
-- The sandbox cannot show real-GPU numbers; `cinebench.mjs` needs `npx playwright install chromium-headless-shell` + `sudo npx playwright install-deps chromium` (≈ 1 min) before it runs here. Each full-blur desktop run of a 13 s scene takes 30–100 s wall-clock.
-- `opener_6` registered the `SEAM` timing but `SurvivalGame` has no per-scene duration knowledge — fine, the player drives `onDone` from the scene's `dur`.
-- M3 (boss intros) hooks at boss spawn **before `BossBar` mounts**; reuse the same `film` state in `SurvivalGame.tsx` — set `setFilm(getScene('boss_intro_<bossId>'))` where the boss is spawned, and keep `!film` on the `BossBar` line (l.788) so the bar appears only after `onDone`.
+- Not eyeballed in a real browser with GPU (credits); the scenes were authored from storyboards and verified by typecheck/build/cinebench finishing (every scene reaches "— done." with 0 PAGEERROR).
+- Intro plays again for endless returning bosses (see hook note). One-line fix if unwanted: `if (scene && !isEndlessWave(refs.wave))` in `playBossIntro` — needs the wave passed in.
+- `cinebench.mjs` setup in a fresh sandbox: `npx playwright install chromium-headless-shell` + `sudo npx playwright install-deps chromium` (≈ 30 s). A 10 s scene takes ≈ 25–45 s wall-clock phone-class.
+- M4 (boss outros) should mirror this hook at the boss-death branch (l.~613 `playStoryCinematicRef.current(\`bossOutro_${bossId}\`…)`): `getScene('boss_outro_<id>')` → `setFilm`, with the `onEnd` → `completeBossWaveRef` chaining moved into `handleFilmDone` (currently it just clears `film` — it needs an optional `onDone` callback ref for outros).
