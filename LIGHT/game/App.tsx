@@ -360,12 +360,13 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <StarBackground 
+      {/* (M0) in the main menu the film (menu_loop) is the background; StarBackground only during runs */}
+      {!isInMainMenu && <StarBackground 
         unlockedCount={gameState.unlockedAbilityIds.length} 
         totalCount={ABILITY_TREE_DATA.length} 
         performanceMode={gameState.settings.performanceMode}
-        tint={isInMainMenu ? null : chapterTint}
-      />
+        tint={chapterTint}
+      />}
       
       {/* --- MAIN MENU --- */}
       {isInMainMenu && (
@@ -385,6 +386,7 @@ const App: React.FC = () => {
              revealsSeen={gameState.mapRevealsSeen ?? []}
              onRevealSeen={handleRevealSeen}
              onStartDaily={handleStartDaily}
+             filmHidden={seam}
           />
       )}
 

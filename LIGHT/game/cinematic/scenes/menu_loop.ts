@@ -13,7 +13,7 @@
 
 import { K, easeInOut, easeOut, span, lerp, wobble, clamp01 } from '../Engine';
 import type { SceneDef, Gfx, LayerState } from '../Engine';
-import { AMBER, GOLD, EMBER, WARM_WHITE, VIOLET, embers, stars, bokeh, spark, godRays, eye, ridge, gradientBg, pool } from '../Draw';
+import { AMBER, GOLD, EMBER, WARM_WHITE, VIOLET, embers, stars, bokeh, spark, godRays, eye, ridge, gradientBg, pool, text, rule } from '../Draw';
 import { glowDisc, rgba } from '../Sprites';
 
 const D = 24;
@@ -71,6 +71,27 @@ const drawEye = (g: Gfx) => {
   eye(g, 0, -330, { r: 520, open, look: { x: lerp(Math.sin(t) * 0.4, 0, find), y: lerp(0, 0.9, find) }, pupil: lerp(0.2, 0.1, find), veins: 14, glow: 0.7 });
 };
 
+// (M0) The title is PART OF THE FILM, not DOM: screen-locked layer (parallax 0), lit from below by the spark.
+// While the Eye watches (shot 3) the title cools towards violet and dims; when the Eye closes it flares back warm.
+// Fits any aspect: scales down so "ROGUE VOID" never exceeds the visible width (portrait phones).
+const drawTitle = (g: Gfx, L: LayerState) => {
+  const t = g.t; const d = dark(t);
+  const fit = Math.min(1, (g.hw * 2 - 60) / 1000);
+  const y0 = -g.hh + 150 * fit + 40;              // hangs from the top edge, safe-area friendly
+  const warm = 1 - d * 0.55;
+  const pulse = 1 + Math.sin(g.ta * 1.6) * 0.06;
+  const flare = 1 + 0.5 * Math.sin(Math.PI * span(t, 18, 22));
+  const col = d > 0.35 ? '#d9cff5' : WARM_WHITE;
+  const glow = d > 0.35 ? VIOLET : AMBER;
+  const ctx = g.ctx;
+  // underglow pool behind the word (cheap, cached sprite)
+  pool(g, 0, y0 + 20, 520 * fit, GOLD, 0.16 * warm * flare * L.alpha);
+  text(g, 'LIGHT', 0, y0, { size: 190 * fit, font: 'tech', weight: 700, color: col, tracking: 26 * fit, glow, glowBlur: 42 * pulse * flare, alpha: L.alpha * (0.85 + 0.15 * warm) });
+  rule(g, 0, y0 + 118 * fit, 720 * fit, d > 0.35 ? VIOLET : GOLD, 0.8 * L.alpha);
+  text(g, 'ROGUE VOID', 0, y0 + 168 * fit, { size: 40 * fit, font: 'tech', weight: 400, color: d > 0.35 ? '#b8a8e8' : AMBER, tracking: 30 * fit, alpha: L.alpha * 0.9 });
+  ctx.shadowBlur = 0;
+};
+
 export const menu_loop: SceneDef = {
   id: 'menu_loop',
   duration: D,
@@ -92,6 +113,7 @@ export const menu_loop: SceneDef = {
     { id: 'ridge', parallax: 1.2, depth: 0, draw: drawRidge },
     { id: 'spark', parallax: 1, depth: 0, draw: drawSpark },
     { id: 'embers', parallax: 1.1, draw: drawEmbers },
+    { id: 'title', parallax: 0, draw: drawTitle },
   ],
   post: {
     letterbox: K(0, 0),
