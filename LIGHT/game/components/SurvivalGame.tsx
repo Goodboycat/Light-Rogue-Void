@@ -182,7 +182,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   const [film, setFilm] = useState<SceneDef | null>(null);
   const filmRef = useRef<SceneDef | null>(null);
   filmRef.current = film;
-  /** Chapter opener for wave `w`: a film scene when `opener_<n>` is registered (M1: 1–3), else the card + in-sim cinematic (7D). */
+  /** Chapter opener for wave `w`: a film scene when `opener_<n>` is registered (M1: 1–3, M2: 4–6 — all six now), else the card + in-sim cinematic (7D). */
   const playOpener = (w: number) => {
       const ci = chapterIndexOf(w);
       const scene = getScene(`opener_${ci}`);
