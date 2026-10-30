@@ -196,6 +196,16 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
   const playOpenerRef = useRef(playOpener);
   playOpenerRef.current = playOpener;
+  /** (M3) Boss intro for `bossId`: the film scene `boss_intro_<bossId>` when registered (all six), else the 7D in-sim
+   *  cinematic. Runs the frame the boss appears in Logic.ts — before `BossBar` mounts (its JSX line is gated on `!film`),
+   *  so the bar is first seen the frame after `onDone`. Same pause/hide/resume contract as the openers. */
+  const playBossIntro = (bossId: string) => {
+      const scene = getScene(`boss_intro_${bossId}`);
+      if (scene) setFilm(scene);
+      else playStoryCinematicRef.current(`bossIntro_${bossId}`);
+  };
+  const playBossIntroRef = useRef(playBossIntro);
+  playBossIntroRef.current = playBossIntro;
   const handleFilmDone = useCallback(() => { setFilm(null); }, []);
   
   // --- CINEMATIC STATE MANAGEMENT ---
@@ -635,7 +645,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 // Boss just appeared this frame in Logic.ts
                 const id = state.activeBoss.def.id;
                 Audio.music('music_boss', 1500); Audio.duck(0.5, 2500); // (6B)
-                playStoryCinematicRef.current(`bossIntro_${id}`); // (7D) camera on the boss, lines, back to the spark
+                playBossIntroRef.current(id); // (M3) film scene `boss_intro_<id>` (falls back to the 7D in-sim cinematic)
             }
 
             // --- REGEN LOGIC (Per Frame) ---
