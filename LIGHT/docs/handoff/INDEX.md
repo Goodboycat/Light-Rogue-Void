@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `M1` — Chapter openers 1–3 as film scenes + SurvivalGame hook + cinebench (newest, in HANDOFF.md)
+- `M2` — Chapter openers 4–6 + cinebench numbers for all six openers (newest, in HANDOFF.md)
+- `M1` — Chapter openers 1–3 as film scenes + SurvivalGame hook + cinebench (`docs/handoff/M1.md`)
 - `M0` — Cinematic engine + title_seam + menu rebuilt (`docs/handoff/M0.md`)
 - `9B` — Jam package (`docs/handoff/9B.md`)
 - `9A.md` — Endless + daily seed

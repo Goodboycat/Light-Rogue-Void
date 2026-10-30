@@ -6,40 +6,42 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M0 — Cinematic engine + `title_seam` + `menu_loop` + main menu rebuilt: DONE
-Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.68 MB / 426 kB gzip), dist served + Playwright smoke `?nointro=1`: 0 JS errors (favicon 404 only). Spread over two chats (engine/scenes recovered from the tar in the first, menu rebuild + finish in this one).
+## M2 — Chapter openers 4–6 as film scenes (+ M2 step 4 measurements for all six openers): DONE
+Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.73 MB / 439 kB gzip). Scenes + hook were pushed by the previous chat (commits `ff58854 … 4e94e8c`); this chat did step 4 (measure) and step 5 (finish). **Note for the owner:** the `LIGHT.tar.gz` you attached was older than `origin/main` (it predated M1's finish) — the GitHub repo is the source of truth; this chat worked from `origin/main`.
 
-**Files (all new unless noted)**
-- `game/cinematic/Engine.ts` — `Track`/`K()`/`pulses()` keyframes with easing (`easeInOut`, `easeOutExpo`, `overshoot`, `slam`, `elastic`, `step`), deterministic `hash`/`wobble`, camera (x, y, zoom, rot, focus + decaying shakes) applied per layer through `parallax` (0 = screen-locked), rack focus via `depth` vs `camera.focus`, post stack once per frame (aberration 3 channel blits → wash → grain tile overlay → vignette sprite → letterbox → invert → flash → fade), `CinematicPlayer` class (`advance/seek/skip/render`, cues fire by t, skip = 0.35 s fade + drop remaining cues), `cinematicDpr()` (§2 policy). Design space 1920×1080 centred origin, cover-fit.
-- `game/cinematic/Sprites.ts` — cached offscreen sprites keyed by colour+size: `glowDisc`, `bokehDisc`, `rayStrip`, `irisSprite`, `hazeBand`, `rgba()`.
-- `game/cinematic/Draw.ts` — batched `embers` (one Path2D fill per colour bucket, positions computed from `hash(i)` + t, never stored), `stars`, `bokeh`, `spark` (3 glow sprites + ray strips), `godRays`, `eye` (lid/iris/pupil/veins, `open`, `look`), `eyeField`, `tendrils`, `ridge`, typography `text` / `typed` (glyph-by-glyph jitter + cursor) / `assemble` (per-glyph overshoot) / `rule`, `gradientBg`, `pool`. `shadowBlur` only inside `text`.
-- `game/cinematic/scenes/title_seam.ts` (34 s, 8 shots, storyboard in header), `scenes/menu_loop.ts` (24 s loop, 4 shots + **title layer** `drawTitle`, parallax 0, scales with `g.hw` for portrait), `scenes/index.ts` registry.
-- `game/components/CinematicPlayer.tsx` — fixed full-screen opaque canvas, own DPR/resize/input, `passive` (menu bg, no skip, pointer-events none), `z`, `debug` scrub bar + shot buttons + ms/frame readout.
-- `game/components/CinematicDebug.tsx` — `?cinematic=<id>[&t=<s>][&loop=1][&mute=1]`; unknown id lists all scenes.
-- `game/App.tsx` — `title_seam` once per session (`sessionStorage light.title_seam.seen`; skipped with `?nointro=1`, `?cinematic=`, `?gallery=1`), `StarBackground` **not mounted in the menu** any more (film replaces it), `MainMenu filmHidden={seam}` so only one full-screen canvas runs during the seam.
-- `game/components/MainMenu.tsx` — **rewritten** (framer-motion gone): mounts `<CinematicPlayer scene={menu_loop} passive z={0}/>` as the background, thin UI on top: dev note / guide / settings icon buttons, collapsible **CHART** toggle (star chart + MapReveal appear in a glass strip above START), DailyCard, DemoCard, START button (`BEGIN` first run, `STAY LIT` after), chapter line + record, footer. Same props as before + `filmHidden`.
+**Files**
+- `game/cinematic/scenes/openerKit.ts` — `OpenerTiming` + `STD` (l.19–20); every helper (`chapterCard`, `darkLine`, `lightLine`, `turnSpark`, `openerPost`, `openerZoom`) takes a timing so a scene can stretch the spine. `openerZoom(tm, darkPush, lightOut)`.
+- `game/cinematic/scenes/opener_4.ts` **Abandoned Machinery** (13 s): gear rows on rails in 4 parallax depths (`wheel`/`far`/`mid`/`near`), one sodium lamp swinging on its cable with an orange cone + 1100 sinking motes; shot 3 the lamp gutters and dies, the gears wake and spin in unison with violet arcs, the hub of the great wheel is an iris; payoff: every tooth catches amber, the wheel turns the other way.
+- `game/cinematic/scenes/opener_5.ts` **Void Wastes** (13 s): indigo plane with a perspective crack grid (`drawCracks`, one stroke per colour), stars dying one by one, three eyes on the horizon → thirty → the horizon itself is a lid that opens; hanging ash stops mid-fall; payoff: amber ripples across the cracks. Camera `focus` track (l.177) racks to the horizon.
+- `game/cinematic/scenes/opener_6.ts` **Seam of the Void** (17 s — the longest; `SEAM: OpenerTiming = { place 2.6, dark 6.0, turn 11.5, light 13.5, end 17 }` l.27): pure black with a slow tilt, a white-hot diagonal hairline (`SEAM_ANG −0.16`, `SEAM_LEN 3400`) widens into a lens with 110 eyes + tendrils, frame rolls 14°, the crack is a lid and slams shut; 2 s heartbeat black (the longest black of the game); payoff: the other side has lights in it, LIGHT line arrives late (13.5 s + 0.5).
+- `game/cinematic/scenes/index.ts` — all six `opener_n` registered; `?cinematic=opener_4..6` plays them.
+- `game/components/SurvivalGame.tsx` l.185–199 — the M1 hook unchanged; `playOpener(w)` looks up `opener_<chapterIndexOf(w)>` so chapters 4–6 are covered by the registry, no per-chapter code. Pause/hide/resume contract: `film` set → sim loop returns early (l.487), wave timer frozen, HUD/MobileControls/captions/BossBar unmounted, pause blocked (l.269), `<CinematicPlayer z={500}/>` (l.781) covers the run; `onDone` → `setFilm(null)` resumes.
 
-**Shots — `title_seam`**
-1. 0–4 s extreme close, accelerating push-in: black, heavy grain, a violet hairline (closed lid) breathes — the Darkness exists before anything else.
-2. 4–9 s push-in + rack focus: the lid opens unevenly into an Eye wider than the frame, a field of small eyes wakes; typed "it was always here." — hesitation = horror.
-3. 9–14 s HARD CUT wide + decaying shake + pan left: the Eye is now small on a black horizon, tendrils pour over the ridge; "THE DARKNESS DOES NOT HUNT." — scale reversal is the escalation.
-4. 14–19 s push into the tendrils, two inverted flash frames, grain/aberration peak; "IT WAITS." — the hostile peak.
-5. 19–21.5 s HARD CUT to true black, 0.8 s of nothing, then one amber point at centre — the turn, silence as a cut.
-6. 21.5–26 s overshoot zoom-out, letterbox opens: the Spark ignites (bloom, rays, embers, black → umber); "but something small refused." — warmth as relief.
-7. 26–31 s LIGHT slams in with per-glyph overshoot, lit from below; rule; ROGUE VOID widens; `chapter_card` + `music_sting_reveal`, `music_title` starts — payoff.
-8. 31–34 s hold, "tap to begin" pulses, fade — hands over to the menu.
+**Measured — `tools/cinebench.mjs`** (sandbox Chromium headless-shell on **swiftshader software GL**, so every number is an UPPER bound; the MOVIE.md targets ≤ 6 ms desktop / ≤ 14 ms phone-class are for real GPUs and are **not** verifiable in this sandbox — M10 owns the device pass). Desktop = 1920×1080 dpr1; phone = 390×844 dpr2 + CPU 4×. avg ms/frame per shot (max in brackets).
 
-**Shots — `menu_loop`** (loop; the Eye is the turn of every loop)
-1. 0–8 s warm wide: spark on the ridge, 1000 embers, rays turning, breathing zoom; title warm-white with amber glow.
-2. 8–14 s pan up + rack focus to sky: a darkness band drops in, a violet lid-line appears above the spark.
-3. 14–18 s the Eye half-opens, pupil finds the spark; stars dim, embers slow, spark flinches; title cools to violet and dims; `boss_telegraph` soft.
-4. 18–24 s the Eye closes; spark flares, rays bloom, title flares warm; camera settles back to shot 1; `shrine_touch` soft.
+| scene | mode | s1 card | s2 place | s3 Darkness | s4 black | s5 spark |
+|---|---|---|---|---|---|---|
+| opener_1 | desktop, blur on | 3.6 (31) | 127 (137) | 313 (418) | 2.5 (4) | 77 (130) |
+| opener_1 | phone, noblur | 7.9 (61) | 73 (111) | 208 (388) | 3.8 (7) | 155 (198) |
+| opener_2 | phone, noblur | 9.4 (114) | 87 (147) | 203 (272) | 3.5 (7) | 168 (268) |
+| opener_3 | phone, noblur | 9.3 (116) | 63 (96) | 186 (311) | 5.0 (20) | 203 (263) |
+| opener_4 | desktop, blur on | 4.7 (70) | **334 (460)** | **690 (1167)** | 2.4 (5) | 61 (99) |
+| opener_4 | desktop, noblur | 5.0 (76) | 75 (132) | 106 (146) | 2.4 (5) | 62 (66) |
+| opener_4 | phone, noblur | 10 (129) | 78 (137) | 153 (250) | 4.2 (16) | 105 (139) |
+| opener_5 | desktop, blur on | — **did not finish in 100 s** (rack-focus blur on 3 full-frame layers in software GL) | | | | |
+| opener_5 | desktop, noblur | 4.0 (53) | 15.5 (19) | 76 (145) | 2.9 (6) | 54 (111) |
+| opener_5 | phone, noblur | 9.4 (113) | 24 (48) | 126 (225) | 4.0 (17) | 95 (125) |
+| opener_6 | desktop, blur on | 4.6 (74) | 26 (68) | 69 (111) | 10.6 (25) | 53 (108) |
+| opener_6 | desktop, noblur | 4.5 (74) | 17.5 (23) | 65 (105) | 9.2 (15) | 46 (57) |
+| opener_6 | phone, noblur | 8.8 (53) | 28 (42) | 100 (166) | 11 (37) | 89 (138) |
 
-**Measured** (debug route ms/frame readout, sandbox Chromium headless — treat as upper bound): not measured on real hardware this chat; M10 owns the phone pass. The engine's per-frame cost is dominated by the embers Path2D (1020 particles) and the 3-blit aberration when active.
+Reading the table (what matters for M10, not for M3):
+- **`ctx.filter` blur is the single dominant cost** in software GL: opener_4 s3 goes 690 → 106 ms when blur is off; opener_5 cannot finish with it on. On a GPU the filter is cheap, but the §2 rule "≤ 3 blurred elements per frame" is already exceeded by rack focus: opener_4 has 4 `depth` layers, opener_5 has 4 (`stars`/`horizon`/`eyes` at depth 1 + `ash`), each a full-frame layer. **M10 should**: (a) bind `engineFlags.blur` to the quality profile / a one-time GPU probe, (b) quantise `blur` to 2–3 steps and cache the blurred layer to an offscreen canvas while the step is unchanged, or (c) drop `depth` from the far layers in opener_4/5 and fake depth with alpha/tint only.
+- Without blur, s3 (the Darkness shot) and s5 (the spark payoff) are the heavy shots everywhere: eyes + tendrils + embers + 3-blit aberration (s3), embers + rays + bokeh at zoom-out (s5). Card and black shots are ≤ 11 ms even throttled — the engine's fixed per-frame cost (post stack) is fine.
+- opener_6 is the cheapest of the six despite being the longest and the most layered — it is mostly black with one lens; its s4 (2 s heartbeat black) costs 10 ms because the heartbeat flash + grain stay on.
+- Relative ordering (noblur phone s3): opener_1 208 > 2 203 > 3 186 > 4 153 > 5 126 > 6 100 — the M1 scenes are heavier than the M2 ones (dust devils / spores / shard ghosts are per-particle paths, not a batched Path2D).
 
-**Known soft spots / for later parts**
-- `menu_loop` cues fire even when the menu is behind a modal (settings/guide) — harmless, AudioManager gates on settings.
-- The `title_seam` text uses `shadowBlur` on 2–3 text draws per frame (allowed by §2); nothing else does.
-- `MapReveal` (7D) still uses the old look inside the chart strip — M4 replaces it with `place_reveal_<n>` scenes.
-- `StarBackground` remains for runs; the pause/skill-tree screens still show it (fine, they are gameplay-adjacent).
-- Phone portrait: the title layer scales by `g.hw`; the START stack sits at the bottom with safe-area padding; not verified on a device.
+**Known soft spots**
+- The sandbox cannot show real-GPU numbers; `cinebench.mjs` needs `npx playwright install chromium-headless-shell` + `sudo npx playwright install-deps chromium` (≈ 1 min) before it runs here. Each full-blur desktop run of a 13 s scene takes 30–100 s wall-clock.
+- `opener_6` registered the `SEAM` timing but `SurvivalGame` has no per-scene duration knowledge — fine, the player drives `onDone` from the scene's `dur`.
+- M3 (boss intros) hooks at boss spawn **before `BossBar` mounts**; reuse the same `film` state in `SurvivalGame.tsx` — set `setFilm(getScene('boss_intro_<bossId>'))` where the boss is spawned, and keep `!film` on the `BossBar` line (l.788) so the bar appears only after `onDone`.

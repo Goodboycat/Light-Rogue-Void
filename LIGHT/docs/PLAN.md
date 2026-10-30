@@ -84,7 +84,8 @@ One chat ≈ one ID. If a chat runs out of credits mid-ID it must still: commit 
 | 8B | Balance: `npm run sim` bot + presets/`--boss`/`--god`, named curves in `Constants.ts`, `BOSS_HP_MULT` tuned (TTK 37–143 s), `tools/tree-cost.mjs` (77.7M tree, Offense full ≈ run 234), death-cause table + Crimson Eclipse laser patch (full tree 0/6 → 6/6), `docs/BALANCE.md`. **Fixed itch crash** (`save/storage.ts` unbound setTimeout → Illegal invocation); itch build smoke-tested in a browser, 0 errors. |
 | 9A | Endless (STAY → wave 61+, `ENDLESS_SCALE`, bosses 1–5 return with mutators from `data/mutators.ts`, WATCHER endless pool) + Daily Void (UTC date seed, streak, 30-day history, share code + verify, `save/daily.ts`). Pre-step: budget sweep re-run after the Eclipse patch (`docs/BALANCE.md`). itch build browser-smoke-tested, 0 errors. |
 | M0 | Cinematic engine + `title_seam` + `menu_loop` + MainMenu rebuilt as a film (`docs/handoff/M0.md`). |
-| M1 | Chapter openers 1–3 as film scenes (`opener_1..3`), SurvivalGame film hook, `tools/cinebench.mjs` (`docs/handoff/M1.md` after the next chat archives it). |
+| M1 | Chapter openers 1–3 as film scenes (`opener_1..3`), SurvivalGame film hook, `tools/cinebench.mjs` (`docs/handoff/M1.md`). |
+| M2 | Chapter openers 4–6 (`opener_4..6`, opener_6 stretched to 17 s via `OpenerTiming`), registry-driven hook; cinebench ms/frame for all six openers — `ctx.filter` blur identified as the dominant cost (`docs/HANDOFF.md`). |
 | 9B | Jam package: `docs/ITCH_PAGE.md`, `tools/shots.mjs`, `docs/TRAILER.md`, demo tree cap + `DemoCard` buy-full (`demoTreeLocked`, `FULL_GAME_URL`), product README, `docs/CHECKLIST.md`. itch zip 1.48 MB, 0 JS errors in `?demo=1`. |
 | 0F | Pushed `original-complete` + `fixed-fork` branches, `docs/FORK_AUDIT.md`, plan v2 (feel → bosses → variety → discovery → story), fork pointers in prompts, `tools/fork.sh`, `prompts/NEXT_CHAT.md`. |
 

@@ -64,13 +64,14 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: M2 M3 M4 M5 M6 M7 M8 M9 M10
+Next: M3 M4 M5 M6 M7 M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
 | M0 | **DONE** — cinematic engine (`game/cinematic/`), `title_seam` (34 s launch film, once per session), `menu_loop` (24 s loop) and the main menu rebuilt as a film with a thin UI layer. `?cinematic=<id>` debug route. |
 | M1 | **DONE** — chapter openers 1–3 (`opener_1..3`, 13 s each, 5 shots: card → place → Darkness → black turn → spark) replace the in-sim StoryCinematic for openers; `SurvivalGame` pause/hide/resume hook (`film` state); `tools/cinebench.mjs` per-shot ms/frame. |
-| M2–M10 | **THE MOVIE** — cinematic scene system, one part per chat. Brief: `docs/MOVIE.md`. The Capacitor APK (old chat 10) is **dropped — ignore it**. |
+| M2 | **DONE** — chapter openers 4–6 (`opener_4` Abandoned Machinery, `opener_5` Void Wastes, `opener_6` Seam of the Void 17 s) via the same hook; `openerKit` `OpenerTiming`; cinebench table for all six openers in `docs/HANDOFF.md` (blur = the M10 perf target). |
+| M3–M10 | **THE MOVIE** — cinematic scene system, one part per chat. Brief: `docs/MOVIE.md`. The Capacitor APK (old chat 10) is **dropped — ignore it**. |
 
 Branches: `main` = LIGHT, `original-complete` = the boring-but-complete original, `fixed-fork` = the rejected AI roguelike (read with `bash LIGHT/game/tools/fork.sh <path>`). Next chat: read `prompts/NEXT_CHAT.md`.
 
