@@ -15,7 +15,7 @@ import { K, step, easeIn, easeOut, easeInOut, span, lerp, wobble } from '../Engi
 import type { SceneDef, Gfx, LayerState } from '../Engine';
 import { AMBER, GOLD, EMBER, VIOLET, embers, bokeh, eye, ridge, gradientBg, pool, godRays } from '../Draw';
 import { glowDisc, hazeBand, rgba } from '../Sprites';
-import { T_PLACE, T_DARK, T_TURN, T_LIGHT, T_END, chapterCard, darkLine, lightLine, turnSpark, openerPost, openerZoom } from './openerKit';
+import { T_PLACE, T_DARK, T_TURN, T_LIGHT, T_END, chapterCard, darkLine, lightLine, turnSpark, openerPost, openerZoom, mix } from './openerKit';
 
 const NAME = 'Origin Fields', COLOR = '#fde68a';
 const DUST = '#c9a06a', DUST2 = '#8a6238';
@@ -89,16 +89,6 @@ const drawWarmPool = (g: Gfx, L: LayerState) => {
   g.ctx.drawImage(glowDisc(GOLD, 256), -700, 150, 1300, 260);
   g.ctx.globalAlpha = L.alpha; g.ctx.globalCompositeOperation = 'source-over';
 };
-
-/** cheap hex mix (both '#rrggbb') — only used per frame for a handful of fill colours */
-function mix(a: string, b: string, u: number): string {
-  if (u <= 0) return a; if (u >= 1) return b;
-  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
-  const r = Math.round(((pa >> 16) & 255) + (((pb >> 16) & 255) - ((pa >> 16) & 255)) * u);
-  const gg = Math.round(((pa >> 8) & 255) + (((pb >> 8) & 255) - ((pa >> 8) & 255)) * u);
-  const bb = Math.round((pa & 255) + ((pb & 255) - (pa & 255)) * u);
-  return `rgb(${r},${gg},${bb})`;
-}
 
 export const opener_1: SceneDef = {
   id: 'opener_1',

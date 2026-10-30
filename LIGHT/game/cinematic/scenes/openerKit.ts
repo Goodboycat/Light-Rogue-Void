@@ -90,3 +90,13 @@ const easeInExpoLite = (u: number) => u * u * u;
 const overshootLite = (u: number) => { const c1 = 1.2, c3 = c1 + 1; return 1 + c3 * Math.pow(u - 1, 3) + c1 * Math.pow(u - 1, 2); };
 
 export { GOLD };
+
+/** cheap hex mix (both '#rrggbb') — only for a handful of fill colours per frame, never per particle */
+export function mix(a: string, b: string, u: number): string {
+  if (u <= 0) return a; if (u >= 1) return b;
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const r = Math.round(((pa >> 16) & 255) + (((pb >> 16) & 255) - ((pa >> 16) & 255)) * u);
+  const gg = Math.round(((pa >> 8) & 255) + (((pb >> 8) & 255) - ((pa >> 8) & 255)) * u);
+  const bb = Math.round((pa & 255) + ((pb & 255) - (pa & 255)) * u);
+  return `rgb(${r},${gg},${bb})`;
+}
