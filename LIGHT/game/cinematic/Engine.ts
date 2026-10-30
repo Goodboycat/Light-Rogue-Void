@@ -168,6 +168,10 @@ function ensureVignette() {
 }
 
 // ---------------------------------------------------------------- player
+/** (M1) runtime switches — `blur`: rack-focus / layer `ctx.filter` blur (GPU-cheap, software-catastrophic; `?cinematic=…&noblur=1` and
+ *  tools/cinebench.mjs --noblur turn it off to measure draw cost alone). M10 may bind it to the quality profile. */
+export const engineFlags = { blur: true };
+
 export class CinematicPlayer {
   readonly scene: SceneDef;
   t = 0; ta = 0; frame = 0; playing = true; done = false; skipping = false;
@@ -264,7 +268,7 @@ export class CinematicPlayer {
       sx.rotate(cr); sx.scale(z, z); sx.translate(cx, cy);
       sx.translate(L.x, L.y); sx.rotate(L.rot); sx.scale(L.scale, L.scale);
       sx.globalAlpha = Math.min(1, L.alpha); sx.globalCompositeOperation = ld.blend ?? 'source-over';
-      sx.filter = blur > 0.4 ? `blur(${(blur * S).toFixed(1)}px)` : 'none';
+      sx.filter = engineFlags.blur && blur > 0.4 ? `blur(${(blur * S).toFixed(1)}px)` : 'none';
       ld.draw(g, L);
     }
     sx.filter = 'none'; sx.globalAlpha = 1; sx.globalCompositeOperation = 'source-over';

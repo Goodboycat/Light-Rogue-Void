@@ -63,8 +63,12 @@ const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, 
       const t0 = performance.now();
       p.advance(dt);
       p.render(ctx, W, H, dpr);
-      acc += performance.now() - t0; frames++;
+      const ms = performance.now() - t0; acc += ms; frames++;
       if (frames >= 30) { (p as any).__ms = acc / frames; frames = 0; acc = 0; }
+      if (debug) { // (M1) per-shot ms/frame for tools/cinebench.mjs → window.__cinePerf
+        const w = window as any; const perf = (w.__cinePerf ??= { id: scene.id, shots: {} as Record<number, { acc: number; n: number; max: number }> });
+        const sh = scene.shots.find(s => p.t >= s.from && p.t < s.to); if (sh) { const r = (perf.shots[sh.n] ??= { acc: 0, n: 0, max: 0 }); r.acc += ms; r.n++; if (ms > r.max) r.max = ms; }
+      }
       onFrameRef.current?.(p);
       if (debug && (p.frame & 3) === 0) bump(n => n + 1);
     };

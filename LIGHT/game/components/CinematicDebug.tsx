@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import CinematicPlayer from './CinematicPlayer';
 import { SCENES, sceneIds } from '../cinematic/scenes';
 import Audio from '../audio/AudioManager';
+import { engineFlags } from '../cinematic/Engine';
 
 const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
 export const CINEMATIC_DEBUG_ID: string | null = q?.get('cinematic') ?? null;
@@ -26,6 +27,7 @@ const CinematicDebug: React.FC = () => {
   const startT = parseFloat(q?.get('t') ?? '0') || 0;
   const loop = q?.get('loop') === '1' ? true : undefined;
   const mute = q?.get('mute') === '1';
+  engineFlags.blur = q?.get('noblur') !== '1'; // (M1) perf isolation
   return (
     <>
       {!done && (
