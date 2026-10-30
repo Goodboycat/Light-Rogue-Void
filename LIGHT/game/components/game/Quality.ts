@@ -41,9 +41,11 @@ export const setQualityMode = (m: QualityMode) => { quality = QUALITY_PROFILES[m
 let autoMode: QualityMode = 'MEDIUM';
 let winStart = 0, winFrames = 0, winMs = 0, lastChange = 0, lastFrame = 0;
 let lastAvgMs = 0;
+let firstFrame = 0;
+const QUALITY_WARMUP_MS = 4000;
 
 export const resetQualityAuto = (start: QualityMode = 'MEDIUM') => {
-    autoMode = start; winStart = 0; winFrames = 0; winMs = 0; lastChange = 0; lastFrame = 0; lastAvgMs = 0;
+    autoMode = start; firstFrame = 0; winStart = 0; winFrames = 0; winMs = 0; lastChange = 0; lastFrame = 0; lastAvgMs = 0;
 };
 
 /** Last completed window's average frame ms (0 until the first window closes). For HUD/debug/HANDOFF numbers. */
@@ -61,6 +63,9 @@ export const tickQuality = (now: number, settingMode: QualityMode | 'AUTO'): Qua
         if (dt > 0 && dt < 250) { winFrames++; winMs += dt; } // ignore tab-switch / pause gaps
     }
     lastFrame = now;
+    // (10 fix) ignore the first 4 s (asset decode / JIT warm-up) so a load hitch never drops a run to LOW
+    if (firstFrame === 0) firstFrame = now;
+    if (now - firstFrame < QUALITY_WARMUP_MS) { winFrames = 0; winMs = 0; setQualityMode(autoMode); return autoMode; }
     if (winStart === 0) winStart = now;
     if (now - winStart >= QUALITY_AUTO_WINDOW_MS && winFrames > 10) {
         const avg = winMs / winFrames;

@@ -14,8 +14,10 @@ export const isPlainEnemy = (e: Enemy): boolean =>
     !e.isShiner && !((e.shotWarn ?? 0) > 0) && !(e.projectileImmunity > 0) && !e.carried;
 
 /** Batching is on for LOW always, and for MEDIUM/HIGH once the visible crowd is large (count-driven LOD, not a cap). */
+// (10 fix) Batched silhouettes read as "dots" — players saw dot-enemies until auto quality stepped back up.
+// Full bodies always; batching stays available only for an extreme crowd (ENEMY_BATCH_MIN_VISIBLE, raised to 600).
 export const shouldBatchEnemies = (visibleCount: number): boolean =>
-    !quality.outlines || visibleCount >= ENEMY_BATCH_MIN_VISIBLE;
+    visibleCount >= ENEMY_BATCH_MIN_VISIBLE && !!quality;
 
 // silhouette per visual type (rotation ignored — at crowd density the outline, not the heading, reads)
 const addShape = (path: Path2D, t: VisualType, x: number, y: number, s: number, frame: number) => {
