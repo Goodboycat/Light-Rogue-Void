@@ -59,6 +59,12 @@ export class Track {
   }
 }
 /** Shorthand: `K(0,0, 1,1,easeOut, 2,0)` → Track. Every triple (t, v, ease?) — ease optional per key. */
+/** Pulse track: 1 for `dur` seconds at each time in `times`, else 0 (flash frames / inverted frames). */
+export const pulses = (times: number[], dur = 0.07, v = 1): Track => {
+  const keys: Key[] = [{ t: 0, v: 0 }];
+  for (const t of times) keys.push({ t, v, e: step }, { t: t + dur, v }, { t: t + dur + 0.001, v: 0, e: step });
+  return new Track(keys);
+};
 export const K = (...args: (number | Ease)[]): Track => {
   const keys: Key[] = [];
   for (let i = 0; i < args.length;) {
@@ -83,6 +89,8 @@ export interface CameraState { x: number; y: number; zoom: number; rot: number; 
 export interface LayerState { x: number; y: number; scale: number; rot: number; alpha: number; tint: number; blur: number; t: number; lt: number }
 export interface Gfx {
   ctx: CanvasRenderingContext2D;
+  /** absolute (never-wrapping) time for looping scenes — use for embers/noise so a loop seam is invisible */
+  ta: number;
   /** design→canvas scale (cover fit), canvas size in px, DPR already in the transform */
   S: number; W: number; H: number; dpr: number;
   cam: CameraState; t: number; frame: number;
@@ -162,7 +170,7 @@ function ensureVignette() {
 // ---------------------------------------------------------------- player
 export class CinematicPlayer {
   readonly scene: SceneDef;
-  t = 0; frame = 0; playing = true; done = false; skipping = false;
+  t = 0; ta = 0; frame = 0; playing = true; done = false; skipping = false;
   private skipT = -1;
   private fired = 0;
   private cues: Cue[];
@@ -172,7 +180,7 @@ export class CinematicPlayer {
   private chanCv: HTMLCanvasElement[] = [];
   onDone: (() => void) | null = null;
   constructor(scene: SceneDef, public audio: AudioSink | null, startT = 0) {
-    this.scene = scene; this.t = startT;
+    this.scene = scene; this.t = startT; this.ta = startT;
     this.cues = (scene.cues ?? []).slice().sort((a, b) => a.t - b.t);
     while (this.fired < this.cues.length && this.cues[this.fired].t < startT) this.fired++;
   }
@@ -181,7 +189,7 @@ export class CinematicPlayer {
   advance(dt: number) {
     if (!this.playing || this.done) return;
     if (this.skipping) { this.skipT += dt; if (this.skipT >= 0.35) this.finish(); return; }
-    this.t += dt;
+    this.t += dt; this.ta += dt;
     if (this.t >= this.scene.duration) {
       if (this.scene.loop) { this.t -= this.scene.duration; this.fired = 0; }
       else { this.t = this.scene.duration; this.finish(); return; }
@@ -190,7 +198,7 @@ export class CinematicPlayer {
   }
   /** Jump to time (scrub). Cues at/after the new time re-arm; none fire for the jump itself. */
   seek(t: number) {
-    this.t = Math.max(0, Math.min(this.scene.duration, t));
+    this.t = Math.max(0, Math.min(this.scene.duration, t)); this.ta = this.t;
     this.fired = 0; while (this.fired < this.cues.length && this.cues[this.fired].t <= this.t) this.fired++;
   }
   private fireCues() {
@@ -231,7 +239,7 @@ export class CinematicPlayer {
     if (!this.sceneCv) this.sceneCv = document.createElement('canvas');
     const scv = this.sceneCv; if (scv.width !== W || scv.height !== H) { scv.width = W; scv.height = H; }
     const sx = scv.getContext('2d')!;
-    const g: Gfx = { ctx: sx, S, W, H, dpr, cam, t, frame: this.frame, hw, hh };
+    const g: Gfx = { ctx: sx, ta: this.ta, S, W, H, dpr, cam, t, frame: this.frame, hw, hh };
     sx.setTransform(1, 0, 0, 1, 0, 0); sx.globalCompositeOperation = 'source-over'; sx.globalAlpha = 1; sx.filter = 'none';
     sx.fillStyle = '#000'; sx.fillRect(0, 0, W, H);
     // background (design space, camera-less)
