@@ -16,6 +16,9 @@ import GameHUD from './components/GameHUD';
 import SettingsMenu from './components/SettingsMenu';
 import TransitionOverlay from './components/TransitionOverlay';
 import Gallery from './components/Gallery';
+import CinematicPlayer from './components/CinematicPlayer'; // (M0) film layer
+import CinematicDebug, { CINEMATIC_DEBUG_ID } from './components/CinematicDebug'; // (M0) ?cinematic=<id>
+import { title_seam } from './cinematic/scenes/title_seam'; // (M0)
 
 import { ABILITY_TREE_DATA } from './data';
 import { checkAchievements, achievementReward } from './data/achievements';
@@ -28,8 +31,20 @@ import { recordRunStart, recordRunEnd, recordBossKill, recordMatter, ensureStats
 // (5A step 6) `?gallery=1` renders the static art sheet instead of the game (docs/ART.md).
 const IS_GALLERY = typeof location !== 'undefined' && new URLSearchParams(location.search).get('gallery') === '1';
 
+// (M0) `title_seam` plays once per browser session on launch (sessionStorage), never in ?demo screenshots runs with ?nointro=1.
+const SEAM_KEY = 'light.title_seam.seen';
+const wantsSeam = () => {
+  if (typeof location === 'undefined') return false;
+  const q = new URLSearchParams(location.search);
+  if (q.has('nointro') || q.has('cinematic') || q.get('gallery') === '1') return false;
+  try { return sessionStorage.getItem(SEAM_KEY) !== '1'; } catch { return true; }
+};
+
 const App: React.FC = () => {
   if (IS_GALLERY) return <Gallery />;
+  if (CINEMATIC_DEBUG_ID) return <CinematicDebug />;
+  const [seam, setSeam] = useState<boolean>(wantsSeam);
+  const endSeam = useCallback(() => { try { sessionStorage.setItem(SEAM_KEY, '1'); } catch { /* private mode */ } setSeam(false); }, []);
   const { gameState, setGameState, resetSave, exportCode, previewImport, applyImport } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
   const [migrationToast, setMigrationToast] = useState(lastTreeMigration);
@@ -175,7 +190,7 @@ const App: React.FC = () => {
   // (6A) audio: unlock on first gesture, mirror volume settings into the engine
   useEffect(() => { Audio.init(); }, []);
   // (6B) title music whenever the main menu is shown; the run picks its own chapter track in advanceWave / start
-  useEffect(() => { if (isInMainMenu) Audio.music('music_title', 1500); }, [isInMainMenu]);
+  useEffect(() => { if (isInMainMenu && !seam) Audio.music('music_title', 1500); }, [isInMainMenu, seam]);
   // (6B step 4) one delegated click sound for every <button> in menus/tree/settings; `data-sfx="back"|"none"` overrides.
   useEffect(() => {
       const onDown = (e: PointerEvent) => {
@@ -325,6 +340,9 @@ const App: React.FC = () => {
       onContextMenu={(e) => e.preventDefault()}
     >
       <TransitionOverlay isVisible={isTransitioning} duration={1.0} />
+
+      {/* (M0) launch film — opaque layer over everything, once per session */}
+      {seam && isInMainMenu && <CinematicPlayer scene={title_seam} onDone={endSeam} />}
 
       {/* (8A step 5) achievement unlock toasts */}
       <AchievementToast items={achToasts} onDone={k => setAchToasts(t => t.filter(i => i.key !== k))} />
