@@ -34,20 +34,23 @@ const SAVE = { hasSeenIntro: true, maxWaveReached: 31, matter: 250000, defeatedB
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 const sleep = ms => page.waitForTimeout(ms);
-const shot = async name => { await page.screenshot({ path: path.join(outDir, name) }); console.log('shot', name); };
+// (10) keep the spark alive between shots (i-frames), drop them right before the capture so no blink shows
+const god = () => page.evaluate(() => { window.__god = setInterval(() => { const s = window.__LIGHT?.state; if (s) s.playerIFrames = 40; }, 100); });
+const ungod = () => page.evaluate(() => { clearInterval(window.__god); const s = window.__LIGHT?.state; if (s) s.playerIFrames = 0; });
+const shot = async name => { await ungod(); await page.screenshot({ path: path.join(outDir, name) }); console.log('shot', name); };
 const open = async (q = '') => {
   await page.goto(`${base}?debug=1&seed=7${q}`);
   await page.evaluate(s => { try { const k = 'light_escapes_void_save_v1'; /* save/schema.ts SAVE_KEY */ const cur = JSON.parse(localStorage.getItem(k) || '{}'); localStorage.setItem(k, JSON.stringify({ ...cur, ...s })); } catch {} }, SAVE);
   await page.reload(); await sleep(2500);
 };
-const start = async () => { await page.getByText('INITIALIZE').click(); await sleep(4000); await page.keyboard.press('Space'); };
+const start = async () => { await page.getByText('INITIALIZE').click(); await sleep(4000); await page.keyboard.press('Space'); await god(); };
 const killBoss = () => page.evaluate(() => { const b = window.__LIGHT?.state?.activeBoss; if (b) b.hp = 1; });
 
 try {
   await open(); await shot('01-title.png');
   await open('&wave=3'); await start(); await sleep(3000); await page.keyboard.press('Escape'); await sleep(1200); await shot('02-tree.png');
-  await open('&wave=5'); await start(); await sleep(14000); await shot('03-wave5.png');
-  for (const [i, w] of [[4, 10], [5, 20], [6, 30]]) { await open(`&wave=${w}`); await start(); await sleep(16000); await shot(`0${i}-boss${i - 3}.png`); }
+  await open('&wave=5'); await start(); for (const k of ['KeyD','KeyS','KeyA','KeyW','KeyD','KeyS','KeyA']) { await page.keyboard.down(k); await sleep(2000); await page.keyboard.up(k); } await shot('03-wave5.png');
+  for (const [i, w] of [[4, 10], [5, 20], [6, 30]]) { await open(`&wave=${w}`); await start(); for (const k of ['KeyD','KeyS','KeyA','KeyW','KeyD','KeyS','KeyA','KeyW']) { await page.keyboard.down(k); await sleep(2000); await page.keyboard.up(k); } await shot(`0${i}-boss${i - 3}.png`); }
   // landmark: walk toward the nearest undiscovered world point for a few seconds
   await open('&wave=2'); await start();
   await page.evaluate(() => { const s = window.__LIGHT?.state; const p = s?.world?.points?.[0]; if (s && p) { s.player.x = p.x - 120; s.player.y = p.y; } });
