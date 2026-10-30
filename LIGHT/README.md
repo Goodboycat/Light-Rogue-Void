@@ -7,7 +7,7 @@ A cosmic action **roguelite** for browser and phone. Three hit points, a dash, a
 Pillars: **storytelling · action · discovery · stressful bosses**.
 
 - Studio **Beato Forge** · Dev **Goodboycat** · Audio prompts for **Ludo.ai** · Art inspired by Idle Tower Defense
-- Stack: React 19 + Vite + Canvas 2D (procedural art) · single-file itch.io build · Capacitor APK (chat 10)
+- Stack: React 19 + Vite + Canvas 2D (procedural art) · single-file itch.io build (APK dropped — ignore)
 
 ## Features
 - **6 chapters, 60 waves, 6 bosses** — Hive Mind, Void Warden, Crimson Eclipse, Collapsing Neutron, Entropy Titan, Darkness. Phases at 100/66/33 %, telegraphs that are promises, 150 s enrage, arena burn, death hints.
@@ -64,11 +64,11 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: 10
+Next: M0 M1 M2 M3 M4 M5 M6 M7 M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
-| 10 | Capacitor APK. No prompt file — not a sandbox chat. |
+| M0–M10 | **THE MOVIE** — cinematic scene system, one part per chat. Brief: `docs/MOVIE.md`. The Capacitor APK (old chat 10) is **dropped — ignore it**. |
 
 Branches: `main` = LIGHT, `original-complete` = the boring-but-complete original, `fixed-fork` = the rejected AI roguelike (read with `bash LIGHT/game/tools/fork.sh <path>`). Next chat: read `prompts/NEXT_CHAT.md`.
 

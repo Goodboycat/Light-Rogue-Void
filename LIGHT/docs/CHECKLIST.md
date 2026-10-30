@@ -1,6 +1,6 @@
 # Pre-release checklist (9B step 6)
 
-Tick every box before uploading a new itch build or handing the APK to chat 10. Credits are scarce: a human with a browser does the "play" lines; the sandbox does the "run" lines.
+Tick every box before uploading a new itch build. **The APK build is dropped — ignore §8 and every APK line** (see `docs/MOVIE.md`). Credits are scarce: a human with a browser does the "play" lines; the sandbox does the "run" lines.
 
 ## 1. Code gate (sandbox)
 - [ ] `cd LIGHT/game && npm ci && npm run typecheck` → 0 errors.
@@ -52,7 +52,7 @@ Tick every box before uploading a new itch build or handing the APK to chat 10. 
 - [ ] Demo link, if used, is the same zip opened with `?demo=1` embedded via an itch `?demo=1` query on the embed URL (or a second HTML upload) — and `FULL_GAME_URL` in `game/components/game/Constants.ts` points at the real page.
 - [ ] Trailer uploaded (shot list `docs/TRAILER.md`).
 
-## 8. APK notes for chat 10 (Capacitor)
+## 8. APK notes — DROPPED, ignore (kept for history only)
 - [ ] `game/capacitor.config.json` exists (`appId`, `webDir: dist`); `npm run build` first — Capacitor copies `dist/`, not the itch single-file build.
 - [ ] Android: `npx cap add android`, `npx cap sync`, open in Android Studio, set `versionCode`/`versionName` = package.json version, signing key stored outside the repo.
 - [ ] Orientation: landscape preferred, portrait allowed (the HUD supports both).
