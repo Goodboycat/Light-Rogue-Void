@@ -36,7 +36,7 @@ Pillars: **storytelling · action · discovery · stressful bosses**.
 - **itch.io**: https://goodboycat.itch.io/light-rogue-void (set `FULL_GAME_URL` in `game/components/game/Constants.ts` if the slug differs)
 - Local dev: http://localhost:3000 (`cd LIGHT/game && npm run dev`)
 
-Useful URL flags: `?demo=1` · `?wave=N` · `?seed=X` · `?debug=1` (exposes `window.__LIGHT`) · `?gallery=1[&scale=N]` (sprite sheet) · `?sprites=1` (sprite mode).
+Useful URL flags: `?demo=1` · `?wave=N` · `?seed=X` · `?debug=1` (exposes `window.__LIGHT`) · `?gallery=1[&scale=N]` (sprite sheet) · `?sprites=1` (sprite mode) · `?cinematic=<id>[&t=s][&loop=1]` (play any film scene with a scrub bar) · `?nointro=1` (skip the launch film).
 
 ## Build & publish
 ```bash
@@ -64,11 +64,12 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: M0 M1 M2 M3 M4 M5 M6 M7 M8 M9 M10
+Next: M1 M2 M3 M4 M5 M6 M7 M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
-| M0–M10 | **THE MOVIE** — cinematic scene system, one part per chat. Brief: `docs/MOVIE.md`. The Capacitor APK (old chat 10) is **dropped — ignore it**. |
+| M0 | **DONE** — cinematic engine (`game/cinematic/`), `title_seam` (34 s launch film, once per session), `menu_loop` (24 s loop) and the main menu rebuilt as a film with a thin UI layer. `?cinematic=<id>` debug route. |
+| M1–M10 | **THE MOVIE** — cinematic scene system, one part per chat. Brief: `docs/MOVIE.md`. The Capacitor APK (old chat 10) is **dropped — ignore it**. |
 
 Branches: `main` = LIGHT, `original-complete` = the boring-but-complete original, `fixed-fork` = the rejected AI roguelike (read with `bash LIGHT/game/tools/fork.sh <path>`). Next chat: read `prompts/NEXT_CHAT.md`.
 

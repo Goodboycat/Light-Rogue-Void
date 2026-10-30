@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `9B` — Jam package (newest, in HANDOFF.md)
+- `M0` — Cinematic engine + title_seam + menu rebuilt (newest, in HANDOFF.md)
+- `9B` — Jam package (`docs/handoff/9B.md`)
 - `9A.md` — Endless + daily seed
 - `8B.md` — Balance
 - `8A.md` — Save v2

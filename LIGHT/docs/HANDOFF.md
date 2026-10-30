@@ -6,28 +6,40 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## 9B — Jam package: DONE (all 6 steps + finish)
-Gate at finish: `npm run typecheck` 0 errors, `bash game/tools/itch.sh` → `out/light-rogue-void-itch.zip` (**1.48 MB**, index.html 1.65 MB inlined + `sprites/`), **browser smoke test over HTTPS (Playwright) of the zip contents with `?demo=1`: title renders, 0 JS errors** (Tailwind CDN warning + favicon 404 only, same as 8B/9A). Zip uploaded as **light-rogue-void-itch**.
-- **Steps 1–3 (previous chat, already pushed):** `docs/ITCH_PAGE.md`, `tools/shots.mjs` (8 shots 1920×1080 → `out/shots/`; needs `npx playwright install chromium`, not run in a sandbox yet), `docs/TRAILER.md`.
-- **Step 4 demo review (this chat):** `components/game/Constants.ts` → `DEMO_TREE_MAX_COST = 5000`, `DEMO_BOSSES = ['hive_mind','void_warden']`, `FULL_GAME_URL` (placeholder `https://goodboycat.itch.io/light-rogue-void` — **edit before publishing the demo**), `demoTreeLocked(n)` = `IS_DEMO && (cost > cap || constellation of boss 3+)`. Used in `App.tsx handleUnlock` (refuses + `ui_error`), `EvolutionMatrix.tsx` `bossLocked` (both the path-preview Dijkstra at ~l.39 and the render at ~l.80; lock label "Full version only (demo tree capped at 5000 M)"), so capped nodes draw with the existing 1B boss-lock look. New `components/DemoCard.tsx` (`variant="menu"` full card with feature list, `variant="compact"` one-line strip + button; renders null when not demo): mounted in `MainMenu.tsx` under DailyCard, `EvolutionMatrix.tsx` bottom strip (`absolute bottom-24`), `WinGame.tsx` DEMO COMPLETE above RETURN TO MENU. Already there from before: wave cap 20 (`SurvivalGame.tsx:298`), badge (`GameHUD.tsx`), map lock (`WorldMap.tsx:50`).
-- **Step 5:** README rewritten as a product page; the Done table (0 → 9A) moved to `docs/PLAN.md` → "History — finished chats"; the `Next:` line stays in README (parsed by `tools/next.sh`).
-- **Step 6:** `docs/CHECKLIST.md` (code gate, version bump, save wipe, play, mobile, audio, itch page, APK notes).
-- **Not done / soft spots:** (1) `tools/shots.mjs` has never run — no chromium in the sandbox; screenshots are a human job (`npx playwright install chromium && node tools/shots.mjs`). (2) The DemoCard was only typechecked + the menu smoke-tested; the tree strip position (`bottom-24`) may overlap the tree's bottom bar on short phones — check once in a browser. (3) `package.json` version is still `0.0.0` (CHECKLIST §2 says bump at release). (4) A demo save that bought nodes ≤ 5000 M stays valid in the full game; nothing is refunded or re-locked, by design. (5) Chat 10 (Capacitor APK) is not a sandbox chat; CHECKLIST §8 holds the notes.
+## M0 — Cinematic engine + `title_seam` + `menu_loop` + main menu rebuilt: DONE
+Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.68 MB / 426 kB gzip), dist served + Playwright smoke `?nointro=1`: 0 JS errors (favicon 404 only). Spread over two chats (engine/scenes recovered from the tar in the first, menu rebuild + finish in this one).
 
-## Chat 10 (owner-directed, not a next.sh ID)
-**Done**
-- Dot-enemies fix: `components/game/Quality.ts` ignores the first 4 s (`QUALITY_WARMUP_MS`) so a load hitch can't drop AUTO to LOW. `renderer/EnemyBatcher.ts` `shouldBatchEnemies` no longer batches on LOW. Batching only happens at ≥ `ENEMY_BATCH_MIN_VISIBLE` = 600 visible (`Constants.ts`).
-- Fully offline: removed cdn.tailwindcss.com + Google Fonts from `index.html`. Added `index.css` (imported first in `index.tsx`), `tailwind.config.cjs`, `postcss.config.cjs`, and the deps tailwindcss@3 / postcss / autoprefixer / @fontsource/orbitron / @fontsource/rajdhani. The built CSS is 59 kB. Fonts are inlined in the itch single file.
-- Real SFX: 28 ids in `public/audio/manifest.json` (27 from the owner's sfx.zip + Lumen Ledger `dlg_blip` → `story_line`). Still synth: see `docs/AUDIO_REMAINING.md` (25 ids incl. 9 music). Lumen Ledger music was rejected because its cozy/toy tone does not fit.
-- `tools/shots.mjs`: keeps the spark alive with i-frames between shots and moves with WASD. It needs a one-time `sudo npx playwright install-deps chromium`.
-- itch art in `LIGHT_extras/itch/`: screenshot_1..6.jpg (1920×1080), cover_630x500.jpg, banner_1920x480.jpg.
-- `docs/BUGS.md` (13 items, 2 fixed) and `docs/SUGGESTIONS.md` (Darkness Moves, 60 s Darkness interrupt, dash-as-skill, per-wave variety, glowing-arrow onboarding). Copies are in `LIGHT_extras/`.
+**Files (all new unless noted)**
+- `game/cinematic/Engine.ts` — `Track`/`K()`/`pulses()` keyframes with easing (`easeInOut`, `easeOutExpo`, `overshoot`, `slam`, `elastic`, `step`), deterministic `hash`/`wobble`, camera (x, y, zoom, rot, focus + decaying shakes) applied per layer through `parallax` (0 = screen-locked), rack focus via `depth` vs `camera.focus`, post stack once per frame (aberration 3 channel blits → wash → grain tile overlay → vignette sprite → letterbox → invert → flash → fade), `CinematicPlayer` class (`advance/seek/skip/render`, cues fire by t, skip = 0.35 s fade + drop remaining cues), `cinematicDpr()` (§2 policy). Design space 1920×1080 centred origin, cover-fit.
+- `game/cinematic/Sprites.ts` — cached offscreen sprites keyed by colour+size: `glowDisc`, `bokehDisc`, `rayStrip`, `irisSprite`, `hazeBand`, `rgba()`.
+- `game/cinematic/Draw.ts` — batched `embers` (one Path2D fill per colour bucket, positions computed from `hash(i)` + t, never stored), `stars`, `bokeh`, `spark` (3 glow sprites + ray strips), `godRays`, `eye` (lid/iris/pupil/veins, `open`, `look`), `eyeField`, `tendrils`, `ridge`, typography `text` / `typed` (glyph-by-glyph jitter + cursor) / `assemble` (per-glyph overshoot) / `rule`, `gradientBg`, `pool`. `shadowBlur` only inside `text`.
+- `game/cinematic/scenes/title_seam.ts` (34 s, 8 shots, storyboard in header), `scenes/menu_loop.ts` (24 s loop, 4 shots + **title layer** `drawTitle`, parallax 0, scales with `g.hw` for portrait), `scenes/index.ts` registry.
+- `game/components/CinematicPlayer.tsx` — fixed full-screen opaque canvas, own DPR/resize/input, `passive` (menu bg, no skip, pointer-events none), `z`, `debug` scrub bar + shot buttons + ms/frame readout.
+- `game/components/CinematicDebug.tsx` — `?cinematic=<id>[&t=<s>][&loop=1][&mute=1]`; unknown id lists all scenes.
+- `game/App.tsx` — `title_seam` once per session (`sessionStorage light.title_seam.seen`; skipped with `?nointro=1`, `?cinematic=`, `?gallery=1`), `StarBackground` **not mounted in the menu** any more (film replaces it), `MainMenu filmHidden={seam}` so only one full-screen canvas runs during the seam.
+- `game/components/MainMenu.tsx` — **rewritten** (framer-motion gone): mounts `<CinematicPlayer scene={menu_loop} passive z={0}/>` as the background, thin UI on top: dev note / guide / settings icon buttons, collapsible **CHART** toggle (star chart + MapReveal appear in a glass strip above START), DailyCard, DemoCard, START button (`BEGIN` first run, `STAY LIT` after), chapter line + record, footer. Same props as before + `filmHidden`.
 
-**Next (owner priority, from the chat 10 insight)**
-1. Darkness Moves: random rotating per-wave events (SUGGESTIONS §1).
-2. 60 s Darkness cinematic interrupt + enormous threat (§2).
-3. Dash charges / perfect dash / anti-spam enemies (§3).
-4. Glowing-arrow onboarding to the Skill Tree (§5).
-5. BUGS 3–8.
+**Shots — `title_seam`**
+1. 0–4 s extreme close, accelerating push-in: black, heavy grain, a violet hairline (closed lid) breathes — the Darkness exists before anything else.
+2. 4–9 s push-in + rack focus: the lid opens unevenly into an Eye wider than the frame, a field of small eyes wakes; typed "it was always here." — hesitation = horror.
+3. 9–14 s HARD CUT wide + decaying shake + pan left: the Eye is now small on a black horizon, tendrils pour over the ridge; "THE DARKNESS DOES NOT HUNT." — scale reversal is the escalation.
+4. 14–19 s push into the tendrils, two inverted flash frames, grain/aberration peak; "IT WAITS." — the hostile peak.
+5. 19–21.5 s HARD CUT to true black, 0.8 s of nothing, then one amber point at centre — the turn, silence as a cut.
+6. 21.5–26 s overshoot zoom-out, letterbox opens: the Spark ignites (bloom, rays, embers, black → umber); "but something small refused." — warmth as relief.
+7. 26–31 s LIGHT slams in with per-glyph overshoot, lit from below; rule; ROGUE VOID widens; `chapter_card` + `music_sting_reveal`, `music_title` starts — payoff.
+8. 31–34 s hold, "tap to begin" pulses, fade — hands over to the menu.
 
-Measured: itch zip 2.36 MB, JS 1.65 MB (412 kB gzip), typecheck + build green.
+**Shots — `menu_loop`** (loop; the Eye is the turn of every loop)
+1. 0–8 s warm wide: spark on the ridge, 1000 embers, rays turning, breathing zoom; title warm-white with amber glow.
+2. 8–14 s pan up + rack focus to sky: a darkness band drops in, a violet lid-line appears above the spark.
+3. 14–18 s the Eye half-opens, pupil finds the spark; stars dim, embers slow, spark flinches; title cools to violet and dims; `boss_telegraph` soft.
+4. 18–24 s the Eye closes; spark flares, rays bloom, title flares warm; camera settles back to shot 1; `shrine_touch` soft.
+
+**Measured** (debug route ms/frame readout, sandbox Chromium headless — treat as upper bound): not measured on real hardware this chat; M10 owns the phone pass. The engine's per-frame cost is dominated by the embers Path2D (1020 particles) and the 3-blit aberration when active.
+
+**Known soft spots / for later parts**
+- `menu_loop` cues fire even when the menu is behind a modal (settings/guide) — harmless, AudioManager gates on settings.
+- The `title_seam` text uses `shadowBlur` on 2–3 text draws per frame (allowed by §2); nothing else does.
+- `MapReveal` (7D) still uses the old look inside the chart strip — M4 replaces it with `place_reveal_<n>` scenes.
+- `StarBackground` remains for runs; the pause/skill-tree screens still show it (fine, they are gameplay-adjacent).
+- Phone portrait: the title layer scales by `g.hw`; the START stack sits at the bottom with safe-area padding; not verified on a device.
