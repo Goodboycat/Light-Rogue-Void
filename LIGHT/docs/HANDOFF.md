@@ -13,3 +13,21 @@ Gate at finish: `npm run typecheck` 0 errors, `bash game/tools/itch.sh` → `out
 - **Step 5:** README rewritten as a product page; the Done table (0 → 9A) moved to `docs/PLAN.md` → "History — finished chats"; the `Next:` line stays in README (parsed by `tools/next.sh`).
 - **Step 6:** `docs/CHECKLIST.md` (code gate, version bump, save wipe, play, mobile, audio, itch page, APK notes).
 - **Not done / soft spots:** (1) `tools/shots.mjs` has never run — no chromium in the sandbox; screenshots are a human job (`npx playwright install chromium && node tools/shots.mjs`). (2) The DemoCard was only typechecked + the menu smoke-tested; the tree strip position (`bottom-24`) may overlap the tree's bottom bar on short phones — check once in a browser. (3) `package.json` version is still `0.0.0` (CHECKLIST §2 says bump at release). (4) A demo save that bought nodes ≤ 5000 M stays valid in the full game; nothing is refunded or re-locked, by design. (5) Chat 10 (Capacitor APK) is not a sandbox chat; CHECKLIST §8 holds the notes.
+
+## Chat 10 (owner-directed, not a next.sh ID)
+**Done**
+- Dot-enemies fix: `components/game/Quality.ts` ignores the first 4 s (`QUALITY_WARMUP_MS`) so a load hitch can't drop AUTO to LOW. `renderer/EnemyBatcher.ts` `shouldBatchEnemies` no longer batches on LOW. Batching only happens at ≥ `ENEMY_BATCH_MIN_VISIBLE` = 600 visible (`Constants.ts`).
+- Fully offline: removed cdn.tailwindcss.com + Google Fonts from `index.html`. Added `index.css` (imported first in `index.tsx`), `tailwind.config.cjs`, `postcss.config.cjs`, and the deps tailwindcss@3 / postcss / autoprefixer / @fontsource/orbitron / @fontsource/rajdhani. The built CSS is 59 kB. Fonts are inlined in the itch single file.
+- Real SFX: 28 ids in `public/audio/manifest.json` (27 from the owner's sfx.zip + Lumen Ledger `dlg_blip` → `story_line`). Still synth: see `docs/AUDIO_REMAINING.md` (25 ids incl. 9 music). Lumen Ledger music was rejected because its cozy/toy tone does not fit.
+- `tools/shots.mjs`: keeps the spark alive with i-frames between shots and moves with WASD. It needs a one-time `sudo npx playwright install-deps chromium`.
+- itch art in `LIGHT_extras/itch/`: screenshot_1..6.jpg (1920×1080), cover_630x500.jpg, banner_1920x480.jpg.
+- `docs/BUGS.md` (13 items, 2 fixed) and `docs/SUGGESTIONS.md` (Darkness Moves, 60 s Darkness interrupt, dash-as-skill, per-wave variety, glowing-arrow onboarding). Copies are in `LIGHT_extras/`.
+
+**Next (owner priority, from the chat 10 insight)**
+1. Darkness Moves: random rotating per-wave events (SUGGESTIONS §1).
+2. 60 s Darkness cinematic interrupt + enormous threat (§2).
+3. Dash charges / perfect dash / anti-spam enemies (§3).
+4. Glowing-arrow onboarding to the Skill Tree (§5).
+5. BUGS 3–8.
+
+Measured: itch zip 2.36 MB, JS 1.65 MB (412 kB gzip), typecheck + build green.

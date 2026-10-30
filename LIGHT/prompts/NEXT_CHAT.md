@@ -10,6 +10,9 @@ Continue **LIGHT (Light Rogue Void)**, my passion project. You may not finish ev
 3. `cd LIGHT/game && npm install && npm run build` must be green before you touch anything.
 4. `bash LIGHT/game/tools/next.sh` prints the chat ID you must do and shows its prompt file. Read `docs/CONVENTIONS.md` and `docs/HANDOFF.md` first, then that prompt. Do that ID first. **When its handoff is finished (README/HANDOFF/itch/push), run `next.sh` again and continue with the next ID in the same chat** — repeat until credits run low. Do not re-plan, do not reorder. Report to me after every finished ID (you may get axed at any time).
 
+## Chat 10 note
+Chat 10 was owner-directed. Before running next.sh, read `docs/HANDOFF.md` → "Chat 10" and do its **Next** list first (Darkness Moves, 60 s interrupt, dash skill, glowing-arrow onboarding). Screenshots: `sudo npx playwright install-deps chromium` once, then `node tools/shots.mjs`.
+
 ## Rules
 - **Roguelite, not roguelike.** All permanent power is the Skill Tree. No in-run power picking, no "choose 1 of 3", no boon drafts, no node map, no mercy. Run-only things are *discovered* on the map, never offered.
 - Pillars: **storytelling · action · discovery · stressful but fair bosses**.
