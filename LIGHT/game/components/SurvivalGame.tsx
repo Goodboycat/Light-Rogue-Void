@@ -32,6 +32,9 @@ import { isPhaseShifting, enrageCountdown } from './game/logic/enemies/BossKit';
 import { INTRO_SCRIPT, CinematicLine } from '../data/cinematics';
 import { storyLinesForWave, StoryLine, STORY_BEAT_WAVES } from '../data/story';
 import StoryCinematicOverlay from './StoryCinematicOverlay'; // (7D)
+import CinematicPlayer from './CinematicPlayer'; // (M1) film scenes (game/cinematic)
+import { getScene } from '../cinematic/scenes'; // (M1)
+import type { SceneDef } from '../cinematic/Engine'; // (M1)
 import { storyCinematic } from '../data/cinematics'; // (7D)
 import { startCinematic, updateCinematic, skipCinematic, cinematicFreezes, resolveCinematicLines, CinematicState } from './game/logic/Cinematic'; // (7D)
 import { updateShake } from './game/Feel'; // (7D) decay while the sim is frozen
@@ -172,6 +175,28 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       setChapterCard({ chapter: ch, seq: ci });
       onChapterChange?.(ch);
   };
+  // (M1) FILM SCENE — pause/hide/resume contract (MOVIE.md §3 M1; M5 documents it in docs/CINEMATIC.md):
+  // while `film` is set the sim loop and the wave timer do not tick, nothing of the run is rendered (the film canvas is
+  // opaque, z-500), HUD / MobileControls / captions unmount, the pause menu is blocked. Skip = tap/key (scene.skipAfter).
+  // `onDone` clears it and the loop resumes on the next frame from the exact state it froze in.
+  const [film, setFilm] = useState<SceneDef | null>(null);
+  const filmRef = useRef<SceneDef | null>(null);
+  filmRef.current = film;
+  /** Chapter opener for wave `w`: a film scene when `opener_<n>` is registered (M1: 1–3), else the card + in-sim cinematic (7D). */
+  const playOpener = (w: number) => {
+      const ci = chapterIndexOf(w);
+      const scene = getScene(`opener_${ci}`);
+      if (scene) {
+          onChapterChange?.(CHAPTERS[ci - 1]); // the chapter card typography is shot 1 of the film
+          setFilm(scene);
+      } else {
+          showChapterCard(w);
+          window.setTimeout(() => playStoryCinematicRef.current(`opener_${ci}`), CHAPTER_CARD_MS);
+      }
+  };
+  const playOpenerRef = useRef(playOpener);
+  playOpenerRef.current = playOpener;
+  const handleFilmDone = useCallback(() => { setFilm(null); }, []);
   
   // --- CINEMATIC STATE MANAGEMENT ---
   // We use a generic 'activeCinematic' state to hold the script currently playing.
@@ -241,8 +266,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
   // Block Pause Menu when in cinematic or end states
   useEffect(() => {
-      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon || breather !== null || !!storyCine);
-  }, [activeCinematic, gameOver, gameWon, breather, storyCine, onBlockPauseMenu]);
+      onBlockPauseMenu(!!activeCinematic || gameOver || gameWon || breather !== null || !!storyCine || !!film);
+  }, [activeCinematic, gameOver, gameWon, breather, storyCine, film, onBlockPauseMenu]);
 
   // Use a Ref for game state access inside the loop
   const gameRefs = useRef({ 
@@ -313,10 +338,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           if (endlessDepth(nextWave) % WAVES_PER_CHAPTER === 1) onChapterChange?.(paletteChapterOf(nextWave));
           setStoryLines(storyLinesForWave(nextWave));
       } else if (ci !== chapterIndexOf(nextWave - 1)) {
-          showChapterCard(nextWave); // (3B step 5) new chapter
-          // (7D) opener = cinematic (lines spoken inside it), not the free caption
+          // (7D) opener = cinematic (lines spoken inside it), not the free caption; (M1) film scene when registered
           setStoryLines(null);
-          window.setTimeout(() => playStoryCinematicRef.current(`opener_${ci}`), CHAPTER_CARD_MS);
+          playOpenerRef.current(nextWave);
       } else {
           setStoryLines(storyLinesForWave(nextWave)); // (3B) null on waves without a beat
           // (7D) pre-boss lines (wave x9) get a 1.5 s push-in, no freeze
@@ -345,8 +369,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
 
           if (cinematic === INTRO_SCRIPT) {
               onIntroComplete();
-              showChapterCard(gameRefs.current.wave); // (3B step 5) chapter 1 card after the intro
-              window.setTimeout(() => playStoryCinematicRef.current('opener_1'), CHAPTER_CARD_MS); // (7D) opener cinematic
+              playOpenerRef.current(gameRefs.current.wave); // (M1) chapter 1 film opener after the intro (card is its shot 1)
           }
           
           const state = gameStateRef.current;
@@ -459,6 +482,9 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
         // (7B) quality profile (AUTO steps by measured fps) → DPR-capped backing store; all drawing stays in CSS px
         tickQuality(performance.now(), qualitySetting(refs.settings));
         const { w: viewW, h: viewH } = fitCanvas(canvas, ctx);
+
+        // (M1) FILM SCENE — sim frozen, nothing drawn (the film canvas covers everything); resumes the frame after onDone
+        if (filmRef.current) { anim = requestAnimationFrame(loop); return; }
 
         // CINEMATIC MODE RENDERER
         if (refs.activeCinematic) {
@@ -646,7 +672,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     timerInterval = setInterval(() => {
         const refs = gameRefs.current;
         // Don't tick timer if cinematic is active
-        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null && !cinematicFreezes(gameStateRef.current)) {
+        if (!refs.activeCinematic && !refs.paused && !refs.gameOver && !refs.gameWon && breatherRef.current === null && !cinematicFreezes(gameStateRef.current) && !filmRef.current) {
             
             phraseTimerRef.current += 1;
             if (phraseTimerRef.current >= 5) {
@@ -750,11 +776,16 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           />
       )}
 
-      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && breather === null && !storyCine && (
+      {/* (M1) film scene: opaque full-screen canvas over the frozen run; tap/key skips */}
+      {film && !gameOver && !gameWon && (
+          <CinematicPlayer scene={film} onDone={handleFilmDone} z={500} />
+      )}
+
+      {inputInstance && settings.showTouchControls && !activeCinematic && !paused && !gameOver && !gameWon && breather === null && !storyCine && !film && (
           <MobileControls input={inputInstance} onOpenMenu={onTogglePause} burstUnlocked={!!burstHud} burstReady={!!burstHud?.ready} />
       )}
 
-      {!activeCinematic && !gameOver && !gameWon && bossInfo && <BossBar info={bossInfo} />}
+      {!activeCinematic && !film && !gameOver && !gameWon && bossInfo && <BossBar info={bossInfo} />}
 
       {/* (3B step 6) Light Burst meter — only drawn when the tree node is owned */}
       {!activeCinematic && !gameOver && !gameWon && burstHud && (
@@ -773,7 +804,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
           </div>
       )}
 
-      {!activeCinematic && !gameOver && !gameWon && !storyCine && (
+      {!activeCinematic && !gameOver && !gameWon && !storyCine && !film && (
           <StoryCaption lines={storyLines} seq={wave} raised={!!settings.showTouchControls} />
       )}
 
