@@ -97,9 +97,8 @@ const drawTree = (g: Gfx, set: Star[], lit: (s: Star) => number, alpha: number, 
 // ---------------------------------------------------------------- scene factory
 interface Timing { sky: number; ignite: number; flash: number; end: number }
 
-const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number }, title: string, hint: string, maxDepth: number, minDepth: number): SceneDef => {
+const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number }, title: string, hint: string, maxDepth: number, minDepth: number, isBoss: boolean): SceneDef => {
   const { sky: T_SKY, ignite: T_IGN, flash: T_FLASH, end: T_END } = T;
-  const isBoss = set !== STARS;
   const litFn = (t: number) => {
     const p = easeInOut(span(t, T_SKY, T_IGN));
     return (s: Star) => litAt({ ...s, depth: s.depth - minDepth }, p, maxDepth - minDepth);
@@ -232,7 +231,7 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
 };
 
 /** the first-open scene: the whole tree (no boss constellations) */
-export const constellation: SceneDef = build('constellation', CT, STARS.filter(s => !s.boss), { x: ROOT.x, y: ROOT.y }, 'THE SKY REMEMBERS', 'TOUCH A STAR TO LIGHT IT', MAX_DEPTH, 0);
+export const constellation: SceneDef = build('constellation', CT, STARS.filter(s => !s.boss), { x: ROOT.x, y: ROOT.y }, 'THE SKY REMEMBERS', 'TOUCH A STAR TO LIGHT IT', MAX_DEPTH, 0, false);
 
 /** 6 s boss variant — the seven nodes of `const_<bossId>_*` on the rim; `constellation_<bossId>` ids */
 export const makeConstellation = (bossId: string): SceneDef => {
@@ -242,7 +241,7 @@ export const makeConstellation = (bossId: string): SceneDef => {
   const minD = first.depth, maxD = set.reduce((m, s) => Math.max(m, s.depth), minD);
   const node = ABILITY_TREE_DATA[byId.get(first.id)!];
   const bossName = BOSSES.find(b => b.id === bossId)?.name ?? bossId.toUpperCase();
-  return build(`constellation_${bossId}`, CBT, set, { x: first.x, y: first.y }, (node?.constellation ?? bossName).toUpperCase(), `${bossName} · ITS LIGHT IS YOURS`, maxD, minD);
+  return build(`constellation_${bossId}`, CBT, set, { x: first.x, y: first.y }, (node?.constellation ?? bossName).toUpperCase(), `${bossName} · ITS LIGHT IS YOURS`, maxD, minD, true);
 };
 
 /** demo default for `?cinematic=constellation_boss` (the first boss's constellation) */
