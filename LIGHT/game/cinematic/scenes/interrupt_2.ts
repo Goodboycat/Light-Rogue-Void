@@ -91,7 +91,7 @@ export const interrupt_2: SceneDef = {
     { id: 'name', from: T_STRIKE, parallax: 0, draw: drawName },
   ],
   post: interruptPost(IT),
-  cues: ([...interruptCues(IT), { t: T_RISE + 0.6, sfx: 'thud', vol: 0.35 }, { t: T_RISE + 1.0, sfx: 'thud', vol: 0.4 }] as Cue[]),
+  cues: ([...interruptCues(IT), { t: T_RISE + 0.6, sfx: 'boss_fire', vol: 0.35 }, { t: T_RISE + 1.0, sfx: 'boss_fire', vol: 0.4 }] as Cue[]),
   shots: [
     { n: 1, from: 0, to: T_RISE, what: 'Wide on the frozen floor: motes hang, ink eats the amber pool in half a second, letterbox snaps. "Hold still. It is quicker." types cold. Setup.' },
     { n: 2, from: T_RISE, to: T_TURN, what: 'Five fingers of ink come down from the top edge, each joint hinging into place a beat after the last; a violet-rimmed shadow pools on the floor beneath (the gameplay telegraph, learned here). Push-in. Escalation.' },

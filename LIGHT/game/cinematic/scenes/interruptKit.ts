@@ -118,10 +118,10 @@ export const interruptShakes = (tm: InterruptTiming = IT): NonNullable<CameraDef
 /** Common cue bed; scenes append their own. `boss_arrive` at the strike is the sound the gameplay threat also uses. */
 export const interruptCues = (tm: InterruptTiming = IT): Cue[] => [
   { t: 0.02, sfx: 'boss_telegraph', vol: 0.6 }, { t: 0.02, duck: 0.25, duckMs: 400 },
-  { t: 0.2, sfx: 'thud', vol: 0.7 }, { t: 0.4, sfx: 'story_line', vol: 0.3 },
-  { t: tm.rise, sfx: 'drone', vol: 0.45 }, { t: tm.rise + 0.1, sfx: 'ambush_ring', vol: 0.3 },
-  { t: tm.turn, sfx: 'boss_phase', vol: 0.7 }, { t: tm.turn + 0.02, sfx: 'noise', vol: 0.4 },
-  { t: tm.strike, sfx: 'sweep_up', vol: 0.5 }, { t: tm.strike + 0.35, sfx: 'boss_arrive', vol: 0.95 }, { t: tm.strike + 0.4, sfx: 'boss_enrage', vol: 0.5 },
+  { t: 0.2, sfx: 'boss_fire', vol: 0.7 }, { t: 0.4, sfx: 'story_line', vol: 0.3 },
+  { t: tm.rise, sfx: 'cin_whisper', vol: 0.45 }, { t: tm.rise + 0.1, sfx: 'ambush_ring', vol: 0.3 },
+  { t: tm.turn, sfx: 'boss_phase', vol: 0.7 }, { t: tm.turn + 0.02, sfx: 'cin_cut', vol: 0.4 },
+  { t: tm.strike, sfx: 'cin_silence_drop', vol: 0.5 }, { t: tm.strike + 0.35, sfx: 'boss_arrive', vol: 0.95 }, { t: tm.strike + 0.4, sfx: 'boss_enrage', vol: 0.5 },
 ];
 
 export { AMBER, GOLD, EMBER, VIOLET, INK, WARM_WHITE, span, lerp, clamp01, easeIn, easeOut, easeInOut, step, K, hash, wobble };

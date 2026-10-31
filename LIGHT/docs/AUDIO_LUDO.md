@@ -98,6 +98,10 @@ Columns: **Len** = seconds, **Loop** = yes/no. Game family = the synth placehold
 | ending_leave | 5.0 | no | Ending — LEAVE: a light passing through the seam — bright ascending choir-like synth pad resolving into a warm major chord, peaceful, release, long fade. |
 | ending_stay | 5.0 | no | Ending — STAY: a light choosing the dark — low warm drone with a single soft bell repeating, bittersweet, unresolved minor chord, slow fade. |
 | music_sting_reveal | 3.0 | no | (7D) World-map place reveal sting: hushed reverse-swell into one bright orchestral-synth chord with glass bells and a slow shimmer tail, major, cinematic awe — "a new place burns out of the fog". |
+| cin_whisper | 2.5 | no | (M5) Darkness Interrupt bed: a close, dry whisper of many overlapping voices with no words, cold sub drone beneath, slowly rising, horror restraint. |
+| cin_cut | 0.3 | no | (M5) Hard cut: a single dry film-splice snap — a short burst of white noise with a click transient and no tail. Used at every hard cut of the film. |
+| cin_silence_drop | 0.8 | no | (M5) The breath before the strike: a reverse-swell of air and sub rising to a sharp stop, everything else vanishes — the game slams the threat name right after. |
+| cin_tendril | 1.2 | no | (M5) Ink tendril reaching: a wet, downward-bending sweep with a faint stringy creak, dark and organic. |
 
 ## Music prompts
 All loops, 60–120 s, seamless. BPM free unless stated. Avoid melodies that fight the captions — ambient/pulse driven.

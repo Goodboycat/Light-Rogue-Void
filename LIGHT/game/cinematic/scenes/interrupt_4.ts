@@ -75,7 +75,7 @@ export const interrupt_4: SceneDef = {
     { id: 'name', from: T_STRIKE, parallax: 0, draw: drawName },
   ],
   post: interruptPost(IT),
-  cues: ([...interruptCues(IT), { t: T_RISE + 0.4, sfx: 'ambush_ring', vol: 0.25 }, { t: T_RISE + 1.2, sfx: 'ambush_ring', vol: 0.3 }, { t: T_TURN + 0.05, sfx: 'thud', vol: 0.6 }] as Cue[]),
+  cues: ([...interruptCues(IT), { t: T_RISE + 0.4, sfx: 'ambush_ring', vol: 0.25 }, { t: T_RISE + 1.2, sfx: 'ambush_ring', vol: 0.3 }, { t: T_TURN + 0.05, sfx: 'boss_fire', vol: 0.6 }] as Cue[]),
   shots: [
     { n: 1, from: 0, to: T_RISE, what: 'Wide on the frozen floor: motes hang, ink eats the amber pool, letterbox snaps. "I have never once looked away." types cold. Setup.' },
     { n: 2, from: T_RISE, to: T_TURN, what: 'An ink wall climbs from the floor to the horizon; eyes open in it one by one until 140 are blinking at their own rates; one vertical violet seam where nothing grows. Push-in. Escalation.' },

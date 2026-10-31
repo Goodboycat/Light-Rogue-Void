@@ -72,7 +72,7 @@ export const interrupt_6: SceneDef = {
   ],
   // the one interrupt whose escalation is RESTRAINT: no grain spike before the turn, the drone alone
   post: { ...interruptPost(IT, 0.95), grain: K(0, 0.2, 0.7, 0.3, T_RISE, 0.1, T_TURN - 0.01, 0.1, T_TURN, 0.95, step, T_STRIKE, 0.6, T_END, 0.75) },
-  cues: ([...interruptCues(IT).filter((c) => !('sfx' in c && c.sfx === 'ambush_ring')), { t: T_RISE + 0.2, duck: 0.05, duckMs: 600 }, { t: T_TURN, sfx: 'thud', vol: 0.9 }] as Cue[]),
+  cues: ([...interruptCues(IT).filter((c) => !('sfx' in c && c.sfx === 'ambush_ring')), { t: T_RISE + 0.2, duck: 0.05, duckMs: 600 }, { t: T_TURN, sfx: 'boss_fire', vol: 0.9 }] as Cue[]),
   shots: [
     { n: 1, from: 0, to: T_RISE, what: 'Wide on the frozen floor: motes hang, ink eats the amber pool, letterbox snaps. "Look at me." types cold — three words. Setup.' },
     { n: 2, from: T_RISE, to: T_TURN, what: 'NOTHING. True black, the music ducked to near silence, one violet pinprick far up and right that does not blink; violet ash drifts into it. Two seconds of restraint. Escalation by absence.' },

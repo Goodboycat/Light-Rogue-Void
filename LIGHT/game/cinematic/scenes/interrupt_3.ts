@@ -102,7 +102,7 @@ export const interrupt_3: SceneDef = {
     { id: 'name', from: T_STRIKE, parallax: 0, draw: drawName },
   ],
   post: interruptPost(IT, 0.9),
-  cues: ([...interruptCues(IT), { t: T_RISE + 0.1, sfx: 'noise', vol: 0.35 }, { t: T_RISE + 0.6, sfx: 'thud', vol: 0.5 }] as Cue[]),
+  cues: ([...interruptCues(IT), { t: T_RISE + 0.1, sfx: 'cin_cut', vol: 0.35 }, { t: T_RISE + 0.6, sfx: 'boss_fire', vol: 0.5 }] as Cue[]),
   shots: [
     { n: 1, from: 0, to: T_RISE, what: 'Wide on the frozen floor: motes hang, ink eats the amber pool, letterbox snaps. "Everything comes home to me." types cold. Setup.' },
     { n: 2, from: T_RISE, to: T_TURN, what: 'A violet crack runs across the floor left to right, then the floor PARTS: two jaws of ink with rows of pale teeth, a violet gullet breathing between them. Push-in. Escalation.' },

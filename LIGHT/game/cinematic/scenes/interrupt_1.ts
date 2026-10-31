@@ -60,7 +60,7 @@ export const interrupt_1: SceneDef = {
     { id: 'name', from: T_STRIKE, parallax: 0, draw: drawName },
   ],
   post: interruptPost(IT),
-  cues: ([...interruptCues(IT), { t: T_RISE + 0.5, sfx: 'drone', vol: 0.3 }] as Cue[]),
+  cues: ([...interruptCues(IT), { t: T_RISE + 0.5, sfx: 'cin_whisper', vol: 0.3 }] as Cue[]),
   shots: [
     { n: 1, from: 0, to: T_RISE, what: 'Wide on the frozen arena floor: the motes hang mid-air, ink eats the amber pool in half a second, the letterbox snaps to 0.2 with an aberration spike. "You think running is living?" types cold. Setup.' },
     { n: 2, from: T_RISE, to: T_TURN, what: 'A lid opens low in the frame: the Eye (r 420) with a wandering slit pupil and crawling veins; nine tendrils of absence reach down; ink drips up from the bottom edge; violet ash hangs. Push-in that never stops. Escalation.' },
