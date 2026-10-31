@@ -32,6 +32,7 @@ import { interrupt_5 } from './interrupt_5';
 import { interrupt_6 } from './interrupt_6';
 // (M6) death + run summary — the summary is a scene, not a card; `run_summary` here is the demo-data default (makeRunSummary builds the live one)
 import { death } from './death';
+import { run_summary } from './run_summary';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -61,6 +62,7 @@ export const SCENES: Record<string, SceneDef> = {
   interrupt_5,
   interrupt_6,
   death,
+  run_summary,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
