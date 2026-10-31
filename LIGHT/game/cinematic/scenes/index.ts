@@ -22,6 +22,7 @@ import { boss_outro_void_warden } from './boss_outro_void_warden';
 import { boss_outro_crimson_eclipse } from './boss_outro_crimson_eclipse';
 import { boss_outro_neutron_star } from './boss_outro_neutron_star';
 import { boss_outro_entropy_titan } from './boss_outro_entropy_titan';
+import { boss_outro_darkness } from './boss_outro_darkness';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -43,6 +44,7 @@ export const SCENES: Record<string, SceneDef> = {
   boss_outro_crimson_eclipse,
   boss_outro_neutron_star,
   boss_outro_entropy_titan,
+  boss_outro_darkness,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
