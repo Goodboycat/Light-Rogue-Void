@@ -98,6 +98,12 @@ Columns: **Len** = seconds, **Loop** = yes/no. Game family = the synth placehold
 | ending_leave | 5.0 | no | Ending — LEAVE: a light passing through the seam — bright ascending choir-like synth pad resolving into a warm major chord, peaceful, release, long fade. |
 | ending_stay | 5.0 | no | Ending — STAY: a light choosing the dark — low warm drone with a single soft bell repeating, bittersweet, unresolved minor chord, slow fade. |
 | music_sting_reveal | 3.0 | no | (7D) World-map place reveal sting: hushed reverse-swell into one bright orchestral-synth chord with glass bells and a slow shimmer tail, major, cinematic awe — "a new place burns out of the fog". |
+
+### Cinematic (M5/M7/M9 — the film)
+All `cin_` ids are **film-only**: they play on the SFX bus from scene timelines (`Cue.sfx`), never from gameplay. Synth families in `audio/sfxIds.ts` (`SFX_SYNTH`) cover them until files land. Export like every other SFX (settings above). Mix notes for the batch: dry, close, no long reverb tails (the scenes crossfade/skip hard — a tail outlives its frame), peak −3 dBFS, beds (`cin_whisper`, `cin_eye_open`) must sit under a music track ducked to 0.25–0.35 (`Cue.duckHold`), one-shots (`cin_cut`, `cin_title_hit`) are the loudest thing in the frame.
+
+| id | Len | Loop | Prompt |
+|---|---|---|---|
 | cin_whisper | 2.5 | no | (M5) Darkness Interrupt bed: a close, dry whisper of many overlapping voices with no words, cold sub drone beneath, slowly rising, horror restraint. |
 | cin_cut | 0.3 | no | (M5) Hard cut: a single dry film-splice snap — a short burst of white noise with a click transient and no tail. Used at every hard cut of the film. |
 | cin_silence_drop | 0.8 | no | (M5) The breath before the strike: a reverse-swell of air and sub rising to a sharp stop, everything else vanishes — the game slams the threat name right after. |
@@ -106,6 +112,8 @@ Columns: **Len** = seconds, **Loop** = yes/no. Game family = the synth placehold
 | cin_eye_open | 1.8 | no | (M7) The Eye opening: a wet, slow lid-slide with a low tonal bloom underneath that settles into a held cold note — vast, patient, not a jump scare. |
 | cin_ember_rise | 2.5 | no | (M7) A field of embers lifting: thousands of tiny glassy crackles rising in pitch and spreading in stereo, warm, with a soft airy swell — hope, not fire. |
 | cin_title_hit | 2.0 | no | (M7) Final-image title hit: one warm orchestral-synth chord with a gentle brass-like swell, a soft impact at the front and a long golden decay into silence. |
+
+Timeline contract (M9, `cinematic/Engine.ts` `Cue`): `duckHold: 0.3` at a scene's first frame holds the music under the film until `onDone` **or** skip (the player releases it; scenes never write a release); `stinger: '<id>'` plays a musical one-shot on the **music bus** (ducks the running track under itself for its length, never replaces it — `music_sting_reveal`, `chapter_card`, `cin_title_hit`); plain `duck` stays for the short 600 ms dips. Skip cuts every running `cin_` sound (`stopPrefix('cin_')`).
 
 ## Music prompts
 All loops, 60–120 s, seamless. BPM free unless stated. Avoid melodies that fight the captions — ambient/pulse driven.
