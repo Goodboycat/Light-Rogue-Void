@@ -43,6 +43,7 @@ export interface SaveV2 {
     killCounts: Record<string, number>;   // (3B)
     mapTreasuresOpened: string[];         // (7C)
     mapRevealsSeen: string[];             // (7D)
+    constellationsSeen: string[];         // (M8) 'tree' = first skill-tree open film seen; bossId = that constellation's film seen
     stats: LifetimeStats;                 // (8A)
     settings: Required<Settings>;
 }
@@ -88,6 +89,7 @@ export const defaultSave = (): SaveV2 => ({
     killCounts: {},
     mapTreasuresOpened: [],
     mapRevealsSeen: [],
+    constellationsSeen: [],
     stats: defaultStats(),
     settings: { ...DEFAULT_SETTINGS },
 });
@@ -97,6 +99,6 @@ export const SAVE_FIELDS: Record<keyof SaveV2, 'number' | 'boolean' | 'string[]'
     version: 'number', savedAt: 'number', matter: 'number',
     unlockedAbilityIds: 'string[]', seenEnemyIds: 'string[]', unlockedAchievementIds: 'string[]', defeatedBosses: 'string[]',
     maxWaveReached: 'number', maxMaturityAchieved: 'number', hasSeenIntro: 'boolean', endingSeen: 'boolean',
-    landmarksSeen: 'string[]', killCounts: 'record', mapTreasuresOpened: 'string[]', mapRevealsSeen: 'string[]',
+    landmarksSeen: 'string[]', killCounts: 'record', mapTreasuresOpened: 'string[]', mapRevealsSeen: 'string[]', constellationsSeen: 'string[]',
     stats: 'object', settings: 'object',
 };

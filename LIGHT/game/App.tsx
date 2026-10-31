@@ -19,6 +19,7 @@ import Gallery from './components/Gallery';
 import CinematicPlayer from './components/CinematicPlayer'; // (M0) film layer
 import CinematicDebug, { CINEMATIC_DEBUG_ID } from './components/CinematicDebug'; // (M0) ?cinematic=<id>
 import { title_seam } from './cinematic/scenes/title_seam'; // (M0)
+import { constellation, makeConstellation } from './cinematic/scenes/constellation'; // (M8)
 
 import { ABILITY_TREE_DATA } from './data';
 import { checkAchievements, achievementReward } from './data/achievements';
@@ -44,6 +45,9 @@ const App: React.FC = () => {
   if (IS_GALLERY) return <Gallery />;
   if (CINEMATIC_DEBUG_ID) return <CinematicDebug />;
   const [seam, setSeam] = useState<boolean>(wantsSeam);
+  // (M8) constellation film: 'tree' the first time the Skill Tree opens, then one per boss whose constellation has not been
+  // shown yet. Computed from the save when the matrix is open; `treeFilm` holds the id currently playing (null = none).
+  const [treeFilm, setTreeFilm] = useState<string | null>(null);
   const endSeam = useCallback(() => { try { sessionStorage.setItem(SEAM_KEY, '1'); } catch { /* private mode */ } setSeam(false); }, []);
   const { gameState, setGameState, resetSave, exportCode, previewImport, applyImport } = useGameSave();
   const playerStats = usePlayerStats(gameState.unlockedAbilityIds);
@@ -161,6 +165,20 @@ const App: React.FC = () => {
       setGameState(p => ({ ...p, endingSeen: true }));
       if (choice === 'stay') { setActiveDaily(null); handleRestart(MAX_WAVE + 1); } // (9A) STAY → Endless from wave 61
   };
+
+  /** (M8) the next constellation film owed when the tree is open: 'tree' first, then any defeated boss not yet shown */
+  const pendingTreeFilm = React.useMemo(() => {
+      if (!gameState.isMenuOpen || seam) return null; // never under the launch film
+      const seen = gameState.constellationsSeen ?? [];
+      if (!seen.includes('tree')) return 'tree';
+      return (gameState.defeatedBosses ?? []).find(b => !seen.includes(b) && ABILITY_TREE_DATA.some(n => n.requiresBoss === b)) ?? null;
+  }, [gameState.isMenuOpen, gameState.constellationsSeen, gameState.defeatedBosses, seam]);
+  useEffect(() => { if (pendingTreeFilm && !treeFilm) setTreeFilm(pendingTreeFilm); }, [pendingTreeFilm, treeFilm]);
+  const endTreeFilm = useCallback(() => {
+      const id = treeFilm; setTreeFilm(null); if (!id) return;
+      setGameState(p => { const seen = p.constellationsSeen ?? []; return seen.includes(id) ? p : { ...p, constellationsSeen: [...seen, id] }; });
+  }, [treeFilm, setGameState]);
+  const treeScene = React.useMemo(() => (treeFilm ? (treeFilm === 'tree' ? constellation : makeConstellation(treeFilm)) : null), [treeFilm]);
 
   /** (7C) World-map treasure cache opened: grant matter once, remember the id. */
   const handleMapTreasure = useCallback((id: string, matter: number) => {
@@ -438,9 +456,12 @@ const App: React.FC = () => {
                 <GameHUD matter={gameState.matter} touch={!!gameState.settings.showTouchControls} />
             )}
 
+            {/* (M8) constellation film — plays over the paused game before the matrix DOM appears */}
+            {gameState.isMenuOpen && treeScene && <CinematicPlayer scene={treeScene} onDone={endTreeFilm} />}
+
             {/* EVOLUTION MATRIX */}
             <AnimatePresence>
-                {gameState.isMenuOpen && !showArchives && !showAchievements && !showSettings && !showGuide && (
+                {gameState.isMenuOpen && !treeScene && !showArchives && !showAchievements && !showSettings && !showGuide && (
                     <EvolutionMatrix 
                         gameState={gameState}
                         onUnlock={handleUnlock}

@@ -110,6 +110,8 @@ export interface GameState {
   mapTreasuresOpened?: string[];
   /** (7D) bossIds of places whose map-reveal cinematic was already shown (in-run breather or menu). */
   mapRevealsSeen?: string[];
+  /** (M8) constellation films seen: 'tree' (first skill-tree open) + bossIds */
+  constellationsSeen?: string[];
   /** (8A) lifetime counters — see save/schema.ts LifetimeStats. Optional only for in-memory partials; the save always has it. */
   stats?: import('./save/schema').LifetimeStats;
   settings: Settings;

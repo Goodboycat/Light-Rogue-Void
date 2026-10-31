@@ -104,6 +104,7 @@ const migrateV1toV2 = (raw: any, nodeExists: NodeExists, report: MigrationReport
         killCounts,
         mapTreasuresOpened: strArr(raw.mapTreasuresOpened),
         mapRevealsSeen: strArr(raw.mapRevealsSeen),
+        constellationsSeen: strArr(raw.constellationsSeen),
         stats,
         settings,
     };
@@ -152,6 +153,7 @@ const normalizeV2 = (raw: any, nodeExists: NodeExists): SaveV2 => {
         killCounts: numRecord(raw.killCounts),
         mapTreasuresOpened: strArr(raw.mapTreasuresOpened),
         mapRevealsSeen: strArr(raw.mapRevealsSeen),
+        constellationsSeen: strArr(raw.constellationsSeen),
         stats,
         settings,
     };
