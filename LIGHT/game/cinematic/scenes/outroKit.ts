@@ -186,10 +186,10 @@ export const outroCamera = (place: number, tm: OutroTiming = OT, bodyZoom = 1.12
 };
 /** Common cue bed; scenes append their own. */
 export const outroCues = (tm: OutroTiming = OT): Cue[] => [
-  { t: 0.02, sfx: 'boss_die', vol: 0.8 }, { t: 0.02, duck: 0.3, duckMs: 600 },
+  { t: 0.02, sfx: 'boss_die', vol: 0.8 }, { t: 0.02, duckHold: 0.3, duckMs: 600 },
   { t: 0.4, sfx: 'story_line', vol: 0.3 },
   { t: tm.burst, sfx: 'enemy_die_big', vol: 0.6 }, { t: tm.burst + 0.1, sfx: 'pickup_essence', vol: 0.5 },
-  { t: tm.chart, sfx: 'chapter_card', vol: 0.5 }, { t: tm.chart + 1.3, sfx: 'landmark_reveal', vol: 1 }, { t: tm.chart + 1.9, sfx: 'music_sting_reveal', vol: 0.9 },
+  { t: tm.chart, stinger: 'chapter_card', vol: 0.5 }, { t: tm.chart + 1.3, sfx: 'landmark_reveal', vol: 1 }, { t: tm.chart + 1.9, stinger: 'music_sting_reveal', vol: 0.9 },
   { t: tm.hold + 0.4, sfx: 'story_line', vol: 0.3 },
 ];
 

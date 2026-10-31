@@ -185,7 +185,8 @@ class AudioManagerImpl {
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
     g.linearRampToValueAtTime(Math.max(0, Math.min(1, amount)), t + 0.05);
     g.setValueAtTime(amount, t + ms / 1000);
-    g.linearRampToValueAtTime(1, t + ms / 1000 + 0.4);
+    // (M9) inside a film-length hold a short dip recovers to the HELD level, never back to 1
+    g.linearRampToValueAtTime(this.held ? this.heldLevel : 1, t + ms / 1000 + 0.4);
   }
 
   // ---------- (M9) film mix ----------
@@ -196,7 +197,7 @@ class AudioManagerImpl {
     const t = this.ctx.currentTime; const g = this.duckGain.gain;
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
     g.linearRampToValueAtTime(Math.max(0, Math.min(1, amount)), t + Math.max(0.02, rampMs / 1000));
-    this.held = true;
+    this.held = true; this.heldLevel = Math.max(0, Math.min(1, amount));
   }
   /** (M9) Recover from `duckHold` over `rampMs`. No-op when nothing is held. */
   duckRelease(rampMs = 600) {
@@ -207,6 +208,7 @@ class AudioManagerImpl {
     g.linearRampToValueAtTime(1, t + Math.max(0.05, rampMs / 1000));
   }
   private held = false;
+  private heldLevel = 1;
 
   /** (M9) A musical one-shot that RESPECTS the current music: plays on the music bus (music volume, not sfx),
    *  ducks the running track to 0.25 under it for its own length and lets it recover. Never replaces `current`.
@@ -222,7 +224,7 @@ class AudioManagerImpl {
     } else {
       const v = playSynth(ctx, g, SFX_FAMILY[id], idSeed(id), 1); dur = v.duration; stop = v.stop;
     }
-    if (this.current && !this.held) this.duck(0.25, Math.max(200, dur * 1000 - 400));
+    if (this.current) this.duck(Math.min(0.25, this.held ? this.heldLevel : 1), Math.max(200, dur * 1000 - 400));
     this.voices.push({ id, gain: g, startedAt: ctx.currentTime, endsAt: ctx.currentTime + dur + 0.1, stop, vol });
     this.log?.push(id);
     return true;

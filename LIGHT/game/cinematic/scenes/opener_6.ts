@@ -217,7 +217,8 @@ export const opener_6: SceneDef = {
     flash: K(0, 0, T_SLAM - 0.08, 0, T_SLAM - 0.07, 0.8, step, T_SLAM, 0, easeOut),
   },
   cues: [
-    { t: 0.1, sfx: 'chapter_card', vol: 0.9 },
+    { t: 0.02, duckHold: 0.3, duckMs: 600 },
+    { t: 0.1, stinger: 'chapter_card', vol: 0.9 },
     { t: T_PLACE + 0.7, sfx: 'landmark_reveal', vol: 0.25 },
     { t: T_DARK, sfx: 'boss_telegraph', vol: 0.5 },
     { t: T_DARK + 0.6, sfx: 'story_line', vol: 0.3 },

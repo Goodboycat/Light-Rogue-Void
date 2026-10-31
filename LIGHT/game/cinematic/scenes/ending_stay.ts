@@ -226,7 +226,7 @@ export const ending_stay: SceneDef = {
     { t: T_TURN, sfx: 'burst_fire', vol: 0.8 }, { t: T_TURN, sfx: 'cin_cut', vol: 0.6 },
     { t: T_TURN + 0.4, sfx: 'cin_ember_rise', vol: 0.6 }, { t: T_TURN + 2.0, sfx: 'story_line', vol: 0.25 },
     { t: T_FIELD, music: 'music_ending' }, { t: T_FIELD, duck: 0.6, duckMs: 2000 },
-    { t: T_TITLE, sfx: 'cin_title_hit', vol: 0.9 }, { t: T_TITLE + 0.9, sfx: 'story_line', vol: 0.2 },
+    { t: T_TITLE, stinger: 'cin_title_hit', vol: 0.9 }, { t: T_TITLE + 0.9, sfx: 'story_line', vol: 0.2 },
     { t: T_HOLD, sfx: 'ending_stay', vol: 0.6 },
   ],
   shots: [

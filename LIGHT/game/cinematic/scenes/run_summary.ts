@@ -183,7 +183,7 @@ export function makeRunSummary(d: SummaryData): SceneDef {
     },
     cues: [
       { t: 0.3, sfx: 'pickup_essence', vol: 0.5 },
-      { t: T_HEAD, sfx: 'chapter_card', vol: 0.5 },
+      { t: T_HEAD, stinger: 'chapter_card', vol: 0.5 },
       { t: T_HEAD + 0.9, sfx: 'ui_click', vol: 0.25 }, { t: T_HEAD + 1.2, sfx: 'ui_click', vol: 0.25 }, { t: T_HEAD + 1.5, sfx: 'ui_click', vol: 0.25 }, { t: T_HEAD + 1.8, sfx: 'ui_click', vol: 0.25 },
       { t: T_MATTER, sfx: 'pickup_relic', vol: 0.6 },
       ...(d.affordable > 0 ? [{ t: T_MATTER + 0.8, sfx: 'ui_unlock' as const, vol: 0.5 }] : []),

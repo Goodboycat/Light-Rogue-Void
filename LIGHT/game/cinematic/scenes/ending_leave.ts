@@ -286,11 +286,11 @@ export function makeEndingLeave(d: LeaveData): SceneDef {
       { t: T_LID, sfx: 'cin_eye_open', vol: 0.6 }, { t: T_LID + 0.9, sfx: 'cin_tendril', vol: 0.45 },
       { t: T_LID + 2.6, sfx: 'story_line', vol: 0.25 }, { t: T_LID + 5.2, sfx: 'story_line', vol: 0.25 },
       { t: T_PASS, sfx: 'burst_fire', vol: 0.8 }, { t: T_PASS, sfx: 'cin_cut', vol: 0.6 },
-      { t: T_PASS + 0.3, sfx: 'cin_title_hit', vol: 0.8 },
+      { t: T_PASS + 0.3, stinger: 'cin_title_hit', vol: 0.8 },
       { t: T_PASS + 1.0, music: 'music_ending' }, { t: T_PASS + 1.0, duck: 0.6, duckMs: 2500 },
       ...blocks.map(b => ({ t: b.t0 + 0.05, sfx: 'ui_click' as const, vol: 0.25 })),
       { t: T_LAST + 0.2, sfx: 'story_line', vol: 0.2 },
-      { t: T_TITLE, sfx: 'cin_title_hit', vol: 0.9 },
+      { t: T_TITLE, stinger: 'cin_title_hit', vol: 0.9 },
       { t: T_HOLD, sfx: 'ending_leave', vol: 0.6 },
     ],
     shots: [

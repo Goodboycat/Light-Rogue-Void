@@ -128,7 +128,8 @@ export const opener_1: SceneDef = {
     aberration: K(0, 0, T_DARK, 0, T_DARK + 0.01, 6, step, T_DARK + 0.5, 1, T_DARK + 2.6, 2, T_DARK + 2.61, 10, step, T_DARK + 3.1, 2, T_TURN - 0.01, 14, easeIn, T_TURN, 0, step),
   },
   cues: [
-    { t: 0.1, sfx: 'chapter_card', vol: 0.9 },
+    { t: 0.02, duckHold: 0.3, duckMs: 600 },
+    { t: 0.1, stinger: 'chapter_card', vol: 0.9 },
     { t: T_PLACE + 0.2, sfx: 'landmark_reveal', vol: 0.35 },
     { t: T_DARK, sfx: 'boss_telegraph', vol: 0.55 },
     { t: T_DARK + 0.4, sfx: 'story_line', vol: 0.3 },

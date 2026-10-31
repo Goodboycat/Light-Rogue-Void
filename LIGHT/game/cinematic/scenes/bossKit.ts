@@ -115,7 +115,7 @@ export const bossShakes = (tm: BossTiming = BT): NonNullable<CameraDef['shakes']
 ];
 /** Common cue bed; scenes append their own. */
 export const bossCues = (tm: BossTiming = BT): Cue[] => [
-  { t: 0.05, sfx: 'boss_telegraph', vol: 0.55 }, { t: 0.05, duck: 0.35, duckMs: 800 },
+  { t: 0.05, sfx: 'boss_telegraph', vol: 0.55 }, { t: 0.05, duckHold: 0.35, duckMs: 800 },
   { t: tm.rise, sfx: 'ambush_ring', vol: 0.35 },
   { t: tm.turn, sfx: 'boss_phase', vol: 0.65 }, { t: tm.turn + 0.15, sfx: 'story_line', vol: 0.3 },
   { t: tm.name + 0.45, sfx: 'boss_arrive', vol: 0.9 }, { t: tm.name + 0.5, sfx: 'boss_enrage', vol: 0.5 },

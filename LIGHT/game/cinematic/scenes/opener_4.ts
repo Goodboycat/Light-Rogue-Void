@@ -257,7 +257,8 @@ export const opener_4: SceneDef = {
     invert: K(0, 0, T_DARK + 1.1, 0, T_DARK + 1.11, 1, step, T_DARK + 1.15, 0, step, T_DARK + 1.36, 0, T_DARK + 1.37, 1, step, T_DARK + 1.41, 0, step),
   },
   cues: [
-    { t: 0.1, sfx: 'chapter_card', vol: 0.9 },
+    { t: 0.02, duckHold: 0.3, duckMs: 600 },
+    { t: 0.1, stinger: 'chapter_card', vol: 0.9 },
     { t: T_PLACE + 0.2, sfx: 'landmark_reveal', vol: 0.35 },
     { t: T_DARK, sfx: 'boss_telegraph', vol: 0.5 },
     { t: T_DARK + 0.4, sfx: 'story_line', vol: 0.3 },

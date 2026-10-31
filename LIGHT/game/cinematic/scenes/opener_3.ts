@@ -211,7 +211,8 @@ export const opener_3: SceneDef = {
     invert: K(0, 0, T_DARK + 0.18, 0, T_DARK + 0.19, 1, step, T_DARK + 0.24, 0, step, T_DARK + 0.42, 0, T_DARK + 0.43, 1, step, T_DARK + 0.47, 0, step),
   },
   cues: [
-    { t: 0.1, sfx: 'chapter_card', vol: 0.9 },
+    { t: 0.02, duckHold: 0.3, duckMs: 600 },
+    { t: 0.1, stinger: 'chapter_card', vol: 0.9 },
     { t: T_PLACE + 0.2, sfx: 'landmark_reveal', vol: 0.35 },
     { t: T_DARK, sfx: 'boss_telegraph', vol: 0.55 },
     { t: T_DARK + 0.18, sfx: 'affix_shield_break', vol: 0.3 },     // the facets flash

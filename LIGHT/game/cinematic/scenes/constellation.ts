@@ -207,14 +207,13 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
       fade:      K(0, 1, 0.5, 0, easeOut, T_END - 0.5, 0, T_END, 1, easeIn),
     },
     cues: [
-      { t: 0.05, duck: 0.35, duckMs: 500 },
+      { t: 0.05, duckHold: 0.35, duckMs: 500 },
       { t: 0.2, sfx: 'cin_silence_drop', vol: 0.5 },
       { t: 0.6, sfx: 'cin_whisper', vol: 0.4 },
       { t: T_SKY, sfx: 'cin_ember_rise', vol: 0.6 },
       { t: T_SKY + 0.2, sfx: 'ui_unlock', vol: 0.5 }, { t: lerp(T_SKY, T_IGN, 0.45), sfx: 'ui_unlock', vol: 0.5 }, { t: lerp(T_SKY, T_IGN, 0.8), sfx: 'ui_unlock', vol: 0.5 },
       { t: T_IGN, sfx: 'burst_fire', vol: 0.6 }, { t: T_IGN + 0.05, sfx: 'cin_cut', vol: 0.5 },
-      { t: T_FLASH + 0.4, sfx: 'cin_title_hit', vol: 0.5 },
-      { t: T_END - 0.3, duck: 1, duckMs: 800 },
+      { t: T_FLASH + 0.4, stinger: 'cin_title_hit', vol: 0.5 },
     ],
     shots: isBoss ? [
       { n: 1, from: 0, to: T_SKY, what: 'the known sky, dim; the boss\'s rim sector is dark; a violet spark wakes at the constellation\'s first node' },

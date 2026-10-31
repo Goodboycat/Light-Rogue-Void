@@ -214,8 +214,8 @@ export const title_seam: SceneDef = {
     { t: T_WARM, sfx: 'burst_charge', vol: 0.8 },
     { t: 23.0, sfx: 'shrine_touch', vol: 0.7 },
     { t: 24.0, sfx: 'landmark_reveal', vol: 0.6 },
-    { t: T_TITLE, sfx: 'chapter_card', vol: 1 },
-    { t: 26.3, sfx: 'music_sting_reveal', vol: 0.9 },
+    { t: T_TITLE, stinger: 'chapter_card', vol: 1 },
+    { t: 26.3, stinger: 'music_sting_reveal', vol: 0.9 },
     { t: 27.0, music: 'music_title' },
   ],
   shots: [
