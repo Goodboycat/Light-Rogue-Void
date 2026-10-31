@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `M7` — Endings `ending_stay` + `ending_leave` as film scenes + WinGame hook + cinebench (newest, in HANDOFF.md)
+- `M8` — Constellation film (`constellation` 8 s first tree open + `makeConstellation(bossId)` 6 s) + App hook + EvolutionMatrix re-skin + cinebench (newest, in HANDOFF.md)
+- `M7` — Endings `ending_stay` + `ending_leave` as film scenes + WinGame hook + cinebench (`docs/handoff/M7.md`)
 - `M6` — Death + run summary as film scenes + DeathSummary thin layer + cinebench (`docs/handoff/M6.md`)
 - `M5` — Darkness Interrupts ×6 as film scenes + scheduler + six readable threats + cinebench (`docs/handoff/M5.md`)
 - `M4` — Boss outros ×6 + place reveals + death hook + cinebench (`docs/handoff/M4.md`)

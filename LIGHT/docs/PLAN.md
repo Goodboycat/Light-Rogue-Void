@@ -86,6 +86,7 @@ One chat ≈ one ID. If a chat runs out of credits mid-ID it must still: commit 
 | M0 | Cinematic engine + `title_seam` + `menu_loop` + MainMenu rebuilt as a film (`docs/handoff/M0.md`). |
 | M1 | Chapter openers 1–3 as film scenes (`opener_1..3`), SurvivalGame film hook, `tools/cinebench.mjs` (`docs/handoff/M1.md`). |
 | M2 | Chapter openers 4–6 (`opener_4..6`, opener_6 stretched to 17 s via `OpenerTiming`), registry-driven hook; cinebench ms/frame for all six openers — `ctx.filter` blur identified as the dominant cost (`docs/HANDOFF.md`). |
+| M8 | Constellation as film (`constellation` 8 s first tree open over the real tree, `makeConstellation(bossId)` 6 s per boss), App hook via `constellationsSeen`, EvolutionMatrix re-skin; cinebench per shot (`docs/HANDOFF.md`). |
 | M7 | Endings as film scenes (`ending_stay` 36 s → Endless, `ending_leave` 42 s with in-scene credits via `makeEndingLeave(stats)`), WinGame STAY/LEAVE hook, DOM credits removed; cinebench per shot (`docs/handoff/M7.md`). |
 | M6 | Death + run summary as film scenes (`death` 6 s + `run_summary` 10 s loop via `makeRunSummary`), `DeathSummary.tsx` thin button layer with the §5 arrow to TREE, `affordableNodes` from App; cinebench per shot (`docs/handoff/M6.md`). |
 | M5 | The Darkness Interrupt ×6 as film scenes (`interrupt_<n>`, `interruptKit.ts`) + scheduler and six readable gameplay threats (`logic/DarknessInterrupt.ts`), hooked via `playInterrupt` → `spawnInterruptThreat` on the hard cut; `docs/CINEMATIC.md` contract; cinebench per shot (`docs/HANDOFF.md`). |
