@@ -122,7 +122,10 @@ export interface PostDef {
   /** warm←→cold colour wash: −1 violet, 0 none, +1 amber */
   wash?: Track;
 }
-export interface Cue { t: number; sfx?: SfxId; vol?: number; music?: MusicId | null; duck?: number; duckMs?: number }
+/** A timeline audio cue. (M9) `duckHold` holds the music at that level until the scene ends OR is skipped (the player
+ *  releases it — a scene never needs a matching release cue); `stinger` plays a musical one-shot on the music bus that
+ *  respects the running track (AudioManager.musicStinger). `sfx` / `music` / `duck` as before. */
+export interface Cue { t: number; sfx?: SfxId; vol?: number; music?: MusicId | null; duck?: number; duckMs?: number; duckHold?: number; stinger?: SfxId }
 export interface Shot { n: number; from: number; to: number; what: string }
 
 export interface SceneDef {
@@ -142,7 +145,11 @@ export interface SceneDef {
 }
 
 // ---------------------------------------------------------------- audio sink (injected, keeps engine pure)
-export interface AudioSink { sfx(id: SfxId, vol?: number): void; music(id: MusicId | null): void; duck(amount: number, ms: number): void }
+export interface AudioSink {
+  sfx(id: SfxId, vol?: number): void; music(id: MusicId | null): void; duck(amount: number, ms: number): void;
+  /** (M9) optional — film-length duck + release (called by the player on finish/skip) + stingers + cutting held drones on skip */
+  duckHold?(amount: number, rampMs: number): void; duckRelease?(rampMs: number): void; stinger?(id: SfxId, vol?: number): void; stopCin?(): void;
+}
 
 // ---------------------------------------------------------------- post sprites (lazy, cached per size)
 let grainTiles: HTMLCanvasElement[] | null = null;
@@ -210,17 +217,27 @@ export class CinematicPlayer {
     while (this.fired < this.cues.length && this.cues[this.fired].t <= this.t) {
       const c = this.cues[this.fired++]; if (!a) continue;
       if (c.sfx) a.sfx(c.sfx, c.vol);
+      if (c.stinger) a.stinger?.(c.stinger, c.vol);
       if (c.music !== undefined) a.music(c.music);
-      if (c.duck !== undefined) a.duck(c.duck, c.duckMs ?? 600);
+      if (c.duckHold !== undefined) { this.heldDuck = true; a.duckHold?.(c.duckHold, c.duckMs ?? 400); }
+      else if (c.duck !== undefined) a.duck(c.duck, c.duckMs ?? 600);
     }
+  }
+  private heldDuck = false;
+  /** (M9) release a held duck (finish or skip). Idempotent. On skip also cuts the `cin_` beds so a drone never outlives its frame. */
+  private releaseAudio(skipped: boolean) {
+    const a = this.audio; if (!a) return;
+    if (this.heldDuck) { this.heldDuck = false; a.duckRelease?.(skipped ? 350 : 900); }
+    if (skipped) a.stopCin?.();
   }
   /** Tap / any key. Starts a 0.35 s fade; remaining cues are dropped. */
   skip() {
     if (this.done || this.skipping) return;
     if (this.t < (this.scene.skipAfter ?? 0.6)) return;
     this.skipping = true; this.skipT = 0; this.fired = this.cues.length;
+    this.releaseAudio(true);
   }
-  private finish() { if (this.done) return; this.done = true; this.playing = false; this.onDone?.(); }
+  private finish() { if (this.done) return; this.done = true; this.playing = false; this.releaseAudio(false); this.onDone?.(); }
 
   // ------------------------------------------------------------ render
   /** Draw the frame for the current `t` into `ctx` (canvas W×H px, dpr folded into W/H). */

@@ -11,6 +11,12 @@ const sink: AudioSink = {
   sfx: (id, vol) => { Audio.play(id, { vol, pitchVar: 0 }); },
   music: (id) => { Audio.music(id, 1500); },
   duck: (amount, ms) => { Audio.duck(amount, ms); },
+  // (M9) film mix: film-length duck held by the timeline, released by the engine on finish/skip; stingers respect the
+  // running music; a skip cuts the `cin_` beds (whisper / eye drone) so nothing outlives its frame.
+  duckHold: (amount, rampMs) => { Audio.duckHold(amount, rampMs); },
+  duckRelease: (rampMs) => { Audio.duckRelease(rampMs); },
+  stinger: (id, vol) => { Audio.musicStinger(id, vol); },
+  stopCin: () => { Audio.stopPrefix('cin_'); },
 };
 
 export interface CinematicProps {
@@ -79,6 +85,8 @@ const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, 
       cancelAnimationFrame(raf); removeEventListener('resize', resize);
       removeEventListener('pointerdown', skip); removeEventListener('keydown', skip);
       playerRef.current = null;
+      // (M9) a film unmounted mid-play (screen change) must not leave the music ducked or a cin_ bed running
+      if (audio && !p.done) { Audio.duckRelease(400); Audio.stopPrefix('cin_'); }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene, startT, loop, audio, passive]);

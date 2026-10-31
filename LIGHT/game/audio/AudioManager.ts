@@ -188,6 +188,58 @@ class AudioManagerImpl {
     g.linearRampToValueAtTime(1, t + ms / 1000 + 0.4);
   }
 
+  // ---------- (M9) film mix ----------
+  /** (M9) Hold the music at `amount` until `duckRelease()` — a film-length duck driven by the scene timeline
+   *  (`Cue.duckHold`); the cinematic player releases it on finish AND on skip, so a duck can never be left behind. */
+  duckHold(amount = 0.35, rampMs = 400) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime; const g = this.duckGain.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(Math.max(0, Math.min(1, amount)), t + Math.max(0.02, rampMs / 1000));
+    this.held = true;
+  }
+  /** (M9) Recover from `duckHold` over `rampMs`. No-op when nothing is held. */
+  duckRelease(rampMs = 600) {
+    if (!this.ctx || !this.held) return;
+    this.held = false;
+    const t = this.ctx.currentTime; const g = this.duckGain.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(1, t + Math.max(0.05, rampMs / 1000));
+  }
+  private held = false;
+
+  /** (M9) A musical one-shot that RESPECTS the current music: plays on the music bus (music volume, not sfx),
+   *  ducks the running track to 0.25 under it for its own length and lets it recover. Never replaces `current`.
+   *  Ignores the per-id throttle (a stinger is placed to the frame). Returns false when the engine is not ready. */
+  musicStinger(id: SfxId, vol = 1): boolean {
+    const ctx = this.ctx; if (!ctx || ctx.state !== 'running' || this.settings.muted) return false;
+    const g = ctx.createGain(); g.gain.value = vol * (SFX_VOLUME[id] ?? 0.8); g.connect(this.musicBus);
+    const buf = this.buffer(id);
+    let dur: number; let stop: () => void;
+    if (buf) {
+      const s = ctx.createBufferSource(); s.buffer = buf; s.connect(g); s.start();
+      dur = buf.duration; stop = () => { try { s.stop(); } catch { /* noop */ } };
+    } else {
+      const v = playSynth(ctx, g, SFX_FAMILY[id], idSeed(id), 1); dur = v.duration; stop = v.stop;
+    }
+    if (this.current && !this.held) this.duck(0.25, Math.max(200, dur * 1000 - 400));
+    this.voices.push({ id, gain: g, startedAt: ctx.currentTime, endsAt: ctx.currentTime + dur + 0.1, stop, vol });
+    this.log?.push(id);
+    return true;
+  }
+
+  /** (M9) Stop every voice whose id starts with `prefix` (e.g. 'cin_' when a scene is skipped mid-drone). 60 ms fade. */
+  stopPrefix(prefix: string) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    for (let i = this.voices.length - 1; i >= 0; i--) {
+      const v = this.voices[i]; if (!v.id.startsWith(prefix)) continue;
+      v.gain.gain.cancelScheduledValues(t); v.gain.gain.setValueAtTime(v.gain.gain.value, t); v.gain.gain.linearRampToValueAtTime(0, t + 0.06);
+      const stop = v.stop; const gain = v.gain; setTimeout(() => { stop(); gain.disconnect(); }, 90);
+      this.voices.splice(i, 1);
+    }
+  }
+
   /** Stop everything (run end / app unmount). */
   stopAll() {
     this.voices.forEach(v => { v.stop(); v.gain.disconnect(); }); this.voices = [];
