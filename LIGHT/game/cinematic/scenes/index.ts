@@ -36,6 +36,8 @@ import { run_summary } from './run_summary';
 // (M7) endings — after the STAY / LEAVE choice; both end on a screenshot frame
 import { ending_stay } from './ending_stay';
 import { ending_leave } from './ending_leave';
+// (M8) constellation — first skill-tree open; `constellation_boss` is the demo default of makeConstellation(bossId)
+import { constellation, constellation_boss } from './constellation';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -68,6 +70,8 @@ export const SCENES: Record<string, SceneDef> = {
   run_summary,
   ending_stay,
   ending_leave,
+  constellation,
+  constellation_boss,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
