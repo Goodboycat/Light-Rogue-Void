@@ -64,12 +64,13 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: M5 M6 M7 M8 M9 M10
+Next: M6 M7 M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
 | M0 | **DONE** — cinematic engine (`game/cinematic/`), `title_seam` (34 s launch film, once per session), `menu_loop` (24 s loop) and the main menu rebuilt as a film with a thin UI layer. `?cinematic=<id>` debug route. |
 | M2 | **DONE** — chapter openers 4–6 (`opener_4..6`; opener_6 is 17 s via `OpenerTiming`), registry-driven hook, cinebench for all six openers (blur = dominant cost → M10). |
+| M5 | **DONE** — the Darkness Interrupt: six 5 s horror films (`interrupt_1..6` THE EYE / THE HAND / THE MAW / THE WALL OF EYES / THE MIRROR / THE STARE on `interruptKit.ts`: freeze → apparition → HARD CUT turn → strike) that fire ~60 s into a run and every ~3 waves, then HARD CUT back to gameplay with a readable threat already telegraphed (THE GAZE / PALM / JAW / WATCH / ECHO / SILENCE, `logic/DarknessInterrupt.ts`, dash-punishing, 40 % maxHP); `?interrupt=<n>` debug; cinebench per shot in `docs/HANDOFF.md`. |
 | M4 | **DONE** — boss outros ×6 (`boss_outro_<bossId>`, 9.2 s, 4 shots: the kill → it comes apart into embers → HARD CUT star chart with the new place igniting = the place reveal → warm hold on the spark) on `outroKit.ts`; `playBossOutro` at boss death chains into `completeBossWave` → MapBreather (MapReveal skipped via `revealed`); Darkness outro registered, hooked by M7; cinebench per shot in `docs/HANDOFF.md`. |
 | M3 | **DONE** — boss intros ×6 (`boss_intro_<bossId>`, 10 s / Darkness 11 s, 4 shots: arena blackout → hero silhouette → it notices the camera → name slam) on `bossKit.ts`; `playBossIntro` at boss spawn before `BossBar` mounts; cinebench per shot in `docs/HANDOFF.md`. |
 | M1 | **DONE** — chapter openers 1–3 (`opener_1..3`, 13 s each, 5 shots: card → place → Darkness → black turn → spark) replace the in-sim StoryCinematic for openers; `SurvivalGame` pause/hide/resume hook (`film` state); `tools/cinebench.mjs` per-shot ms/frame. |
