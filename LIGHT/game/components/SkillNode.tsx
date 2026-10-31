@@ -59,12 +59,12 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       onPreview?.(highlight === 'target' ? null : data.id); // (7A) tap a locked / ghost node = path preview (touch)
     }
   };
-  const ringClass = highlight === 'target' ? 'ring-4 ring-cyan-300 ring-offset-2 ring-offset-black'
-    : highlight === 'path' ? 'ring-2 ring-cyan-400/80'
+  const ringClass = highlight === 'target' ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-black'
+    : highlight === 'path' ? 'ring-2 ring-amber-400/80'
     : highlight === 'match' ? 'ring-2 ring-yellow-300/90' : '';
 
   const getColors = () => {
-    if (isBossLocked) return 'bg-slate-950/60 border-slate-700/40 opacity-60 cursor-not-allowed';
+    if (isBossLocked) return 'bg-[#07030f]/60 border-violet-500/30 opacity-60 cursor-not-allowed';
     if (isUnlocked) {
       // Changed CORE to white/bright style
       if (data.type === AbilityType.CORE) return 'bg-white border-white shadow-[0_0_30px_rgba(255,255,255,0.9)]';
@@ -72,12 +72,12 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       if (data.type === AbilityType.DEFENSE) return 'bg-blue-950 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]';
       return 'bg-amber-950 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]';
     }
-    if (!isRevealed && isGhost) return 'bg-slate-950/80 border-dashed border-slate-500 opacity-80 cursor-pointer';
+    if (!isRevealed && isGhost) return 'bg-[#07030f]/80 border-dashed border-violet-400/50 opacity-80 cursor-pointer';
     if (isRevealed) {
-        if(isAffordable) return 'bg-slate-900 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)] cursor-pointer hover:bg-slate-800 hover:border-emerald-400';
-        return 'bg-slate-950 border-slate-800 cursor-not-allowed opacity-50';
+        if(isAffordable) return 'bg-[#0d0718] border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)] cursor-pointer hover:bg-[#140c22] hover:border-emerald-400';
+        return 'bg-[#07030f] border-violet-900/60 cursor-not-allowed opacity-50';
     }
-    return 'bg-slate-950 border-slate-900 opacity-0';
+    return 'bg-[#07030f] border-violet-950 opacity-0';
   };
 
   const getIconColor = () => {
@@ -87,7 +87,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
           return 'text-white';
       }
       if (isRevealed && isAffordable) return 'text-emerald-400';
-      return 'text-slate-700';
+      return 'text-violet-900';
   };
 
   if (!isRevealed && !isUnlocked && !isBossLocked && !isGhost) return null;
@@ -115,15 +115,15 @@ const SkillNode: React.FC<SkillNodeProps> = ({
         className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 origin-bottom"
         style={{ scale: inverseScale } as any}
       >
-        <div className="bg-black/95 border border-slate-700 p-3 rounded-lg w-56 backdrop-blur-sm shadow-xl relative z-50">
-            <h3 className={`text-sm font-tech font-bold mb-1 ${isUnlocked ? 'text-white' : 'text-slate-400'}`}>
+        <div className="bg-[#07030f]/95 border border-violet-400/30 p-3 rounded-lg w-56 backdrop-blur-sm shadow-xl relative z-50">
+            <h3 className={`text-sm font-tech font-bold mb-1 ${isUnlocked ? 'text-amber-50' : 'text-violet-200/70'}`}>
                 {data.title}
             </h3>
-            <p className="text-[10px] text-slate-400 leading-tight mb-2">
+            <p className="text-[10px] text-violet-100/60 leading-tight mb-2">
               {isBossLocked ? (lockLabel || 'Locked') : data.description}
             </p>
-            <div className="flex justify-between items-center text-[10px] font-mono border-t border-slate-800 pt-1">
-                <span className="text-cyan-400">{data.statBoostDisplay}</span>
+            <div className="flex justify-between items-center text-[10px] font-mono border-t border-violet-400/20 pt-1">
+                <span className="text-amber-300">{data.statBoostDisplay}</span>
                 {!isUnlocked && <span className={isAffordable ? 'text-green-400' : 'text-red-500'}>{data.cost} M</span>}
             </div>
         </div>
@@ -196,7 +196,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({
       {/* Label only for Major nodes to reduce clutter */}
       {(isMajor || isGhost || highlight === 'match') && (
         <motion.div className={`mt-2 text-[10px] font-tech tracking-wider uppercase font-bold text-center w-32 truncate
-          ${isUnlocked ? 'text-white opacity-90' : 'text-slate-700 opacity-60'}
+          ${isUnlocked ? 'text-amber-50 opacity-90' : 'text-violet-900 opacity-60'}
         `}
         style={{ scale: inverseScale } as any}
         >

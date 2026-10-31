@@ -256,7 +256,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 animate: { opacity: 1 },
                 exit: { opacity: 0 }
             } as any)}
-            className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl overflow-hidden touch-none" 
+            className="absolute inset-0 z-50 bg-[#07030f]/92 backdrop-blur-xl overflow-hidden touch-none" 
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -274,7 +274,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             </div>
             {/* (7A) search + arc legend + fit buttons */}
             <div id="tree-tools" className="absolute top-32 right-8 z-50 flex flex-col items-end gap-2 pointer-events-auto max-w-[260px]">
-                <div className="flex items-center gap-2 bg-slate-900/80 border border-slate-700 rounded-lg px-2 py-1 backdrop-blur-md w-full">
+                <div className="flex items-center gap-2 bg-[#0d0718]/85 border border-violet-400/25 rounded-lg px-2 py-1 backdrop-blur-md w-full">
                     <Search size={14} className="text-slate-400 shrink-0" />
                     <input id="tree-search" value={query} onChange={e => setQuery(e.target.value)} placeholder="search nodes…"
                         className="bg-transparent outline-none text-xs font-mono text-white placeholder:text-slate-500 w-full" />
@@ -289,19 +289,19 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 <div className="flex flex-wrap gap-1 justify-end">
                     {ARC_LEGEND.map(a => (
                         <button key={a.type} onClick={() => fitGroup(n => n.type === a.type && !n.requiresBoss)} title={`Fit ${a.label} arc`}
-                            className="flex items-center gap-1 px-2 py-1 rounded bg-slate-900/80 border border-slate-700 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">
+                            className="flex items-center gap-1 px-2 py-1 rounded bg-[#0d0718]/85 border border-violet-400/25 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">
                             <span className={`w-2 h-2 rounded-full ${a.cls}`} />{a.label}
                         </button>
                     ))}
                     <button onClick={() => fitGroup(() => true)} title="Fit whole tree"
-                        className="px-2 py-1 rounded bg-slate-900/80 border border-slate-700 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">ALL</button>
+                        className="px-2 py-1 rounded bg-[#0d0718]/85 border border-violet-400/25 hover:border-white/50 text-[9px] font-tech tracking-wider text-slate-300 hover:text-white">ALL</button>
                 </div>
                 <div className="text-[9px] font-mono text-slate-500 text-right">● unlocked · ◌ affordable (green) · dashed = not yet reachable · ✦ constellation (boss){IS_DEMO && ' · 🔒 full version'}</div>
             </div>
             {IS_DEMO && <DemoCard variant="compact" className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)]" />}{/* (9B) */}
             {preview && previewId && (
-                <div id="path-preview" className="absolute bottom-48 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-slate-900/90 border border-cyan-500/40 rounded-xl px-4 py-2 text-center backdrop-blur-md shadow-xl">
-                    <div className="font-tech text-xs text-cyan-200 tracking-wider">{NODE_BY_ID[previewId].title}</div>
+                <div id="path-preview" className="absolute bottom-48 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-[#0d0718]/92 border border-amber-400/40 rounded-xl px-4 py-2 text-center backdrop-blur-md shadow-xl">
+                    <div className="font-tech text-xs text-amber-200 tracking-wider">{NODE_BY_ID[previewId].title}</div>
                     <div className="font-mono text-[10px] text-slate-300 mt-0.5">
                         path: <span className="text-white">{preview.ids.length}</span> node{preview.ids.length === 1 ? '' : 's'} · total <span className={gameState.matter >= preview.total ? 'text-emerald-400' : 'text-red-400'}>{preview.total} M</span> · you have {gameState.matter} M
                     </div>
@@ -327,7 +327,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                         onClick={onOpenGuide} 
                         icon={<HelpCircle size={20} />} 
                         label="GUIDEBOOK" 
-                        color="text-cyan-400"
+                        color="text-amber-300"
                     />
                 )}
             </div>
@@ -336,25 +336,25 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             <div className="absolute top-8 right-8 z-50 flex flex-wrap gap-3 justify-end pointer-events-auto">
                 <button 
                     onClick={onResume}
-                    className="flex items-center gap-2 px-4 py-3 bg-white hover:bg-slate-200 border border-white rounded-lg text-slate-900 transition-all font-tech text-xs tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                    className="flex items-center gap-2 px-4 py-3 bg-amber-200 hover:bg-amber-100 border border-amber-200 rounded-lg text-[#07030f] transition-all font-tech text-xs tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.4)]"
                 >
                     <PlayCircle size={16} fill="currentColor" />
                     RESUME
                 </button>
-                <div className="w-px h-10 bg-slate-700 mx-2" />
+                <div className="w-px h-10 bg-violet-400/30 mx-2" />
                 <button 
                     id="respec-button"
                     onClick={() => setRespecOpen(true)}
                     disabled={respecInfo.count === 0}
                     title={`Refund all nodes (−${Math.round(RESPEC_TAX * 100)} % tax)`}
-                    className="flex items-center gap-2 px-4 py-3 bg-slate-800 hover:bg-amber-900/60 border border-slate-600 hover:border-amber-400 rounded-lg text-white transition-all font-tech text-xs tracking-wider shadow-lg disabled:opacity-40 disabled:hover:bg-slate-800 disabled:hover:border-slate-600"
+                    className="flex items-center gap-2 px-4 py-3 bg-[#140c22] hover:bg-amber-900/50 border border-violet-400/30 hover:border-amber-400 rounded-lg text-white transition-all font-tech text-xs tracking-wider shadow-lg disabled:opacity-40 disabled:hover:bg-slate-800 disabled:hover:border-slate-600"
                 >
                     <RotateCcw size={16} />
                     RESPEC
                 </button>
                 <button 
                     onClick={onOpenSettings}
-                    className="flex items-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white transition-all font-tech text-xs tracking-wider shadow-lg"
+                    className="flex items-center gap-2 px-4 py-3 bg-[#140c22] hover:bg-[#1c1030] border border-violet-400/30 rounded-lg text-amber-50 transition-all font-tech text-xs tracking-wider shadow-lg"
                 >
                     <Settings size={16} />
                     SETTINGS
@@ -372,14 +372,14 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             {/* (7A step 6) Abandon run confirm dialog */}
             {abandonOpen && (
                 <div id="abandon-dialog" className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto p-4" onClick={() => setAbandonOpen(false)}>
-                    <div className="w-full max-w-sm bg-slate-900 border border-red-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.15)]" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-sm bg-[#0d0718] border border-red-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(239,68,68,0.15)]" onClick={e => e.stopPropagation()}>
                         <h2 className="font-tech text-xl text-red-300 tracking-widest mb-3">ABANDON THE RUN?</h2>
                         <p className="text-slate-300 text-sm font-mono leading-relaxed">
                             The run ends here. Essence already collected is kept as matter; the wave progress of this run is lost.
                         </p>
                         <div className="flex gap-3 mt-6">
                             <button data-sfx="back" onClick={() => setAbandonOpen(false)}
-                                className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white font-tech text-xs tracking-wider">KEEP FIGHTING</button>
+                                className="flex-1 px-4 py-3 bg-[#140c22] hover:bg-[#1c1030] border border-violet-400/30 rounded-lg text-amber-50 font-tech text-xs tracking-wider">KEEP FIGHTING</button>
                             <button onClick={() => { setAbandonOpen(false); onReturnToMenu(); }}
                                 className="flex-1 px-4 py-3 bg-red-700 hover:bg-red-600 border border-red-400/60 rounded-lg text-white font-tech font-bold text-xs tracking-wider">ABANDON</button>
                         </div>
@@ -390,7 +390,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             {/* (7A) Respec confirm dialog */}
             {respecOpen && (
                 <div id="respec-dialog" className="absolute inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto p-4" onClick={() => setRespecOpen(false)}>
-                    <div className="w-full max-w-sm bg-slate-900 border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(251,191,36,0.15)]" onClick={e => e.stopPropagation()}>
+                    <div className="w-full max-w-sm bg-[#0d0718] border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(251,191,36,0.15)]" onClick={e => e.stopPropagation()}>
                         <h2 className="font-tech text-xl text-amber-300 tracking-widest mb-3">REDRAW THE CONSTELLATION</h2>
                         <p className="text-slate-300 text-sm font-mono leading-relaxed">
                             Refund <span className="text-white">{respecInfo.count}</span> nodes worth <span className="text-white">{respecInfo.spent}</span> matter.
@@ -399,7 +399,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                         </p>
                         <div className="flex gap-3 mt-6">
                             <button data-sfx="back" onClick={() => setRespecOpen(false)}
-                                className="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-white font-tech text-xs tracking-wider">CANCEL</button>
+                                className="flex-1 px-4 py-3 bg-[#140c22] hover:bg-[#1c1030] border border-violet-400/30 rounded-lg text-amber-50 font-tech text-xs tracking-wider">CANCEL</button>
                             <button onClick={() => { setRespecOpen(false); onRespec(); setPreviewId(null); }}
                                 className="flex-1 px-4 py-3 bg-amber-600 hover:bg-amber-500 border border-amber-400/60 rounded-lg text-white font-tech font-bold text-xs tracking-wider">REFUND ALL</button>
                         </div>
@@ -409,11 +409,11 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
 
             {/* Navigation Arrows for Buyable Nodes */}
             {buyableNodes.length > 0 && (
-                <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex items-center gap-4 z-50 pointer-events-auto bg-slate-900/80 p-3 rounded-2xl backdrop-blur-md border border-slate-700 shadow-xl">
+                <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex items-center gap-4 z-50 pointer-events-auto bg-[#0d0718]/85 p-3 rounded-2xl backdrop-blur-md border border-violet-400/25 00 shadow-xl">
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={handlePrevBuyable}
-                            className="p-2 bg-slate-800 hover:bg-purple-600 rounded-lg text-white transition-colors border border-slate-600 hover:border-purple-400 active:scale-95"
+                            className="p-2 bg-[#140c22] hover:bg-violet-700 rounded-lg text-amber-50 transition-colors border border-violet-400/30 hover:border-amber-300 active:scale-95"
                             title="Previous Node"
                         >
                             <ChevronLeft size={20} />
@@ -423,14 +423,14 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                         </div>
                         <button 
                             onClick={handleNextBuyable}
-                            className="p-2 bg-slate-800 hover:bg-purple-600 rounded-lg text-white transition-colors border border-slate-600 hover:border-purple-400 active:scale-95"
+                            className="p-2 bg-[#140c22] hover:bg-violet-700 rounded-lg text-amber-50 transition-colors border border-violet-400/30 hover:border-amber-300 active:scale-95"
                             title="Next Node"
                         >
                             <ChevronRight size={20} />
                         </button>
                     </div>
 
-                    <div className="w-px h-8 bg-slate-700 mx-2" />
+                    <div className="w-px h-8 bg-violet-400/30 mx-2" />
                     
                     <button 
                         onClick={() => onBatchUnlock(buyableNodes.map(n => n.id))}
@@ -466,7 +466,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                             // (1B) faint constellation line, always visible, brighter once unlocked
                             return (
                                 <line key={pid+node.id} x1={p.position.x} y1={p.position.y} x2={node.position.x} y2={node.position.y}
-                                    stroke={isNodeUnlocked ? '#e2e8f0' : '#475569'} strokeWidth={isNodeUnlocked ? 3 : 1.5}
+                                    stroke={isNodeUnlocked ? '#fde68a' : '#6d5bd0'} strokeWidth={isNodeUnlocked ? 3 : 1.5}
                                     strokeDasharray={isNodeUnlocked ? undefined : '6 10'} opacity={isNodeUnlocked ? 0.9 : 0.35} strokeLinecap="round" />
                             );
                         }
@@ -514,11 +514,11 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             <div className="absolute bottom-12 right-12 z-50 pointer-events-auto group">
                 <button 
                     onClick={handleRecenter}
-                    className="p-4 bg-slate-800/80 hover:bg-slate-700 border border-slate-600 rounded-full text-white/80 hover:text-white transition-all shadow-lg backdrop-blur-sm relative"
+                    className="p-4 bg-[#140c22]/85 hover:bg-[#1c1030] border border-violet-400/30 rounded-full text-amber-50/80 hover:text-white transition-all shadow-lg backdrop-blur-sm relative"
                 >
                     <Target className="w-6 h-6 group-hover:rotate-45 transition-transform duration-300" />
                 </button>
-                <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-slate-900 text-white text-[10px] font-tech tracking-widest rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 duration-200">
+                <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-[#0d0718] text-amber-50 text-[10px] font-tech tracking-widest rounded border border-violet-400/30 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl transform translate-y-2 group-hover:translate-y-0 duration-200">
                     RETURN TO CENTER
                 </div>
             </div>
@@ -532,7 +532,7 @@ const MenuSideButton: React.FC<{ onClick: () => void, icon: React.ReactNode, lab
         {...({ whileHover: { x: 10 } } as any)}
         className="flex items-center gap-4 group p-2 pr-6 rounded-r-xl transition-all"
     >
-        <div className={`p-3 bg-slate-900 border border-slate-700 rounded-xl group-hover:border-white/50 transition-colors shadow-lg ${color}`}>
+        <div className={`p-3 bg-[#0d0718] border border-violet-400/25 rounded-xl group-hover:border-amber-300/60 transition-colors shadow-lg ${color}`}>
             {icon}
         </div>
         <span className="font-tech text-sm text-slate-400 group-hover:text-white tracking-widest transition-colors shadow-black drop-shadow-md bg-black/40 px-2 py-1 rounded">

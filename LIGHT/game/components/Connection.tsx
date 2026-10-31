@@ -22,7 +22,7 @@ const Connection: React.FC<ConnectionProps> = ({ start, end, isUnlocked, isVisib
         y1={start.y}
         x2={end.x}
         y2={end.y}
-        stroke="#334155" 
+        stroke="#2a1458" 
         strokeWidth="4"
         strokeLinecap="round"
         {...({
@@ -39,7 +39,7 @@ const Connection: React.FC<ConnectionProps> = ({ start, end, isUnlocked, isVisib
             y1={start.y}
             x2={end.x}
             y2={end.y}
-            stroke="#ffffff" 
+            stroke="#fde68a" 
             strokeWidth="4"
             strokeLinecap="round"
             style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.8))' } as any}
