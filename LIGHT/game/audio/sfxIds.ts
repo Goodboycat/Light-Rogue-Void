@@ -23,6 +23,8 @@ export const SFX_IDS = [
   'music_sting_reveal',
   // (M5) cinematic — the Darkness Interrupts (M9 owns the batch; synth families until files exist)
   'cin_whisper', 'cin_cut', 'cin_silence_drop', 'cin_tendril',
+  // (M7) the rest of the M9 list, added early so the endings can cue them (synth families until files exist)
+  'cin_heartbeat', 'cin_eye_open', 'cin_ember_rise', 'cin_title_hit',
 ] as const;
 export type SfxId = typeof SFX_IDS[number];
 
@@ -51,6 +53,7 @@ export const SFX_FAMILY: Record<SfxId, SynthFamily> = {
   chapter_card: 'chord', story_line: 'blip', ending_leave: 'chord', ending_stay: 'bell',
   music_sting_reveal: 'chord',
   cin_whisper: 'drone', cin_cut: 'noise', cin_silence_drop: 'sweep_up', cin_tendril: 'sweep_down',
+  cin_heartbeat: 'thud', cin_eye_open: 'drone', cin_ember_rise: 'sweep_up', cin_title_hit: 'chord',
 };
 
 /** Default per-id throttle (ms) — spammy ids get a longer gap. AudioManager enforces ≥ 40 ms for all. */
@@ -65,4 +68,5 @@ export const SFX_VOLUME: Partial<Record<SfxId, number>> = {
   boss_arrive: 0.9, boss_die: 1, boss_enrage: 0.9, player_death: 0.9, ending_leave: 0.8, ending_stay: 0.8,
   music_sting_reveal: 0.9,
   cin_whisper: 0.5, cin_cut: 0.7, cin_silence_drop: 0.6, cin_tendril: 0.5,
+  cin_heartbeat: 0.6, cin_eye_open: 0.7, cin_ember_rise: 0.5, cin_title_hit: 0.9,
 };

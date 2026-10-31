@@ -102,6 +102,10 @@ Columns: **Len** = seconds, **Loop** = yes/no. Game family = the synth placehold
 | cin_cut | 0.3 | no | (M5) Hard cut: a single dry film-splice snap — a short burst of white noise with a click transient and no tail. Used at every hard cut of the film. |
 | cin_silence_drop | 0.8 | no | (M5) The breath before the strike: a reverse-swell of air and sub rising to a sharp stop, everything else vanishes — the game slams the threat name right after. |
 | cin_tendril | 1.2 | no | (M5) Ink tendril reaching: a wet, downward-bending sweep with a faint stringy creak, dark and organic. |
+| cin_heartbeat | 1.0 | no | (M7) One slow double heartbeat, felt more than heard: deep sub thump-thump with a soft chest resonance, no reverb tail. Looped by cue, never as a file loop. |
+| cin_eye_open | 1.8 | no | (M7) The Eye opening: a wet, slow lid-slide with a low tonal bloom underneath that settles into a held cold note — vast, patient, not a jump scare. |
+| cin_ember_rise | 2.5 | no | (M7) A field of embers lifting: thousands of tiny glassy crackles rising in pitch and spreading in stereo, warm, with a soft airy swell — hope, not fire. |
+| cin_title_hit | 2.0 | no | (M7) Final-image title hit: one warm orchestral-synth chord with a gentle brass-like swell, a soft impact at the front and a long golden decay into silence. |
 
 ## Music prompts
 All loops, 60–120 s, seamless. BPM free unless stated. Avoid melodies that fight the captions — ambient/pulse driven.
