@@ -64,10 +64,11 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: M7 M8 M9 M10
+Next: M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
+| M7 | **DONE** — endings as film: `ending_stay` (36 s: the seam, the held gaze with the Eye, the turn — embers RISE and stay lit, a field of 1400 sparks, the Eye closes patiently, STAY, 6 s hold → Endless 61) and `ending_leave` (42 s: the spark LIFTS for the first time, the void closes like a lid over the Eye, the pass + LIGHT ROGUE VOID, the credits as typography from CHAPTERS/BOSSES + run stats via `makeEndingLeave`, LEAVE under one far warm point → menu); WinGame's STAY/LEAVE play them, DOM credits removed; cinebench in `docs/HANDOFF.md`. |
 | M6 | **DONE** — death + run summary as film: `death` (6 s: the floor goes cold → the Eye closes in → one defiant flare, out → 1.2 s true black, one ember) plays the frame HP hits 0, then `run_summary` (10 s loop built live by `makeRunSummary`: WAVE n, stats typed in, +N MATTER violet→gold, the glowing arrow down to TREE, "+k new nodes affordable", LIGHT's line) under `DeathSummary.tsx`'s thin buttons (TREE / RE-IGNITE / RETRY CHAPTER / MENU); `GameOver.tsx` + `RunSummary.tsx` unimported; cinebench in `docs/HANDOFF.md`. |
 | M0 | **DONE** — cinematic engine (`game/cinematic/`), `title_seam` (34 s launch film, once per session), `menu_loop` (24 s loop) and the main menu rebuilt as a film with a thin UI layer. `?cinematic=<id>` debug route. |
 | M2 | **DONE** — chapter openers 4–6 (`opener_4..6`; opener_6 is 17 s via `OpenerTiming`), registry-driven hook, cinebench for all six openers (blur = dominant cost → M10). |
