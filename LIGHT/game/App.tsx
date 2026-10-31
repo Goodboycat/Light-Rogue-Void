@@ -328,6 +328,12 @@ const App: React.FC = () => {
       });
   }, [playerStats, startWave, setGameState, unlockAchievements]);
 
+  // (M6) nodes the player can buy right now (same rule as EvolutionMatrix's buyableNodes) — shown in the run_summary film
+  const affordableNodes = React.useMemo(() => {
+      const unl = gameState.unlockedAbilityIds; const defeated = gameState.defeatedBosses || [];
+      return ABILITY_TREE_DATA.filter(n => !unl.includes(n.id) && (n.parentIds.length === 0 || n.parentIds.some(p => unl.includes(p)))
+          && gameState.matter >= n.cost && !(n.requiresBoss && !defeated.includes(n.requiresBoss)) && !demoTreeLocked(n)).length;
+  }, [gameState.unlockedAbilityIds, gameState.matter, gameState.defeatedBosses]);
   // (8A step 5) sweep: matter / tree / lifetime-stats achievements (also in the menu, so stat-based ones land after a run ends)
   useEffect(() => {
      const newUnlocks = checkAchievements(gameState, playerStats, startWave, startWave);
@@ -419,6 +425,7 @@ const App: React.FC = () => {
                 onOpenTree={() => setGameState(p => ({ ...p, isMenuOpen: true }))}
                 seenEnemyIdsAtStart={gameState.seenEnemyIds}
                 onBlockPauseMenu={setIsPauseBlocked}
+                affordableNodes={affordableNodes}
                 onTransition={performTransition}
                 defeatedBosses={gameState.defeatedBosses}
                 treasuresOpened={gameState.mapTreasuresOpened ?? []}

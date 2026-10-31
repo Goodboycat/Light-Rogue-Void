@@ -19,7 +19,7 @@ import { fitCanvas, tickQuality, qualitySetting, installQualityCtx } from './gam
 const SPRITES_FLAG = typeof location !== 'undefined' && new URLSearchParams(location.search).get('sprites') === '1';
 import { applyRunModifiers, incomingDamageMult } from './game/logic/RunStats'; // (3A)
 import { spawnExplosion, createParticle, updateParticles } from './game/Particles';
-import GameOver from './GameOver';
+import DeathSummary from './DeathSummary'; // (M6) replaces GameOver.tsx (file kept, unimported)
 import { bossHint } from '../data/bossHints';
 import WinGame from './WinGame';
 import type { RunSummaryData } from './RunSummary'; // (7A step 4)
@@ -70,6 +70,8 @@ interface SurvivalGameProps {
   onUpdateMaxMaturity: (level: number) => void;
   onBossDefeated: (bossId: string) => void;
   onBlockPauseMenu: (blocked: boolean) => void;
+  /** (M6) skill-tree nodes affordable with the matter in the bank — App computes it; shown in the run_summary film */
+  affordableNodes?: number;
   /** (7A) run summary → open the Evolution Matrix (pause tree) from the end screen */
   onOpenTree?: () => void;
   /** (7A) enemy ids already in the archives when this run started (for the "new in bestiary" list) */
@@ -122,6 +124,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
     onFeats,
     onBossDefeated,
     onBlockPauseMenu,
+    affordableNodes,
     onOpenTree,
     seenEnemyIdsAtStart,
     onTransition
@@ -503,9 +506,12 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
               const st = gameStateRef.current;
               const b = st.activeBoss;
               setDeathBoss(b && st.lastBossHit === b.def.id ? { name: b.def.name, hint: bossHint(b.def.id) } : null);
-              sfx('player_death', 1, 0); Audio.music(null, 1500); // (6B)
               clearInterrupt(st); // (M5) drop a live threat + THE SILENCE blackout so the death screen is readable
-              setGameOver(true);
+              // (M6) the death film: `death` (6 s, cues player_death + music off itself) → onDone → gameOver → DeathSummary
+              // (the run_summary loop + buttons). The sim freezes under the film (M1 contract); skip → straight to the summary.
+              const deathScene = getScene('death');
+              if (deathScene) { filmOnDoneRef.current = () => setGameOver(true); setFilm(deathScene); }
+              else { sfx('player_death', 1, 0); Audio.music(null, 1500); setGameOver(true); } // (6B) fallback, no film registered
           }
       }
 
@@ -907,17 +913,17 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
       )}
 
       {/* (7A) end screens hide while the pause menu / tree is open (Matrix is z-50, these are z-100) */}
-      {gameOver && !paused && (
-        <GameOver 
-            wave={wave}
-            maxWaveReached={maxWaveReached} 
-            maturityTitle={maturity.title} 
-            deathBoss={deathBoss}
-            onRestart={onRestart} 
-            onReturnToMenu={onReturnToMenu}
+      {/* (M6) the summary is a scene: run_summary loop (film) + DeathSummary's thin button layer */}
+      {gameOver && !paused && summaryRef.current && (
+        <DeathSummary
             summary={summaryRef.current}
-            onOpenTree={onOpenTree}
+            maxWaveReached={maxWaveReached}
+            affordable={affordableNodes ?? 0}
+            deathBoss={deathBoss}
+            onRestart={onRestart}
             onRetryChapter={retryChapter}
+            onOpenTree={onOpenTree}
+            onReturnToMenu={onReturnToMenu}
         />
       )}
 
