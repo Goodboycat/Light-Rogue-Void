@@ -35,6 +35,7 @@ import { death } from './death';
 import { run_summary } from './run_summary';
 // (M7) endings — after the STAY / LEAVE choice; both end on a screenshot frame
 import { ending_stay } from './ending_stay';
+import { ending_leave } from './ending_leave';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -66,6 +67,7 @@ export const SCENES: Record<string, SceneDef> = {
   death,
   run_summary,
   ending_stay,
+  ending_leave,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
