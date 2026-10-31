@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `M4` — Boss outros ×6 + place reveals + death hook + cinebench (newest, in HANDOFF.md)
+- `M5` — Darkness Interrupts ×6 as film scenes + scheduler + six readable threats + cinebench (newest, in HANDOFF.md)
+- `M4` — Boss outros ×6 + place reveals + death hook + cinebench (`docs/handoff/M4.md`)
 - `M3` — Boss intros ×6 as film scenes + spawn hook + cinebench (`docs/handoff/M3.md`)
 - `M2` — Chapter openers 4–6 + cinebench numbers for all six openers (`docs/handoff/M2.md`)
 - `M1` — Chapter openers 1–3 as film scenes + SurvivalGame hook + cinebench (`docs/handoff/M1.md`)

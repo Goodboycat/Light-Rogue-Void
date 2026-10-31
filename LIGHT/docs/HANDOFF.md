@@ -6,47 +6,45 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M4 — Boss outros ×6 as film scenes + place reveals + death hook + cinebench: DONE
-Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.80 MB / 462 kB gzip). Steps 1–2 (outroKit + six scenes + registry) were pushed by the previous chat (`91354d4` … `48accdf`); this chat did step 3 (hook, `e7cb345`), step 4 (measure) and step 5 (finish). The GitHub repo is the source of truth (the tar the user attached was one chat behind — always `git fetch origin` first).
+## M5 — The Darkness Interrupt ×6 as film scenes + scheduler + six readable threats + cinebench: DONE
+Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.83 MB / 472 kB gzip). Steps 1–3 were pushed by the previous chat (`29e052a` kit + six scenes, `2661496` audio ids, `427b072` hook); this chat did step 4 (measure) and step 5 (finish). The GitHub repo is the source of truth (the attached tar was a chat behind again — `git fetch origin` first, always).
 
 **Files**
-- `game/cinematic/scenes/outroKit.ts` — shared spine. `OutroTiming` + `OT = { burst 2.0, chart 4.6, hold 7.4, end 9.2 }` (l.16–17); `PLACES` (the six star-chart places in design space, duplicated from `WorldMap.tsx PLACE_POS` on purpose — the film never imports gameplay/UI, MOVIE.md §1.1); `arenaAfter` (shot 1 bed: the reverse of `arenaDark` — amber seam leaking up through the floor), `cracks` (amber fracture lines + glow), `comesApart` (the silhouette lifts off as embers, letterbox opens), `starChart` (shot 3: known places burn, dotted path crawls, ink over the NEW place burns away = **the place reveal**), `placeName` (CHAPTER n / NAME assembles with a rule), `holdSpark`, `outroLines` (DARKNESS' last line → LIGHT's answer), `outroPost`, `outroCamera(place, tm, bodyZoom)`, `outroCues` (arena_burn → landmark_reveal + chapter_card → music_sting_reveal → ending_stay-flavoured hold).
-- `boss_outro_hive_mind.ts` (9.2 s) mandible wall locked mid-snap, plates lift away bottom-up as 1200 embers → reveals WHISPERING GROVE.
-- `boss_outro_void_warden.ts` blade of absence thins to nothing, helm erased top-down, pillars fall one by one → CRYSTAL DEPTHS.
-- `boss_outro_crimson_eclipse.ts` pupil dies, the ring breaks into 9 wedges that slide off, the sun given back amber → ABANDONED MACHINERY.
-- `boss_outro_neutron_star.ts` the roll decelerates to zero, horizon shatters into 14 wedges, every stolen star flies back out gold, rings unwind → VOID WASTES.
-- `boss_outro_entropy_titan.ts` lattice goes dark crack by crack, eyes close, the mountain kneels back into the plain along the intro's lift curve → SEAM OF THE VOID.
-- `boss_outro_darkness.ts` the small eyes close, gold veins through the iris, the iris lifts off rim-inward revealing a warm sky; shot 3 = THE CHART IS COMPLETE (all six places burn, no new place). **Not hooked** — plays via `?cinematic=boss_outro_darkness` only; the darkness death branch still routes to the 7D `ending` → WinGame. M7 owns the two ending films and may chain this in front of `ending_stay` / `ending_leave`.
-- Each scene file starts with its storyboard table. Spine everywhere: the kill (frozen pose, cracks) → it comes apart (embers, frame opens, arena warms) → HARD CUT the star chart (place reveal + name) → the hold (one spark, LIGHT's line, fade → MapBreather).
-- `game/cinematic/scenes/index.ts` — all six `boss_outro_<bossId>` registered.
-- `game/components/SurvivalGame.tsx` — **the hook** (step 3): `playBossOutro(bossId, killedWave, onEnd)` l.~212–228: `getScene('boss_outro_<id>')`; if registered it calls `onRevealSeen?.(CHAPTERS[nextIdx].bossId)` (same key MapReveal used → `gameState.mapRevealsSeen`), sets `revealedByFilm` true, stores `onEnd` in `filmOnDoneRef`, `setFilm(scene)`, returns true. `handleFilmDone` now also runs + clears `filmOnDoneRef` (the openers/intros leave it null → unchanged behaviour). Called in the "boss just died" branch (l.~640) **before** the 7D `bossOutro_<id>` StoryCinematic (which is now a fallback only), gated `!isEndlessWave` (9A: no outro for returning bosses). `onEnd` = the same completeBossWave call the 7D path used → `MapBreather`.
-- `game/components/MapBreather.tsx` — new prop `revealed?: boolean`; `revealing` initial state is `!revealed && !isChapterUnlocked(...)`, so after a film outro the breather opens straight on `WorldMap` (no second reveal). `MapReveal.tsx` is still there and still used when no film is registered (never, now) — M10 may delete it.
-- `revealedByFilm` is reset in both MapBreather `onContinue` / `onMenu` closures.
+- `game/cinematic/scenes/interruptKit.ts` — shared spine. `IT = { rise 1.2, turn 3.2, strike 4.2, end 5.0 }`; `freezeBed` (shot 1: the warm floor with motes frozen mid-air, ink eats it in ~0.5 s, a violet bruise low in frame), the typed DARKNESS line, `threatName` (caps-lock name + READ hint), ink rise, ash, post/camera/cue spines. Every interrupt: the freeze → the apparition (push that never stops) → the turn (HARD CUT closer, inverted frame, it moves first) → the strike (name slams in, flash, HARD CUT to black → gameplay).
+- `interrupt_1` THE EYE → THE GAZE (line that tracks 1.2 s, locks, fires — step out of the line). `interrupt_2` THE HAND → THE PALM (circle r 320 leading your facing — stand still at its edge). `interrupt_3` THE MAW → THE JAW (ring closes inward — stay in the middle). `interrupt_4` THE WALL OF EYES → THE WATCH (wall sweeps with one gap w 180 — walk to the gap). `interrupt_5` THE MIRROR → THE ECHO (black copy replays your last 1.5 s, detonates — leave where you were). `interrupt_6` THE STARE → THE SILENCE (arena dark, one lit disc drifts 2.5 s — follow the light). Each file starts with its storyboard table. All six registered in `scenes/index.ts` (`?cinematic=interrupt_<n>`).
+- `game/components/game/logic/DarknessInterrupt.ts` — **scheduler + threats** (one file, both halves). `updateDarknessInterrupt(state, wave, maxHp)` every sim frame (`Logic.ts` l.184, non-cinematic block): first at `FIRST_AT_FRAMES` 3600 (~60 s), then re-armed for `wave + EVERY_WAVES (3)`, firing `INTO_WAVE_FRAMES` 15 s into that wave; blocked (retry 10 s) on boss/endless waves or while a boss is alive. Random 1..6, never the same twice in a row → `state.interruptRequest = n`. `spawnInterruptThreat(state, n)` builds the threat on the existing telegraph pool (`BossKit telegraph/telegraphContains`, drawn by `TelegraphRenderer.ts` — no new renderer code), world card `NAME / READ` (150 f), `boss_arrive`, shake 22, violet flash. `steer` drives the live threat; hits = `INTERRUPT_DMG` 0.4 × maxHP (min 20) through `state.damagePlayer` (i-frames respected). `clearInterrupt` drops the live threat + THE SILENCE blackout (`state.eclipse`).
+- `game/components/SurvivalGame.tsx` — **the hook**: `playInterrupt(n)` l.~229–241: clears the request, `getScene('interrupt_n')`, `filmOnDoneRef.current = () => spawnInterruptThreat(gameStateRef.current, n)`, `setFilm(scene)` (the M1 pause/hide/resume contract — sim does not tick during the film; skipping still spawns the threat). Polled after `updateGame` l.~630 gated `!filmRef.current && !state.activeBoss`. Death path l.~507 calls `clearInterrupt`. Debug: `?interrupt=<n>` forces scene n 1.5 s after the run starts.
+- `game/components/game/types.ts` l.258–261 — `interrupt?: InterruptState`, `interruptRequest?: number`.
+- `game/audio` — new sfx ids `cin_whisper / cin_cut / cin_silence_drop / cin_tendril` (synth families) + AUDIO_LUDO prompts; scene cues use manifest ids only (CONVENTIONS rule 6).
+- `docs/CINEMATIC.md` §3 — the pause/hide/resume contract and the interrupt scheduler/threat table (M5 owns this doc).
 
-**Measured — `tools/cinebench.mjs`** (swiftshader software GL → every number is an UPPER bound; MOVIE.md targets ≤ 6 / ≤ 14 ms are for real GPUs; M10 owns the device pass). `--noblur`. Desktop = 1920×1080 dpr1; phone = 390×844 dpr2 + CPU 4×. avg ms/frame per shot (max). All 12 runs completed with 0 page errors.
+**Measured — `tools/cinebench.mjs`** (swiftshader software GL → every number is an UPPER bound; MOVIE.md targets ≤ 6 / ≤ 14 ms are for real GPUs; M10 owns the device pass). `--noblur`. Desktop = 1920×1080 dpr1; phone = 390×844 dpr2 + CPU 4×. avg ms/frame per shot (max). All 12 runs completed, 0 page errors.
 
-| scene | mode | s1 the kill | s2 comes apart | s3 star chart (reveal) | s4 hold |
+| scene | mode | s1 the freeze | s2 the apparition | s3 the turn | s4 the strike |
 |---|---|---|---|---|---|
-| boss_outro_hive_mind | desktop | 92 (128) | 59 (159) | 31 (95) | 45 (55) |
-| boss_outro_hive_mind | phone | 179 (231) | 118 (261) | 51 (130) | 78 (85) |
-| boss_outro_void_warden | desktop | 85 (110) | 56 (126) | 30 (72) | 45 (60) |
-| boss_outro_void_warden | phone | 170 (221) | 116 (266) | 48 (129) | 80 (94) |
-| boss_outro_crimson_eclipse | desktop | 143 (162) | 120 (195) | 27 (64) | 41 (45) |
-| boss_outro_crimson_eclipse | phone | 284 (320) | 253 (403) | 45 (131) | 68 (77) |
-| boss_outro_neutron_star | desktop | 120 (151) | 83 (130) | 29 (74) | 41 (53) |
-| boss_outro_neutron_star | phone | 247 (281) | 154 (255) | 46 (128) | 74 (86) |
-| boss_outro_entropy_titan | desktop | 98 (124) | 82 (148) | 28 (66) | 39 (42) |
-| boss_outro_entropy_titan | phone | 186 (223) | 152 (278) | 45 (131) | 67 (76) |
-| boss_outro_darkness | desktop | **177 (210)** | 135 (264) | 22 (57) | 39 (42) |
-| boss_outro_darkness | phone | **319 (397)** | 254 (389) | 47 (118) | 79 (89) |
+| interrupt_1 THE EYE | desktop | 70 (166) | 94 (116) | 130 (160) | 139 (151) |
+| interrupt_1 THE EYE | phone | 80 (200) | 144 (195) | 185 (197) | 230 (275) |
+| interrupt_2 THE HAND | desktop | 63 (103) | 83 (155) | 89 (95) | 97 (153) |
+| interrupt_2 THE HAND | phone | 79 (194) | 114 (184) | 129 (155) | 115 (168) |
+| interrupt_3 THE MAW | desktop | 71 (123) | 78 (100) | 94 (156) | 107 (174) |
+| interrupt_3 THE MAW | phone | 85 (197) | 116 (170) | 126 (133) | 126 (214) |
+| interrupt_4 THE WALL OF EYES | desktop | 67 (165) | 89 (156) | 125 (166) | 120 (175) |
+| interrupt_4 THE WALL OF EYES | phone | 85 (190) | 124 (168) | 170 (193) | 176 (231) |
+| interrupt_5 THE MIRROR | desktop | 63 (130) | 70 (94) | 80 (84) | 99 (150) |
+| interrupt_5 THE MIRROR | phone | 100 (201) | 99 (192) | 111 (137) | 128 (160) |
+| interrupt_6 THE STARE | desktop | 60 (144) | 66 (93) | **159 (217)** | **156 (197)** |
+| interrupt_6 THE STARE | phone | 90 (205) | 97 (165) | **227 (295)** | **235 (287)** |
 
-Readings: the star chart (shot 3) is the cheapest shot of the whole film so far (22–31 desktop) — the reveal costs nothing. Shot 1 is the heaviest everywhere: it redraws the full boss silhouette (the intro's turn-shot geometry) **plus** `arenaAfter` **plus** `cracks` every frame; Darkness s1 (iris r 1200 + hundreds of small eyes + cracks) is the heaviest shot of the film so far (177 desktop / 319 phone), beating Crimson Eclipse's intro totality (164/321). Fix candidates for M10: cache the frozen boss silhouette of shot 1 to an offscreen canvas once (it does not move — only the cracks and the pull-back do), and the `glowDisc` under `cracks` can be drawn once per shot instead of per crack call. Shot 2's max spikes (255–400 ms) are the first ember frame (1200 particle allocation) — pre-allocate in a `K` setup or spread the spawn over 3 frames.
+Readings: unlike openers/intros/outros the interrupts get **more** expensive toward the end — shots 3–4 are the HARD CUT closer with the inverted frame (`interruptPost` invert + the apparition at 1.8–3.4× zoom filling the whole viewport). THE STARE s3/s4 (iris as the entire frame, r 1500 radial gradients + veins every frame) and THE EYE s3 (sclera r 1500) are the heaviest; THE MIRROR is the cheapest interrupt throughout. Shot 1's max spikes (165–205) are the first frame (`freezeBed` 320-mote `embers` allocation + the ink gradient). Phone s1 is oddly ≈ desktop s1 — the phone viewport is 1/5 the pixels, so the shot is fill-bound on desktop and CPU-bound on phone. M10 fix candidates: draw the r 1500 iris/sclera gradient once per shot to an offscreen canvas and only redraw the pupil/veins; the inverted-frame post can be a single `difference` composite over a cached frame instead of per-layer; pre-allocate the 320 motes in the `K` setup. At 5 s and 50 frames total per scene these are the shortest films, so the absolute cost per interrupt is small even on software GL.
 
 **Known soft spots**
-- Scenes not eyeballed on a real GPU (credits) — verified by typecheck/build and every scene completing in cinebench with 0 page errors.
-- `onRevealSeen` is called at film start, not at film end — a skip during shot 1–2 still marks the place revealed (intended: the player chose to skip; the MapBreather chart shows the place lit anyway).
-- `boss_outro_darkness` is registered but not hooked (see above — M7). If M7 wants it before the choice, call `playBossOutroRef.current('darkness', refs.wave, () => …)` in the `bossId === 'darkness'` branch instead of `playStoryCinematicRef.current('ending', …)`.
-- `MapReveal.tsx` + the 7D `bossOutro_<id>` StoryCinematic scripts are now dead paths (kept as fallbacks). M10 cleanup candidate.
-- `tools/cinebench.mjs` in a fresh sandbox needs `npx playwright install chromium-headless-shell` + `sudo apt-get install libatk1.0-0 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libatspi2.0-0 libxrandr2 libgbm1 libxkbcommon0 libpango-1.0-0 libcairo2 libasound2 libnss3 libcups2` first (exit 127 otherwise).
+- Scenes not eyeballed on a real GPU (credits) — verified by typecheck/build + 12 clean cinebench runs.
+- Threat gameplay not play-tested by a human — tuned by reading `BossKit` telegraph numbers (`?interrupt=<n>` is the fast loop: start a run, wait 1.5 s). The 40 % maxHP hit (min 20) may be harsh with early maxHP; `INTERRUPT_DMG` is the one knob. THE WATCH's wall speed (19 px/f) must stay above the dash speed or "outrun it" becomes a valid read — re-check if 8B balance values move.
+- The scheduler checks `!state.activeBoss` in SurvivalGame **and** blocks boss waves inside the scheduler; endless waves (9A) never interrupt — intended (the Darkness has already lost there).
+- `?interrupt=<n>` is a debug param kept in; harmless but M10 may strip it with the other debug params.
+- First interrupt lands ~60 s in regardless of wave — on a fast first run this can overlap the chapter-1 opener's afterglow; if it reads as too early, raise `FIRST_AT_FRAMES`.
+- `tools/cinebench.mjs` in a fresh sandbox still needs `npx playwright install chromium-headless-shell` + the apt libs listed in `docs/handoff/M4.md` (done this chat, took ~30 s).
 
-**M5 hook recipe** (Darkness Interrupt, MOVIE.md §3 M5): same `setFilm(scene)` contract. If the interrupt needs a continuation, use `filmOnDoneRef.current = fn` before `setFilm` — `handleFilmDone` runs it once and clears it.
+**M6 hook recipe** (MOVIE.md §3 M6): same `setFilm(scene)` contract; one-shot continuation via `filmOnDoneRef.current = fn` before `setFilm`. If M6 needs the sim to keep ticking under a film (it should not — MOVIE.md §1.1), that is a new contract — document it in `docs/CINEMATIC.md` first.
+
+**Credits/tokens** (user asked each report to carry this): this chat ≈ 45 k tokens total (≈ 30 k input incl. tool output, ≈ 15 k output) — estimated from the transcript, no token-counting tool was available in the sandbox. Previous M5 chat (steps 1–3) was axed before reporting; its usage is unknown.
