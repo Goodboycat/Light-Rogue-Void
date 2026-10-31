@@ -33,7 +33,7 @@ let ids = [ID];
 if (ID === 'all') { await page.goto(base + '?cinematic=_list'); ids = await page.$$eval('ul li a', as => as.map(a => a.textContent.trim())); }
 console.log(`cinebench ${W}x${H} dpr${DPR} throttle${THROTTLE}x${NOBLUR ? ' noblur' : ''}`);
 for (const id of ids) {
-  await page.goto(base + `?cinematic=${id}&mute=1${NOBLUR ? '&noblur=1' : ''}`);
+  await page.goto(base + `?cinematic=${id}&mute=1&loop=0${NOBLUR ? "&noblur=1" : ""}`); // loop=0: looping scenes (run_summary, menu_loop) play once so "— done." appears
   await page.waitForFunction(() => document.body.innerText.includes('— done.'), null, { timeout: TIMEOUT * 1000 });
   const perf = await page.evaluate(() => window.__cinePerf);
   const shots = await page.evaluate(() => Array.from(document.querySelectorAll('ol li')).map(li => li.textContent.slice(0, 60)));

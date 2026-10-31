@@ -25,7 +25,7 @@ const CinematicDebug: React.FC = () => {
     );
   }
   const startT = parseFloat(q?.get('t') ?? '0') || 0;
-  const loop = q?.get('loop') === '1' ? true : undefined;
+  const loop = q?.get('loop') === '1' ? true : q?.get('loop') === '0' ? false : undefined; // (M6) loop=0 forces one pass (cinebench on looping scenes)
   const mute = q?.get('mute') === '1';
   engineFlags.blur = q?.get('noblur') !== '1'; // (M1) perf isolation
   return (
