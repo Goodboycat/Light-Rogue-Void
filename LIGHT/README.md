@@ -64,10 +64,11 @@ Trimmed package note: `prompts/` ships only 8B / 9A / 9B (+ NEXT_CHAT, _TEMPLATE
 Finished chats 0 → 9B are listed in `docs/PLAN.md` → "History". The `Next:` line below is read by `tools/next.sh`.
 
 ### Next (in order)
-Next: M6 M7 M8 M9 M10
+Next: M7 M8 M9 M10
 
 | Chat | Summary |
 |------|---------|
+| M6 | **DONE** — death + run summary as film: `death` (6 s: the floor goes cold → the Eye closes in → one defiant flare, out → 1.2 s true black, one ember) plays the frame HP hits 0, then `run_summary` (10 s loop built live by `makeRunSummary`: WAVE n, stats typed in, +N MATTER violet→gold, the glowing arrow down to TREE, "+k new nodes affordable", LIGHT's line) under `DeathSummary.tsx`'s thin buttons (TREE / RE-IGNITE / RETRY CHAPTER / MENU); `GameOver.tsx` + `RunSummary.tsx` unimported; cinebench in `docs/HANDOFF.md`. |
 | M0 | **DONE** — cinematic engine (`game/cinematic/`), `title_seam` (34 s launch film, once per session), `menu_loop` (24 s loop) and the main menu rebuilt as a film with a thin UI layer. `?cinematic=<id>` debug route. |
 | M2 | **DONE** — chapter openers 4–6 (`opener_4..6`; opener_6 is 17 s via `OpenerTiming`), registry-driven hook, cinebench for all six openers (blur = dominant cost → M10). |
 | M5 | **DONE** — the Darkness Interrupt: six 5 s horror films (`interrupt_1..6` THE EYE / THE HAND / THE MAW / THE WALL OF EYES / THE MIRROR / THE STARE on `interruptKit.ts`: freeze → apparition → HARD CUT turn → strike) that fire ~60 s into a run and every ~3 waves, then HARD CUT back to gameplay with a readable threat already telegraphed (THE GAZE / PALM / JAW / WATCH / ECHO / SILENCE, `logic/DarknessInterrupt.ts`, dash-punishing, 40 % maxHP); `?interrupt=<n>` debug; cinebench per shot in `docs/HANDOFF.md`. |
