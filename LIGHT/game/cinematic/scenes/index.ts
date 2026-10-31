@@ -18,6 +18,8 @@ import { boss_intro_entropy_titan } from './boss_intro_entropy_titan';
 import { boss_intro_darkness } from './boss_intro_darkness';
 // (M4) boss outros — ids are `boss_outro_<bossId>`; shot 3 is the place reveal (replaces MapReveal.tsx)
 import { boss_outro_hive_mind } from './boss_outro_hive_mind';
+import { boss_outro_void_warden } from './boss_outro_void_warden';
+import { boss_outro_crimson_eclipse } from './boss_outro_crimson_eclipse';
 
 export const SCENES: Record<string, SceneDef> = {
   title_seam,
@@ -35,6 +37,8 @@ export const SCENES: Record<string, SceneDef> = {
   boss_intro_entropy_titan,
   boss_intro_darkness,
   boss_outro_hive_mind,
+  boss_outro_void_warden,
+  boss_outro_crimson_eclipse,
 };
 export const sceneIds = () => Object.keys(SCENES);
 export const getScene = (id: string): SceneDef | undefined => SCENES[id];
