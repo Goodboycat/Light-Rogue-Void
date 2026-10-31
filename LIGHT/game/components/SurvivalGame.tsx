@@ -34,6 +34,7 @@ import { storyLinesForWave, StoryLine, STORY_BEAT_WAVES } from '../data/story';
 import StoryCinematicOverlay from './StoryCinematicOverlay'; // (7D)
 import CinematicPlayer from './CinematicPlayer'; // (M1) film scenes (game/cinematic)
 import { getScene } from '../cinematic/scenes'; // (M1)
+import { spawnInterruptThreat, clearInterrupt } from './game/logic/DarknessInterrupt'; // (M5)
 import type { SceneDef } from '../cinematic/Engine'; // (M1)
 import { storyCinematic } from '../data/cinematics'; // (7D)
 import { startCinematic, updateCinematic, skipCinematic, cinematicFreezes, resolveCinematicLines, CinematicState } from './game/logic/Cinematic'; // (7D)
@@ -225,6 +226,19 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
   const playBossOutroRef = useRef(playBossOutro);
   playBossOutroRef.current = playBossOutro;
+  /** (M5) Darkness Interrupt: the scheduler (logic/DarknessInterrupt.ts) set `state.interruptRequest = n`; play the film
+   *  `interrupt_<n>` and, the frame it ends (HARD CUT), spawn threat `n` around the spark via filmOnDoneRef. Skippable
+   *  like every film — a skip still spawns the threat. No film registered → threat spawns immediately, no cut. */
+  const playInterrupt = (n: number) => {
+      const state = gameStateRef.current;
+      state.interruptRequest = undefined;
+      const scene = getScene(`interrupt_${n}`);
+      if (!scene) { spawnInterruptThreat(state, n); return; }
+      filmOnDoneRef.current = () => spawnInterruptThreat(gameStateRef.current, n);
+      setFilm(scene);
+  };
+  const playInterruptRef = useRef(playInterrupt);
+  playInterruptRef.current = playInterrupt;
   const handleFilmDone = useCallback(() => {
       setFilm(null);
       const next = filmOnDoneRef.current; filmOnDoneRef.current = null;
@@ -490,6 +504,7 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
               const b = st.activeBoss;
               setDeathBoss(b && st.lastBossHit === b.def.id ? { name: b.def.name, hint: bossHint(b.def.id) } : null);
               sfx('player_death', 1, 0); Audio.music(null, 1500); // (6B)
+              clearInterrupt(st); // (M5) drop a live threat + THE SILENCE blackout so the death screen is readable
               setGameOver(true);
           }
       }
@@ -611,6 +626,8 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                 viewW, viewH, refs.maturityScale, refs.color,
                 refs.settings.mouseMovementEnabled
             );
+
+            if (state.interruptRequest && !filmRef.current && !state.activeBoss) playInterruptRef.current(state.interruptRequest); // (M5)
 
             // (2A) mirror the kill counter for the HUD; expose state for `?debug=1` smoke tests
             if (state.frame % 10 === 0) {

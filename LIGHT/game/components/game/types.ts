@@ -255,4 +255,8 @@ export interface MutableGameState {
     bigFx?: import('./BigFx').BigExplosion[];
     screenFlash?: number;          // 0..1 screen-space flash, decays in updateBigFx
     screenFlashColor?: string;
+    // (M5) Darkness Interrupt — logic/DarknessInterrupt.ts (scheduler + live threat); `interruptRequest` = scene index
+    // 1..6 the scheduler wants played; SurvivalGame clears it, plays `interrupt_<n>`, then spawnInterruptThreat(n).
+    interrupt?: import('./logic/DarknessInterrupt').InterruptState;
+    interruptRequest?: number;
 }

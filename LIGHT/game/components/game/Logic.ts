@@ -8,6 +8,7 @@ import { getBossForWave } from '../../bosses';
 import { mutatorsForEndlessWave, hasMut, MUT_ECLIPSED_HP_MULT, MUT_ECLIPSED_SPEED_MULT, MUT_TWIN_ECHOES } from '../../data/mutators';
 import { updateTelegraphs, openArena, arenaOutsideFactor, updateBossAdds } from './logic/enemies/BossKit';
 import { updateHazards } from './logic/enemies/BossHazards';
+import { updateDarknessInterrupt } from './logic/DarknessInterrupt'; // (M5)
 import { updateBigFx } from './BigFx';
 import { updateDirector } from './logic/Director';
 import { updateWaveFlavor, startWaveFlavor } from './waveFlavors';
@@ -180,6 +181,7 @@ export const updateGame = (
         updateProjectiles(state, onDamage, playerStats); // Passed playerStats for MaxHP calculation on Ultimate
         updateTelegraphs(state); // (2B) boss warn shapes fire here
         updateHazards(state, state.activeBoss, false); // (2C) persistent terrain hazards spawn + tick
+        updateDarknessInterrupt(state, wave, playerStats.maxHealth); // (M5) interrupt scheduler + live threat steering
         updateBigFx(state);      // (2B+) cinematic explosions age / flash decays
     }
 
