@@ -16,17 +16,18 @@ interface Props {
   treasuresOpened: string[];
   onTreasure?: (id: string, matter: number) => void;
   onRevealSeen?: (bossId: string) => void; // (7D)
+  revealed?: boolean; // (M4) the boss outro film already played the place reveal (its shot 3) → skip MapReveal
   reduceFlash?: boolean;
   onContinue: () => void;
   onMenu: () => void;
 }
 
-const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses, treasuresOpened, onTreasure, onRevealSeen, reduceFlash, onContinue, onMenu }) => {
+const MapBreather: React.FC<Props> = ({ nextWave, maxWaveReached, defeatedBosses, treasuresOpened, onTreasure, onRevealSeen, revealed, reduceFlash, onContinue, onMenu }) => {
   const nextIdx = chapterIndexOf(nextWave) - 1;
   const next = CHAPTERS[nextIdx];
   const cleared = CHAPTERS[Math.max(0, nextIdx - 1)];
   // (7D) the next place is new to this save → play the reveal cinematic first (MapReveal swallows keys while up)
-  const [revealing, setRevealing] = useState(() => !isChapterUnlocked(nextIdx, maxWaveReached));
+  const [revealing, setRevealing] = useState(() => !revealed && !isChapterUnlocked(nextIdx, maxWaveReached));
 
   useEffect(() => {
     if (revealing) return;

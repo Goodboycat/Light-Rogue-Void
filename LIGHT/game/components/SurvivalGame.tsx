@@ -206,7 +206,30 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
   };
   const playBossIntroRef = useRef(playBossIntro);
   playBossIntroRef.current = playBossIntro;
-  const handleFilmDone = useCallback(() => { setFilm(null); }, []);
+  /** (M4) one-shot continuation for the film currently playing (the outro chains into completeBossWave); null = none. */
+  const filmOnDoneRef = useRef<(() => void) | null>(null);
+  /** (M4) `revealedByFilm` — the next place was revealed by the outro's shot 3, so MapBreather must skip MapReveal (7D). */
+  const [revealedByFilm, setRevealedByFilm] = useState(false);
+  /** (M4) Boss outro for `bossId` (never DARKNESS — that branch is the 7D `ending` until M7; never endless returns — 9A):
+   *  the film scene `boss_outro_<bossId>` when registered (all six). Shot 3 of the film is the place reveal, so the reveal
+   *  is marked seen here and MapBreather opens straight on the chart. Returns false when no film is registered. */
+  const playBossOutro = (bossId: string, killedWave: number, onEnd: () => void): boolean => {
+      const scene = getScene(`boss_outro_${bossId}`);
+      if (!scene) return false;
+      const nextIdx = chapterIndexOf(killedWave + 1) - 1;
+      if (CHAPTERS[nextIdx]) onRevealSeen?.(CHAPTERS[nextIdx].bossId); // same key MapReveal used (7D)
+      setRevealedByFilm(true);
+      filmOnDoneRef.current = onEnd;
+      setFilm(scene);
+      return true;
+  };
+  const playBossOutroRef = useRef(playBossOutro);
+  playBossOutroRef.current = playBossOutro;
+  const handleFilmDone = useCallback(() => {
+      setFilm(null);
+      const next = filmOnDoneRef.current; filmOnDoneRef.current = null;
+      next?.(); // (M4) e.g. completeBossWave → MapBreather the frame after the outro
+  }, []);
   
   // --- CINEMATIC STATE MANAGEMENT ---
   // We use a generic 'activeCinematic' state to hold the script currently playing.
@@ -623,6 +646,12 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
                     // (7D) ending cinematic over the live arena, then WinGame (its own outro is skipped)
                     Audio.music("music_ending", 2000); // (6B)
                     playStoryCinematicRef.current('ending', { bossPos: deathPos, onEnd: () => setGameWon(true) });
+                } else if (!isEndlessWave(refs.wave) && playBossOutroRef.current(bossId, state.bossKilledWave ?? refs.wave, () => { // (M4) film outro, shot 3 = place reveal
+                    const killedWave = state.bossKilledWave ?? refs.wave;
+                    state.bossKilledWave = undefined;
+                    completeBossWaveRef.current(killedWave);
+                })) {
+                    // film outro playing — completion happens in handleFilmDone
                 } else if (!isEndlessWave(refs.wave) && playStoryCinematicRef.current(`bossOutro_${bossId}`, { // (9A) no story outro for returning bosses
                     bossPos: deathPos,
                     onEnd: () => {
@@ -853,9 +882,10 @@ const SurvivalGame: React.FC<SurvivalGameProps> = ({
             treasuresOpened={treasuresOpened}
             onTreasure={onTreasure}
             onRevealSeen={onRevealSeen}
+            revealed={revealedByFilm} // (M4) the outro film already revealed the place
             reduceFlash={!!settings.reduceFlash}
-            onContinue={() => { setBreather(null); breatherRef.current = null; advanceWaveRef.current(); }}
-            onMenu={() => { setBreather(null); breatherRef.current = null; leaveToMenu(); }}
+            onContinue={() => { setBreather(null); breatherRef.current = null; setRevealedByFilm(false); advanceWaveRef.current(); }}
+            onMenu={() => { setBreather(null); breatherRef.current = null; setRevealedByFilm(false); leaveToMenu(); }}
           />
       )}
 
