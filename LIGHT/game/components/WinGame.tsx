@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { WATCHER_WHISPERS } from '../data/story';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,15 +8,18 @@ import { sfx } from '../audio/hooks'; // (6B)
 import { Audio } from '../audio/AudioManager';
 import CinematicOverlay from './CinematicOverlay';
 import { OUTRO_SCRIPT } from '../data/cinematics';
-import { IS_DEMO, CHAPTERS } from './game/Constants';
+import { IS_DEMO } from './game/Constants';
 import DemoCard from './DemoCard'; // (9B)
-import { BOSSES } from '../bosses';
+import CinematicPlayer from './CinematicPlayer'; // (M7) the endings are film scenes
+import { getScene } from '../cinematic/scenes';
+import { makeEndingLeave } from '../cinematic/scenes/ending_leave';
+import type { SceneDef } from '../cinematic/Engine';
 
 /**
  * (2D) Ending screen after Darkness falls.
  *  1. Outro cinematic over the "Seam of the Void" wash (violet tint, chromatic flicker, whisper lines).
- *  2. Choice: STAY (endless — 9A implements; for now flags endingSeen and returns to menu)
- *     or LEAVE (procedural credits roll, then menu).
+ *  2. Choice: STAY → film `ending_stay` (36 s), onDone → onEndingSeen('stay') → App starts Endless at wave 61 (9A)
+ *     or LEAVE → film `makeEndingLeave(stats)` (42 s, credits as typography inside the scene), onDone → menu. (M7)
  *  Both are earned endings; both set gameState.endingSeen via onEndingSeen.
  */
 interface WinGameProps {
@@ -33,7 +36,7 @@ interface WinGameProps {
   skipOutro?: boolean;
 }
 
-type Stage = 'outro' | 'choice' | 'credits';
+type Stage = 'outro' | 'choice';
 
 const WHISPERS = WATCHER_WHISPERS; // (3B step 7) single source in data/story.ts
 
@@ -42,10 +45,12 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
   const [seamPhase, setSeamPhase] = useState<'wash' | 'tear' | 'bloom'>('wash');
   const [flicker, setFlicker] = useState(false);
   const [whisper, setWhisper] = useState<{ text: string; side: number; key: number } | null>(null);
+  /** (M7) the ending film playing over everything; its onDone continues the choice */
+  const [film, setFilm] = useState<{ scene: SceneDef; onDone: () => void } | null>(null);
 
   // Chromatic single-frame flicker every 4–8 s while in the seam.
   useEffect(() => {
-    if (stage === 'credits') return;
+    if (film) return;
     let t: any;
     const tick = () => {
       setFlicker(true);
@@ -54,7 +59,7 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
     };
     t = setTimeout(tick, 2500);
     return () => clearTimeout(t);
-  }, [stage]);
+  }, [stage, film]);
 
   // Whisper lines crawling in from the edges during the outro.
   useEffect(() => {
@@ -70,22 +75,26 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
   }, [stage]);
 
   const choose = (choice: 'stay' | 'leave') => {
-    sfx(choice === 'stay' ? 'ending_stay' : 'ending_leave', 1, 0); // (6B)
+    // (M7) both choices are films (MOVIE.md §3 M7); the 6B stingers now live on the scene timelines
+    if (choice === 'stay') {
+      const scene = getScene('ending_stay');
+      const go = () => { onEndingSeen?.(choice); if (!onEndingSeen) onReturnToMenu(); }; // (9A) App starts Endless (wave 61) from onEndingSeen
+      if (scene) setFilm({ scene, onDone: go }); else go();
+      return;
+    }
     onEndingSeen?.(choice);
-    if (choice === 'stay') { if (!onEndingSeen) onReturnToMenu(); return; } // (9A) App starts Endless (wave 61) from onEndingSeen
-    setStage('credits');
+    setFilm({ scene: makeEndingLeave({ kills: stats?.kills ?? 0, wave: stats?.wave ?? 60 }), onDone: onReturnToMenu });
   };
 
-  const credits = useMemo(() => buildCredits(stats), [stats]);
-  const creditsDuration = 6 + credits.length * 1.15; // seconds for the scroll
-
   const bloom = seamPhase === 'bloom';
-  const bg = stage === 'credits' || bloom
+  const bg = bloom
     ? 'bg-gradient-to-br from-white via-blue-50 to-amber-50'
     : 'bg-black';
 
   return (
     <div className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden pointer-events-auto ${stage === 'outro' ? 'cursor-none' : ''}`}>
+      {/* (M7) the ending film — own opaque layer above everything in WinGame */}
+      {film && <CinematicPlayer scene={film.scene} onDone={film.onDone} />}
       {/* base */}
       <motion.div
         key={bg}
@@ -94,7 +103,7 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
       />
 
       {/* SEAM OF THE VOID wash: violet tint below everything, torn open then blooming white */}
-      {stage !== 'credits' && !bloom && (
+      {!bloom && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -207,35 +216,12 @@ const WinGame: React.FC<WinGameProps> = ({ onRestart, onReturnToMenu, onEndingSe
         </div>
       )}
 
-      {stage === 'credits' && (
-        <div className="absolute inset-0 cursor-auto overflow-hidden">
-          <motion.div
-            className="absolute left-0 right-0 flex flex-col items-center text-center px-6"
-            {...({
-              initial: { y: '100vh' },
-              animate: { y: '-100%' },
-              transition: { duration: creditsDuration, ease: 'linear' },
-            } as any)}
-            onAnimationComplete={onReturnToMenu}
-          >
-            {credits.map((l, i) => (
-              <div key={i} className={creditClass(l)}>{l.text}</div>
-            ))}
-          </motion.div>
-          <button
-            onClick={onReturnToMenu}
-            className="absolute bottom-6 right-6 z-[120] px-3 py-1.5 bg-white/40 hover:bg-white border border-slate-300 rounded text-slate-500 hover:text-slate-900 font-tech text-[10px] tracking-widest"
-          >
-            SKIP
-          </button>
-        </div>
-      )}
 
       {/* Floating motes (white in bloom/credits, violet in the seam) */}
       {Array.from({ length: 20 }).map((_, i) => (
         <motion.div
           key={i}
-          className={`absolute rounded-full blur-sm pointer-events-none ${bloom || stage === 'credits' ? 'bg-amber-400' : 'bg-violet-400/70'}`}
+          className={`absolute rounded-full blur-sm pointer-events-none ${bloom ? 'bg-amber-400' : 'bg-violet-400/70'}`}
           {...({
             initial: { x: Math.random() * window.innerWidth, y: window.innerHeight + 100, scale: Math.random() * 2 },
             animate: { y: -100, opacity: [0, 1, 0] },
@@ -274,55 +260,5 @@ function whisperStyle(side: number): React.CSSProperties {
   }
 }
 
-type CreditLine = { text: string; kind: 'title' | 'head' | 'line' | 'gap' | 'small' };
-
-/** Procedural credits: chapters + bosses from data, run stats, closing line. No assets. */
-function buildCredits(stats?: { kills: number; wave: number }): CreditLine[] {
-  const L: CreditLine[] = [];
-  const gap = () => L.push({ text: '', kind: 'gap' });
-  L.push({ text: 'LIGHT ROGUE VOID', kind: 'title' });
-  L.push({ text: 'a spark, a seam, a choice', kind: 'small' });
-  gap(); gap();
-  L.push({ text: 'THE PATH', kind: 'head' });
-  CHAPTERS.forEach((c: any, i: number) => {
-    const boss = BOSSES.find((b: any) => b.id === c.bossId);
-    L.push({ text: `${i + 1}. ${c.name}`, kind: 'line' });
-    if (boss) L.push({ text: boss.name, kind: 'small' });
-  });
-  gap(); gap();
-  L.push({ text: 'VOICES', kind: 'head' });
-  L.push({ text: 'LIGHT — the one who stayed lit', kind: 'line' });
-  L.push({ text: 'DARKNESS — the one who was seen', kind: 'line' });
-  L.push({ text: 'THE WATCHER — the seam', kind: 'line' });
-  gap(); gap();
-  if (stats) {
-    L.push({ text: 'THIS CYCLE', kind: 'head' });
-    L.push({ text: `${stats.kills.toLocaleString()} shadows scattered`, kind: 'line' });
-    L.push({ text: `wave ${stats.wave} reached`, kind: 'line' });
-    gap(); gap();
-  }
-  L.push({ text: 'MADE WITH', kind: 'head' });
-  L.push({ text: 'Canvas 2D · React · Vite', kind: 'line' });
-  L.push({ text: 'simplex-noise (MIT) for the big explosions', kind: 'small' });
-  L.push({ text: 'no generated art, no generated audio', kind: 'small' });
-  gap(); gap();
-  L.push({ text: 'Goodboycat', kind: 'head' });
-  L.push({ text: 'thank you for playing', kind: 'line' });
-  gap(); gap(); gap();
-  L.push({ text: 'It will be dark again.', kind: 'line' });
-  L.push({ text: 'But it will remember.', kind: 'line' });
-  gap(); gap();
-  return L;
-}
-
-function creditClass(l: CreditLine): string {
-  switch (l.kind) {
-    case 'title': return 'font-tech font-bold text-5xl md:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-purple-600 mb-2';
-    case 'head': return 'font-tech text-xs md:text-sm tracking-[0.5em] text-purple-700 mt-6 mb-3';
-    case 'line': return 'font-serif text-xl md:text-2xl text-slate-800 my-1';
-    case 'small': return 'font-light text-sm md:text-base tracking-[0.2em] text-slate-500 mb-2';
-    default: return 'h-8';
-  }
-}
 
 export default WinGame;
