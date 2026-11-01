@@ -299,6 +299,19 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
                 <div className="text-[9px] font-mono text-slate-500 text-right">● unlocked · ◌ affordable (green) · dashed = not yet reachable · ✦ constellation (boss){IS_DEMO && ' · 🔒 full version'}</div>
             </div>
             {IS_DEMO && <DemoCard variant="compact" className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)]" />}{/* (9B) */}
+            {/* BUGS #9: fresh save — one node on an empty screen needs a hint */}
+            {respecInfo.count === 0 && !previewId && (
+                <div id="tree-fresh-hint" className="absolute left-1/2 -translate-x-1/2 top-[58%] md:top-[60%] z-40 pointer-events-none w-[min(92vw,560px)] text-center">
+                    <div className="bg-[#0d0718]/90 border border-amber-400/40 rounded-xl px-5 py-3 backdrop-blur-md shadow-[0_0_30px_rgba(251,191,36,0.15)]">
+                        <div className="font-tech text-sm md:text-base text-amber-200 tracking-[0.2em]">THE SPARK IS ALL YOU HAVE</div>
+                        <p className="font-mono text-xs md:text-sm text-slate-300 mt-1.5 leading-relaxed">
+                            {gameState.matter > 0
+                                ? <>Tap a <span className="text-emerald-300">green</span> node next to the spark to ignite it ({gameState.matter} matter). Drag to pan · scroll / pinch to zoom.</>
+                                : <>Survive waves to earn <span className="text-purple-300">dark matter</span>, then return here to ignite the nodes around the spark. Press <span className="text-amber-100">RESUME</span> to fight.</>}
+                        </p>
+                    </div>
+                </div>
+            )}
             {preview && previewId && (
                 <div id="path-preview" className="absolute bottom-48 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-[#0d0718]/92 border border-amber-400/40 rounded-xl px-4 py-2 text-center backdrop-blur-md shadow-xl">
                     <div className="font-tech text-xs text-amber-200 tracking-wider">{NODE_BY_ID[previewId].title}</div>
@@ -336,7 +349,7 @@ const EvolutionMatrix: React.FC<EvolutionMatrixProps> = ({
             <div className="absolute top-8 right-8 z-50 flex flex-wrap gap-3 justify-end pointer-events-auto">
                 <button 
                     onClick={onResume}
-                    className="flex items-center gap-2 px-4 py-3 bg-amber-200 hover:bg-amber-100 border border-amber-200 rounded-lg text-[#07030f] transition-all font-tech text-xs tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                    className="flex items-center gap-2 px-4 py-3 bg-amber-200 hover:bg-amber-100 border border-amber-200 rounded-lg text-[#07030f] transition-all font-tech text-xs md:text-sm tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.4)]"
                 >
                     <PlayCircle size={16} fill="currentColor" />
                     RESUME
@@ -532,10 +545,10 @@ const MenuSideButton: React.FC<{ onClick: () => void, icon: React.ReactNode, lab
         {...({ whileHover: { x: 10 } } as any)}
         className="flex items-center gap-4 group p-2 pr-6 rounded-r-xl transition-all"
     >
-        <div className={`p-3 bg-[#0d0718] border border-violet-400/25 rounded-xl group-hover:border-amber-300/60 transition-colors shadow-lg ${color}`}>
+        <div className={`p-3 md:p-4 bg-[#0d0718] border border-violet-400/25 rounded-xl group-hover:border-amber-300/60 transition-colors shadow-lg ${color}`}>
             {icon}
         </div>
-        <span className="font-tech text-sm text-slate-400 group-hover:text-white tracking-widest transition-colors shadow-black drop-shadow-md bg-black/40 px-2 py-1 rounded">
+        <span className="font-tech text-sm md:text-base text-slate-400 group-hover:text-white tracking-widest transition-colors shadow-black drop-shadow-md bg-black/40 px-2 py-1 rounded">
             {label}
         </span>
     </motion.button>
