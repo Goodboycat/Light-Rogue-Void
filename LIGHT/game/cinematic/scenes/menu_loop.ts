@@ -13,7 +13,7 @@
 
 import { K, easeInOut, easeOut, span, lerp, wobble, clamp01 } from '../Engine';
 import type { SceneDef, Gfx, LayerState } from '../Engine';
-import { AMBER, GOLD, EMBER, WARM_WHITE, VIOLET, embers, stars, bokeh, spark, godRays, eye, ridge, gradientBg, pool, text, rule } from '../Draw';
+import { AMBER, GOLD, EMBER, WARM_WHITE, VIOLET, INK, embers, stars, bokeh, spark, godRays, eye, ridge, gradientBg, pool, text, rule } from '../Draw';
 import { glowDisc, rgba } from '../Sprites';
 
 const D = 24;
@@ -88,7 +88,14 @@ const drawTitle = (g: Gfx, L: LayerState) => {
   pool(g, 0, y0 + 20, 520 * fit, GOLD, 0.16 * warm * flare * L.alpha);
   text(g, 'LIGHT', 0, y0, { size: 190 * fit, font: 'tech', weight: 700, color: col, tracking: 26 * fit, glow, glowBlur: 42 * pulse * flare, alpha: L.alpha * (0.85 + 0.15 * warm) });
   rule(g, 0, y0 + 118 * fit, 720 * fit, d > 0.35 ? VIOLET : GOLD, 0.8 * L.alpha);
-  text(g, 'ROGUE VOID', 0, y0 + 168 * fit, { size: 40 * fit, font: 'tech', weight: 400, color: d > 0.35 ? '#b8a8e8' : AMBER, tracking: 30 * fit, alpha: L.alpha * 0.9 });
+  // BUGS #7: was weight 400 / no glow / dimmed to pale violet while the Eye watched — "VOID" vanished on dark
+  // backgrounds at thumbnail sizes. Now bold, glowing, and never below the warm floor; a soft dark backing
+  // plate behind the word keeps it legible when the Eye's violet wash is brightest.
+  const sy = y0 + 168 * fit;
+  ctx.globalAlpha = L.alpha * 0.45; ctx.fillStyle = INK;
+  ctx.fillRect(-380 * fit, sy - 30 * fit, 760 * fit, 60 * fit);
+  ctx.globalAlpha = L.alpha;
+  text(g, 'ROGUE VOID', 0, sy, { size: 44 * fit, font: 'tech', weight: 700, color: d > 0.35 ? '#e6dcff' : AMBER, tracking: 30 * fit, glow: d > 0.35 ? VIOLET : GOLD, glowBlur: 18, alpha: L.alpha });
   ctx.shadowBlur = 0;
 };
 
