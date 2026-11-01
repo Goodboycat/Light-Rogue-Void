@@ -2,7 +2,7 @@ import { bossHpFor } from './Constants'; // (8B)
 
 import { bossHit } from './logic/BossFeats';
 import { MutableGameState, Enemy, ParticleType } from './types';
-import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES, isEndlessWave, endlessDepth } from './Constants';
+import { isBossWave as isBossWaveFn, waveKillQuota, WAVE_GRACE_SEC, WAVE_RAMP_SEC, STARVE_SPAWN_FRAMES, isEndlessWave, endlessDepth, SPAWN_SHIELD_FRAMES, SPAWN_SHIELD_AFTER_MOVE_FRAMES } from './Constants';
 import { PlayerStats } from '../../types';
 import { getBossForWave } from '../../bosses';
 import { mutatorsForEndlessWave, hasMut, MUT_ECLIPSED_HP_MULT, MUT_ECLIPSED_SPEED_MULT, MUT_TWIN_ECHOES } from '../../data/mutators';
@@ -69,6 +69,16 @@ export const updateGame = (
     if (consumeHitStop(state)) { updateShake(state); return; }
 
     state.frame++;
+    // (BUGS #3) run-start spawn shield: a new player who stands still to read the HUD is immune for up to 5 s;
+    // the first movement / dash input cuts it to 1 s. Also covers ?wave= jumps where enemies carry over instantly.
+    if (state.frame === 1) state.spawnShield = SPAWN_SHIELD_FRAMES;
+    if ((state.spawnShield ?? 0) > 0) {
+        const k = input.keys;
+        const moved = Math.abs(input.virtualMove.x) > 0.05 || Math.abs(input.virtualMove.y) > 0.05 || input.virtualDash || input.isMouseDown
+            || k['KeyW'] || k['KeyA'] || k['KeyS'] || k['KeyD'] || k['ArrowUp'] || k['ArrowDown'] || k['ArrowLeft'] || k['ArrowRight'] || k['Space'];
+        if (moved && state.spawnShield! > SPAWN_SHIELD_AFTER_MOVE_FRAMES) state.spawnShield = SPAWN_SHIELD_AFTER_MOVE_FRAMES;
+        state.spawnShield!--;
+    }
     if (!state.world) initWorld(state, wave); // (3A) seeded discovery points, once per run
     if (state.frame % 6 === 0) markFog(state, state.player.x, state.player.y); // (3A) fog of discovery
     if (state.currentWave !== wave) { // (4B) run start / ?wave= jump: arm the x5 flavor (advanceWave also calls it; idempotent)

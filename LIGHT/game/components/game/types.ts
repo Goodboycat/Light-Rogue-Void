@@ -182,6 +182,8 @@ export interface MutableGameState {
     bestStreak?: number;
     streakBanner?: import('./Feel').StreakBanner;
     playerIFrames?: number;
+    /** (BUGS #3) frames of run-start immunity left; set on frame 1, shortened by the first move input */
+    spawnShield?: number;
     hurtVignette?: number;
     /** 0..1 mirror of player HP ratio, written by SurvivalGame for the low-HP tint */
     hpRatio?: number;

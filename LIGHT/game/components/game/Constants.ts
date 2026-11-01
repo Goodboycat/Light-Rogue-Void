@@ -135,6 +135,9 @@ export const STREAK_ESSENCE_PER_10 = 0.01; // +1 % essence per 10 streak
 export const STREAK_ESSENCE_CAP = 0.20;    // cap +20 %
 export const STREAK_BANNER_FRAMES = 110;
 export const PLAYER_IFRAMES = 18;          // 0.3 s
+/** (BUGS #3) run-start spawn shield: immune for up to 5 s standing still; once the player moves/dashes it ends 1 s later. */
+export const SPAWN_SHIELD_FRAMES = 300;
+export const SPAWN_SHIELD_AFTER_MOVE_FRAMES = 60;
 export const HURT_VIGNETTE_FRAMES = 14;
 export const RENDER_CULL_PAD = 64;        // (7B) px outside the viewport before an entity is skipped by the renderer (never affects simulation)
 export const ENEMY_BATCH_MIN_VISIBLE = 600; // (7B) MEDIUM/HIGH: plain enemies draw as batched silhouettes once this many are on screen (LOW: always). LOD, not a cap.

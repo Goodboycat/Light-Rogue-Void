@@ -124,6 +124,26 @@ export const drawPlayer = (
         ctx.restore();
     }
 
+    // (BUGS #3) run-start spawn shield: soft ring + label; fades over its last second
+    const shield = state.spawnShield ?? 0;
+    if (shield > 0) {
+        const fade = Math.min(1, shield / 60);
+        const r = lightRadius * 2.6 + Math.sin(state.frame * 0.12) * 3;
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 10]);
+        ctx.lineDashOffset = -state.frame * 0.6;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = 'bold 14px Orbitron, monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(shield > 60 ? 'SHIELDED · MOVE TO BEGIN' : 'SHIELD FADING', px, py + r + 10);
+        ctx.restore();
+    }
+
     ctx.save();
     ctx.translate(px, py);
     drawSparkBody(ctx, lightRadius, stage, iframes > 0 ? '#f87171' : currentStageColor, state.frame, blinkAlpha, maturityScale);

@@ -214,6 +214,7 @@ export const updateStreak = (state: MutableGameState) => {
 /** Player took damage: i-frames + vignette pulse + shake. Returns false if still invulnerable. */
 export const onPlayerHurt = (state: MutableGameState): boolean => {
     if ((state.playerIFrames ?? 0) > 0) return false;
+    if ((state.spawnShield ?? 0) > 0) return false; // (BUGS #3) run-start shield
     state.playerIFrames = PLAYER_IFRAMES;
     state.hurtVignette = HURT_VIGNETTE_FRAMES;
     sfx('player_hurt', 1, 0.05); // (6B)
