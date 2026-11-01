@@ -17,7 +17,7 @@
 // BOSS VARIANT `constellation_<bossId>` (6.0 s): 1 0.0–1.2 black sky + the boss's rim sector · 2 1.2–4.0 seven nodes light in
 // order along the heptagon, links first, the boss name typed · 3 4.0–4.8 flash, embers · 4 4.8–6.0 the constellation held, hint.
 
-import { K, step, easeIn, easeOut, easeInOut, easeOutExpo, span, lerp, clamp01, hash, wobble } from '../Engine';
+import { K, step, easeIn, easeOut, easeInOut, easeOutExpo, span, lerp, clamp01, hash, wobble, engineFlags } from '../Engine';
 import type { SceneDef, Gfx, LayerState } from '../Engine';
 import { AMBER, GOLD, EMBER, WARM_WHITE, VIOLET, COLD, embers, spark, pool, gradientBg, typed, text, stars } from '../Draw';
 import { glowDisc, rgba } from '../Sprites';
@@ -59,10 +59,18 @@ const ROOT = STARS.find(s => s.id === 'root') ?? STARS[0];
 /** 0…1 "lit" amount for a star given the ignition progress along the spine */
 const litAt = (s: Star, p: number, maxDepth: number) => clamp01((p * (maxDepth + 2) - s.depth) / 1.6);
 
-/** draws links (first) then nodes for a star set; `lit(s)` returns 0…1; `heat` is the extra flash glow */
-const drawTree = (g: Gfx, set: Star[], lit: (s: Star) => number, alpha: number, heat: number, t: number) => {
-  const ctx = g.ctx;
-  // links — one path per colour family, alpha by the dimmer end
+/** the breathing ring of a lit major — the only part of a settled tree that moves, so it is always drawn live */
+const drawRing = (ctx: CanvasRenderingContext2D, s: Star, a: number, r: number, alpha: number, t: number) => {
+  ctx.strokeStyle = rgba(s.color, 0.55 * alpha * (a - 0.5) * 2); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(s.x, s.y, r + 7 + Math.sin(t * 3 + s.x) * 1.5, 0, Math.PI * 2); ctx.stroke();
+};
+
+/** LIVE path: links (first) then nodes for a star set into `ctx`; `lit(s)` returns 0…1; `heat` is the extra flash glow.
+ *  (M10) `engineFlags.low` skips the 128-px halo for minor nodes (the 64-px core stays — the mote is still there, only its
+ *  bloom goes); `rings=false` leaves the major rings to the caller (the cached path draws them live). */
+const drawTreeLive = (ctx: CanvasRenderingContext2D, set: Star[], lit: (s: Star) => number, alpha: number, heat: number, t: number, rings: boolean) => {
+  const low = engineFlags.low;
+  // links — alpha by the dimmer end
   ctx.lineCap = 'round'; ctx.lineWidth = 1.5;
   for (const s of set) {
     const a = lit(s); if (a <= 0) continue;
@@ -79,23 +87,69 @@ const drawTree = (g: Gfx, set: Star[], lit: (s: Star) => number, alpha: number, 
     const a = lit(s); if (a <= 0.02) continue;
     const bloom = Math.sin(clamp01(a) * Math.PI) * 0.6;   // a brief over-bright as it lights
     const r = (s.major ? 11 : 5) * (1 + bloom + heat * 0.4);
-    const gr = (s.major ? 60 : 26) * (1 + bloom * 0.8 + heat);
-    ctx.globalAlpha = alpha * (0.25 + 0.35 * heat) * a;
-    ctx.drawImage(glowDisc(s.color, 128), s.x - gr, s.y - gr, gr * 2, gr * 2);
+    if (s.major || !low) {
+      const gr = (s.major ? 60 : 26) * (1 + bloom * 0.8 + heat);
+      ctx.globalAlpha = alpha * (0.25 + 0.35 * heat) * a;
+      ctx.drawImage(glowDisc(s.color, 128), s.x - gr, s.y - gr, gr * 2, gr * 2);
+    }
     ctx.globalAlpha = alpha * a;
     ctx.drawImage(glowDisc(s.major ? WARM_WHITE : s.color, 64, 0.5), s.x - r, s.y - r, r * 2, r * 2);
-    if (s.major && a > 0.5) {
+    if (rings && s.major && a > 0.5) {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = rgba(s.color, 0.55 * alpha * (a - 0.5) * 2); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(s.x, s.y, r + 7 + Math.sin(t * 3 + s.x) * 1.5, 0, Math.PI * 2); ctx.stroke();
+      drawRing(ctx, s, a, r, alpha, t);
       ctx.globalCompositeOperation = 'lighter';
     }
   }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 };
 
+// (M10 s1) CACHED path — once a set's `lit` no longer changes and `heat === 0` (shot 4 of the main scene; the dim ghost tree
+// of the boss variant from frame 0), the links + glow discs are baked ONCE into an offscreen canvas in design space and blitted
+// per frame with `lighter` (≈ the look of the live path over the near-black sky; links gain a hair of additive brightness).
+// Keyed by scene id + bake scale; the bake scale follows the canvas (`g.S × 1.4` ≈ the landing zoom, capped at 1.5 → ≤ ~19 MB
+// for the full tree on a 2× phone). Only the major rings (breathing) stay live. Caches are module-level: one per scene id,
+// rebuilt only when the scale changes (resize).
+interface TreeCache { cv: HTMLCanvasElement; x: number; y: number; w: number; h: number; cs: number }
+const treeCaches = new Map<string, TreeCache>();
+const bakeTree = (key: string, set: Star[], lit: (s: Star) => number, cs: number): TreeCache | null => {
+  const hit = treeCaches.get(key); if (hit && hit.cs === cs) return hit;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const grow = (x: number, y: number) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+  for (const s of set) { grow(s.x, s.y); for (const pi of s.parents) { const p = STARS[pi]; if (p) grow(p.x, p.y); } }
+  if (!isFinite(x0)) return null;
+  const M = 80; x0 -= M; y0 -= M; x1 += M; y1 += M;
+  const w = x1 - x0, h = y1 - y0;
+  const cv = (hit?.cv) ?? document.createElement('canvas');
+  cv.width = Math.max(1, Math.ceil(w * cs)); cv.height = Math.max(1, Math.ceil(h * cs));
+  const c = cv.getContext('2d'); if (!c) return null;
+  c.setTransform(cs, 0, 0, cs, -x0 * cs, -y0 * cs);
+  c.clearRect(x0, y0, w, h);
+  drawTreeLive(c, set, lit, 1, 0, 0, false);
+  const tc: TreeCache = { cv, x: x0, y: y0, w, h, cs };
+  treeCaches.set(key, tc); return tc;
+};
+
+/** draws a star set; with `cacheKey` (and heat 0) the settled tree is blitted from the offscreen bake, rings live */
+const drawTree = (g: Gfx, set: Star[], lit: (s: Star) => number, alpha: number, heat: number, t: number, cacheKey?: string) => {
+  const ctx = g.ctx;
+  if (cacheKey && heat === 0) {
+    const cs = Math.min(1.5, Math.max(0.5, g.S * 1.4));
+    const tc = bakeTree(cacheKey, set, lit, cs);
+    if (tc) {
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha;
+      ctx.drawImage(tc.cv, tc.x, tc.y, tc.w, tc.h);
+      ctx.globalCompositeOperation = 'source-over';
+      for (const s of set) { if (!s.major) continue; const a = lit(s); if (a > 0.5) drawRing(ctx, s, a, 11, alpha, t); }
+      ctx.globalAlpha = 1; return;
+    }
+  }
+  drawTreeLive(ctx, set, lit, alpha, heat, t, true);
+};
+
 // ---------------------------------------------------------------- scene factory
 interface Timing { sky: number; ignite: number; flash: number; end: number }
+
+const GHOST = STARS.filter(s => !s.boss); const ghostLit = () => 0.5;
 
 const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number }, title: string, hint: string, maxDepth: number, minDepth: number, isBoss: boolean): SceneDef => {
   const { sky: T_SKY, ignite: T_IGN, flash: T_FLASH, end: T_END } = T;
@@ -113,7 +167,7 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
     stars(g, Math.floor(260 * born), 8101, 2200, '#cbd5ff', 0.55 * L.alpha, t);
     stars(g, Math.floor(90 * born), 8102, 2200, VIOLET, 0.3 * L.alpha, t);
     // the faint ghost of the full tree (when the boss variant runs, the known tree is already there, dim)
-    if (isBoss) drawTree(g, STARS.filter(s => !s.boss), () => 0.5, 0.35 * L.alpha, 0, t);
+    if (isBoss) drawTree(g, GHOST, ghostLit, 0.35 * L.alpha, 0, t, 'ghost'); // (M10) baked once, blitted per frame
     ctx.globalAlpha = L.alpha;
   };
 
@@ -123,7 +177,8 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
     const heat = Math.sin(clamp01(span(t, T_IGN, T_FLASH)) * Math.PI) * 0.8;
     const lit = litFn(t);
     g.ctx.globalAlpha = L.alpha;
-    drawTree(g, set, lit, L.alpha, heat, t);
+    // (M10) from the flash on, every node is fully lit and heat is 0 → the settled tree comes from the offscreen bake
+    drawTree(g, set, lit, L.alpha, t >= T_FLASH ? 0 : heat, t, t >= T_FLASH ? id : undefined);
     // the focus node: a ring that breathes once the camera lands
     const land = easeOut(span(t, T_FLASH, T_FLASH + 0.6));
     if (land > 0) {
@@ -154,7 +209,7 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
     if (rise > 0) embers(g, { n: 90, x: focus.x - 120, y: focus.y - 40, w: 240, h: 100, rise: 70, drift: 18, rMin: 0.8, rMax: 2.2, colors: [AMBER, GOLD, WARM_WHITE], life: 3, seed: 8111, glow: 4 }, L.alpha * 0.6 * rise, t);
     const burst = span(t, T_IGN, T_FLASH + 0.4);
     if (burst > 0 && burst < 1) {
-      embers(g, { n: isBoss ? 260 : 520, x: -800, y: -450, w: 1600, h: 900, rise: 420, drift: 60, rMin: 1, rMax: 3, colors: [WARM_WHITE, AMBER, VIOLET], life: 1.4, seed: 8112, glow: 5 }, L.alpha * (1 - burst) * 0.8, t - T_IGN);
+      embers(g, { n: (isBoss ? 260 : 520) >> (engineFlags.low ? 1 : 0), x: -800, y: -450, w: 1600, h: 900, rise: 420, drift: 60, rMin: 1, rMax: 3, colors: [WARM_WHITE, AMBER, VIOLET], life: 1.4, seed: 8112, glow: 5 }, L.alpha * (1 - burst) * 0.8, t - T_IGN);
     }
     g.ctx.globalAlpha = L.alpha;
   };

@@ -20,7 +20,7 @@ const CinematicDebug: React.FC = () => {
       <div className="fixed inset-0 bg-black text-amber-100 font-mono p-8">
         <div className="text-lg mb-4">?cinematic=&lt;id&gt; — unknown id “{id}”. Scenes:</div>
         <ul className="space-y-1">{sceneIds().map(s => <li key={s}><a className="underline" href={`?cinematic=${s}`}>{s}</a> — {SCENES[s].duration}s, {SCENES[s].shots.length} shots</li>)}</ul>
-        <div className="mt-6 text-amber-100/60">flags: &amp;t=&lt;s&gt; start time · &amp;loop=1 · &amp;mute=1</div>
+        <div className="mt-6 text-amber-100/60">flags: &amp;t=&lt;s&gt; start time · &amp;loop=1 · &amp;mute=1 · &amp;noblur=1 · &amp;low=1</div>
       </div>
     );
   }
@@ -28,6 +28,7 @@ const CinematicDebug: React.FC = () => {
   const loop = q?.get('loop') === '1' ? true : q?.get('loop') === '0' ? false : undefined; // (M6) loop=0 forces one pass (cinebench on looping scenes)
   const mute = q?.get('mute') === '1';
   engineFlags.blur = q?.get('noblur') !== '1'; // (M1) perf isolation
+  engineFlags.low = q?.get('low') === '1'; // (M10) low-tier flag isolation
   return (
     <>
       {!done && (

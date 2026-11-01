@@ -3,7 +3,8 @@
 // `debug` adds a scrub bar + shot list (used by the ?cinematic= route). `audio=false` mutes cues (menu loop
 // behind the UI should not fire cues when the user has music off — AudioManager still gates on settings).
 import React, { useEffect, useRef, useState } from 'react';
-import { CinematicPlayer as Player, cinematicDpr } from '../cinematic/Engine';
+import { CinematicPlayer as Player, cinematicDpr, bindEngineFlagsToQuality } from '../cinematic/Engine';
+import { quality } from './game/Quality'; // (M10) the effective quality profile (AUTO already resolved by the controller)
 import type { SceneDef, AudioSink } from '../cinematic/Engine';
 import Audio from '../audio/AudioManager';
 
@@ -51,6 +52,7 @@ const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, 
     const cv = canvasRef.current; if (!cv) return;
     const ctx = cv.getContext('2d', { alpha: false })!;
     const def: SceneDef = loop !== undefined ? { ...scene, loop } : scene;
+    if (!debug) bindEngineFlagsToQuality(quality.mode); // (M10) LOW → engineFlags.low + no blur; the ?cinematic= route sets flags from the URL instead
     const p = new Player(def, audio ? sink : null, startT);
     playerRef.current = p;
     p.onDone = () => onDoneRef.current?.();

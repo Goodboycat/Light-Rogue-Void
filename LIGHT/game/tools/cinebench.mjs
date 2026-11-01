@@ -1,5 +1,5 @@
 // (M1) Headless per-shot ms/frame for a cinematic scene (MOVIE.md §2 perf mandate, prompt step 4).
-// Usage: node tools/cinebench.mjs <sceneId|all> [--throttle 1|4] [--w 1920 --h 1080] [--dpr 1] [--noblur] [--timeout 120]
+// Usage: node tools/cinebench.mjs <sceneId|all> [--throttle 1|4] [--w 1920 --h 1080] [--dpr 1] [--noblur] [--low] [--timeout 120]
 //   desktop:     node tools/cinebench.mjs opener_1
 //   phone-class: node tools/cinebench.mjs opener_1 --throttle 4 --w 390 --h 844 --dpr 2
 // Needs `npm run build` first. Plays `?cinematic=<id>&mute=1` on a local server and reads window.__cinePerf
@@ -11,7 +11,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i > 0 ? process.argv[i + 1] : d; };
-const NOBLUR = process.argv.includes('--noblur'), TIMEOUT = +arg('timeout', 120);
+const NOBLUR = process.argv.includes('--noblur'), LOW = process.argv.includes('--low'), TIMEOUT = +arg('timeout', 120);
 const ID = process.argv[2] || 'all', THROTTLE = +arg('throttle', 1), W = +arg('w', 1920), H = +arg('h', 1080), DPR = +arg('dpr', 1);
 const DIST = path.resolve(new URL('.', import.meta.url).pathname, '../dist');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
@@ -31,9 +31,9 @@ if (THROTTLE > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROT
 
 let ids = [ID];
 if (ID === 'all') { await page.goto(base + '?cinematic=_list'); ids = await page.$$eval('ul li a', as => as.map(a => a.textContent.trim())); }
-console.log(`cinebench ${W}x${H} dpr${DPR} throttle${THROTTLE}x${NOBLUR ? ' noblur' : ''}`);
+console.log(`cinebench ${W}x${H} dpr${DPR} throttle${THROTTLE}x${NOBLUR ? ' noblur' : ''}${LOW ? ' low' : ''}`);
 for (const id of ids) {
-  await page.goto(base + `?cinematic=${id}&mute=1&loop=0${NOBLUR ? "&noblur=1" : ""}`); // loop=0: looping scenes (run_summary, menu_loop) play once so "— done." appears
+  await page.goto(base + `?cinematic=${id}&mute=1&loop=0${NOBLUR ? "&noblur=1" : ""}${LOW ? "&low=1" : ""}`); // loop=0: looping scenes (run_summary, menu_loop) play once so "— done." appears
   await page.waitForFunction(() => document.body.innerText.includes('— done.'), null, { timeout: TIMEOUT * 1000 });
   const perf = await page.evaluate(() => window.__cinePerf);
   const shots = await page.evaluate(() => Array.from(document.querySelectorAll('ol li')).map(li => li.textContent.slice(0, 60)));

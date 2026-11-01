@@ -176,8 +176,14 @@ function ensureVignette() {
 
 // ---------------------------------------------------------------- player
 /** (M1) runtime switches — `blur`: rack-focus / layer `ctx.filter` blur (GPU-cheap, software-catastrophic; `?cinematic=…&noblur=1` and
- *  tools/cinebench.mjs --noblur turn it off to measure draw cost alone). M10 may bind it to the quality profile. */
-export const engineFlags = { blur: true };
+ *  tools/cinebench.mjs --noblur turn it off to measure draw cost alone). (M10) `low`: the low-tier flag — halves full-frame bursts and skips minor-node halos; bound to the quality profile below, `&low=1` / `--low` force it. */
+export const engineFlags = { blur: true, low: false };
+/** (M10) bind the film flags to the game's quality profile: LOW → no blur, halved full-frame bursts, no minor-node halos
+ *  (constellation.ts); MEDIUM/HIGH → full. Called by CinematicPlayer on mount from the current Settings quality. */
+export const bindEngineFlagsToQuality = (mode: 'LOW' | 'MEDIUM' | 'HIGH' | 'AUTO' | string | undefined) => {
+  const low = mode === 'LOW' || (mode === 'AUTO' && typeof navigator !== 'undefined' && (navigator.hardwareConcurrency ?? 8) <= 4 && typeof innerWidth === 'number' && innerWidth < 900);
+  engineFlags.low = low; engineFlags.blur = !low;
+};
 
 export class CinematicPlayer {
   readonly scene: SceneDef;
