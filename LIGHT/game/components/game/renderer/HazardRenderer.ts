@@ -69,7 +69,7 @@ export const drawHazards = (ctx: CanvasRenderingContext2D, state: MutableGameSta
             }
             case 'flare': {
                 const g = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, h.radius);
-                g.addColorStop(0, hexA('#fef3c7', 0.85)); g.addColorStop(0.4, hexA('#fbbf24', 0.6)); g.addColorStop(1, hexA('#7f1d1d', 0.05));
+                g.addColorStop(0, hexA('#fbbf24', 0.55)); g.addColorStop(0.4, hexA('#f97316', 0.35)); g.addColorStop(1, hexA('#7f1d1d', 0.05)); // (BUGS #5) was cream 0.85 — flares + beams summed to white
                 ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h.x, h.y, h.radius * breathe, 0, Math.PI * 2); ctx.fill();
                 ctx.strokeStyle = hexA('#ef4444', 0.6 + landing * 0.4); ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
                 ctx.beginPath(); ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);

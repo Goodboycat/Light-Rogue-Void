@@ -14,9 +14,10 @@ export const drawLasers = (ctx: CanvasRenderingContext2D, state: MutableGameStat
     const list = state.lasers;
     if (!list || !list.length) return;
     const f = state.frame;
+    // (BUGS #5) the outer wedge is drawn source-over (it used to be additive: four overlapping 820 px wedges
+    // plus the flares summed to near-white and hid the spark, bullets and HUD). Only the thin core is additive.
     ctx.save();
     ctx.shadowBlur = 0;
-    ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < list.length; i++) {
         const L: Laser = list[i];
         const warm = L.warm;                       // 0 → 1 while igniting
@@ -28,28 +29,30 @@ export const drawLasers = (ctx: CanvasRenderingContext2D, state: MutableGameStat
         // outer glow wedge
         const w = Math.tan(half) * L.length;
         const g = ctx.createLinearGradient(0, 0, L.length, 0);
-        g.addColorStop(0, hexA(L.color, 0.55 * warm));
-        g.addColorStop(0.7, hexA(L.color, 0.35 * warm * flicker));
+        g.addColorStop(0, hexA(L.color, 0.38 * warm));
+        g.addColorStop(0.7, hexA(L.color, 0.22 * warm * flicker));
         g.addColorStop(1, hexA(L.color, 0));
+        ctx.globalCompositeOperation = 'source-over';
         ctx.beginPath();
         ctx.moveTo(60, 0);
-        ctx.lineTo(L.length, -w * 1.6);
-        ctx.lineTo(L.length, w * 1.6);
+        ctx.lineTo(L.length, -w * 1.25);
+        ctx.lineTo(L.length, w * 1.25);
         ctx.closePath();
         ctx.fillStyle = g;
         ctx.fill();
-        // hot core
+        // hot core (additive, narrow, red-orange rather than cream so it never reads as white)
+        ctx.globalCompositeOperation = 'lighter';
         ctx.beginPath();
         ctx.moveTo(60, 0);
-        ctx.lineTo(L.length, -w * 0.5);
-        ctx.lineTo(L.length, w * 0.5);
+        ctx.lineTo(L.length, -w * 0.45);
+        ctx.lineTo(L.length, w * 0.45);
         ctx.closePath();
-        ctx.fillStyle = `rgba(255, 237, 213, ${0.75 * warm * flicker})`;
+        ctx.fillStyle = `rgba(251, 146, 60, ${0.45 * warm * flicker})`;
         ctx.fill();
-        // thin white centre line
-        ctx.globalAlpha = warm;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.5 * flicker;
+        // thin pale centre line
+        ctx.globalAlpha = 0.85 * warm;
+        ctx.strokeStyle = '#fde68a';
+        ctx.lineWidth = 2 * flicker;
         ctx.beginPath(); ctx.moveTo(60, 0); ctx.lineTo(L.length, 0); ctx.stroke();
         ctx.restore();
     }

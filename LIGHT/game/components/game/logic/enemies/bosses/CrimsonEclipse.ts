@@ -95,7 +95,7 @@ export const updateCrimsonEclipse = (
             c.shiftDone = true;
             c.laserBase = toPlayer + Math.PI / 2; // new beams start perpendicular to the player — never on top of them
             spawnExplosion(state, enemy.x, enemy.y, GOLD, ParticleType.RING);
-            if (phase === 3) screenFlash(state, 0.6, '#fde68a');
+            if (phase === 3) screenFlash(state, 0.35, '#f97316'); // (BUGS #5) was 0.6 cream
         }
         return { moveX: 0, moveY: 0, moveSpeed: 0 };
     }
