@@ -3,7 +3,7 @@
 // Rules (MOVIE.md §2): particles are bucketed by colour and drawn with ONE Path2D + ONE fill per bucket;
 // glows are pre-rendered sprites (Sprites.ts) blitted with drawImage; shadowBlur / filter only on text.
 
-import { hash, wobble, clamp01, lerp, span, easeOut } from './Engine';
+import { hash, wobble, clamp01, lerp, span, easeOut, engineFlags } from './Engine';
 import type { Gfx } from './Engine';
 import { glowDisc, bokehDisc, rayStrip, irisSprite, rgba, toRgb } from './Sprites';
 
@@ -43,7 +43,9 @@ export function embers(g: Gfx, f: EmberField, alpha = 1, t = g.t) {
   const paths = [p0, p1, p2];
   const gl = f.glow ?? 0;
   const glowSpr = gl > 0 ? glowDisc(f.colors[0], 64) : null;
-  for (let i = 0; i < f.n; i++) {
+  // (M10 s6) low tier: every ember field in every scene halves its count and draws a glow sprite on 1 in 8 embers (not 1 in 4)
+  const low = engineFlags.low, n = low ? f.n >> 1 : f.n, glowMask = low ? 7 : 3;
+  for (let i = 0; i < n; i++) {
     const h0 = hash(i, f.seed), h1 = hash(i, f.seed + 1), h2 = hash(i, f.seed + 2), h3 = hash(i, f.seed + 3);
     const life = f.life * (0.6 + h3 * 0.8);
     const age = ((t + h2 * life) % life) / life;             // 0..1
@@ -53,7 +55,7 @@ export function embers(g: Gfx, f: EmberField, alpha = 1, t = g.t) {
     const r = lerp(f.rMin, f.rMax, h3) * (0.5 + fade * 0.5);
     const p = paths[i % 3];
     p.moveTo(x + r, y); p.arc(x, y, r, 0, Math.PI * 2);
-    if (glowSpr && (i & 3) === 0) { ctx.globalAlpha = alpha * fade * 0.5; ctx.drawImage(glowSpr, x - r * gl, y - r * gl, r * gl * 2, r * gl * 2); }
+    if (glowSpr && (i & glowMask) === 0) { ctx.globalAlpha = alpha * fade * 0.5; ctx.drawImage(glowSpr, x - r * gl, y - r * gl, r * gl * 2, r * gl * 2); }
   }
   ctx.globalAlpha = alpha;
   for (let b = 0; b < 3; b++) { ctx.fillStyle = f.colors[b]; ctx.fill(paths[b]); }

@@ -225,7 +225,7 @@ const build = (id: string, T: Timing, set: Star[], focus: { x: number; y: number
     if (rise > 0) embers(g, { n: 90, x: focus.x - 120, y: focus.y - 40, w: 240, h: 100, rise: 70, drift: 18, rMin: 0.8, rMax: 2.2, colors: [AMBER, GOLD, WARM_WHITE], life: 3, seed: 8111, glow: 4 }, L.alpha * 0.6 * rise, t);
     const burst = span(t, T_IGN, T_FLASH + 0.4);
     if (burst > 0 && burst < 1) {
-      embers(g, { n: (isBoss ? 260 : 520) >> (engineFlags.low ? 1 : 0), x: -800, y: -450, w: 1600, h: 900, rise: 420, drift: 60, rMin: 1, rMax: 3, colors: [WARM_WHITE, AMBER, VIOLET], life: 1.4, seed: 8112, glow: 5 }, L.alpha * (1 - burst) * 0.8, t - T_IGN);
+      embers(g, { n: isBoss ? 260 : 520, x: -800, y: -450, w: 1600, h: 900, rise: 420, drift: 60, rMin: 1, rMax: 3, colors: [WARM_WHITE, AMBER, VIOLET], life: 1.4, seed: 8112, glow: 5 }, L.alpha * (1 - burst) * 0.8, t - T_IGN);
     }
     g.ctx.globalAlpha = L.alpha;
   };
