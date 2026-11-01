@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `M8` — Constellation film (`constellation` 8 s first tree open + `makeConstellation(bossId)` 6 s) + App hook + EvolutionMatrix re-skin + cinebench (newest, in HANDOFF.md)
+- `M9` — Audio for the film: cin_ Ludo batch (`docs/AUDIO_LUDO.md` ### Cinematic), `duckHold`/`duckRelease`/`musicStinger`/`stopPrefix`, Cue `duckHold` + `stinger`, review pass over every timeline, `npm run cues` (newest, in HANDOFF.md)
+- `M8` — Constellation film (`constellation` 8 s first tree open + `makeConstellation(bossId)` 6 s) + App hook + EvolutionMatrix re-skin + cinebench
 - `M7` — Endings `ending_stay` + `ending_leave` as film scenes + WinGame hook + cinebench (`docs/handoff/M7.md`)
 - `M6` — Death + run summary as film scenes + DeathSummary thin layer + cinebench (`docs/handoff/M6.md`)
 - `M5` — Darkness Interrupts ×6 as film scenes + scheduler + six readable threats + cinebench (`docs/handoff/M5.md`)
