@@ -83,8 +83,20 @@ const drawTreeLive = (ctx: CanvasRenderingContext2D, set: Star[], lit: (s: Star)
   }
   // nodes — minors as motes, majors as discs with a ring
   ctx.globalCompositeOperation = 'lighter';
+  // (M10 s5) settled minors (a ≥ 0.98 → no bloom, so their alpha is uniform = alpha × (…heat)) are batched into ONE Path2D
+  // fill per colour (core) + one per colour (halo, skipped under `low`) instead of ~2N drawImage calls. Flat discs stand in
+  // for the soft sprites: core at r, halo at 0.45·gr with the sprite's alpha × 0.55 (≈ its integrated brightness). Only the
+  // ignition front (0.02 < a < 0.98) and the majors still go through the sprite path.
+  const batches = new Map<string, { core: Path2D; halo: Path2D }>();
+  const rSettled = 5 * (1 + heat * 0.4), grSettled = 26 * (1 + heat) * 0.45;
   for (const s of set) {
     const a = lit(s); if (a <= 0.02) continue;
+    if (!s.major && a >= 0.98) {
+      let b = batches.get(s.color); if (!b) { b = { core: new Path2D(), halo: new Path2D() }; batches.set(s.color, b); }
+      b.core.moveTo(s.x + rSettled, s.y); b.core.arc(s.x, s.y, rSettled, 0, Math.PI * 2);
+      if (!low) { b.halo.moveTo(s.x + grSettled, s.y); b.halo.arc(s.x, s.y, grSettled, 0, Math.PI * 2); }
+      continue;
+    }
     const bloom = Math.sin(clamp01(a) * Math.PI) * 0.6;   // a brief over-bright as it lights
     const r = (s.major ? 11 : 5) * (1 + bloom + heat * 0.4);
     if (s.major || !low) {
@@ -99,6 +111,10 @@ const drawTreeLive = (ctx: CanvasRenderingContext2D, set: Star[], lit: (s: Star)
       drawRing(ctx, s, a, r, alpha, t);
       ctx.globalCompositeOperation = 'lighter';
     }
+  }
+  for (const [color, b] of batches) {
+    if (!low) { ctx.globalAlpha = alpha * (0.25 + 0.35 * heat) * 0.55; ctx.fillStyle = color; ctx.fill(b.halo); }
+    ctx.globalAlpha = alpha * 0.9; ctx.fillStyle = color; ctx.fill(b.core);
   }
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
 };
