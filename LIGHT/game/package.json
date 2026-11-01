@@ -15,6 +15,7 @@
     "sim": "node tools/sim.mjs",
     "test:save": "node tools/test-save.mjs",
     "cues": "node tools/cue-audit.mjs",
+    "frames": "node tools/cineframes.mjs",
     "art": "npm run build && node tools/extract-art.mjs"
   },
   "dependencies": {

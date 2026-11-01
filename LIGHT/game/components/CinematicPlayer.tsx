@@ -37,11 +37,13 @@ export interface CinematicProps {
   passive?: boolean;
   /** rendered on top of the canvas (debug HUD / children) */
   children?: React.ReactNode;
+  /** (M10) deterministic export: no rAF loop; `window.__cineStep()` advances exactly 1/exportFps and renders (tools/cineframes.mjs) */
+  exportFps?: number;
   /** called every frame with the player (debug HUD) */
   onFrame?: (p: Player) => void;
 }
 
-const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, loop, debug, audio = true, z = 500, passive = false, children, onFrame }) => {
+const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, loop, debug, audio = true, z = 500, passive = false, children, onFrame, exportFps }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const playerRef = useRef<Player | null>(null);
   const [, bump] = useState(0);
@@ -58,13 +60,23 @@ const CinematicPlayer: React.FC<CinematicProps> = ({ scene, onDone, startT = 0, 
     p.onDone = () => onDoneRef.current?.();
     let W = 0, H = 0, dpr = 1;
     const resize = () => {
-      dpr = cinematicDpr();
+      dpr = exportFps ? 1 : cinematicDpr(); // export: 1 css px = 1 device px, the viewport IS the frame size
       W = Math.round(innerWidth * dpr); H = Math.round(innerHeight * dpr);
       if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
       cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
     };
     resize(); addEventListener('resize', resize);
     let last = performance.now(); let raf = 0; let frames = 0, acc = 0;
+    if (exportFps) { // (M10) frame exporter: wall clock ignored; the driver calls __cineStep() once per frame and grabs the canvas
+      const w = window as any;
+      w.__cineStep = (): { t: number; frame: number; done: boolean } => {
+        if (!p.done) { p.advance(1 / exportFps); p.render(ctx, W, H, dpr); }
+        return { t: p.t, frame: p.frame, done: p.done };
+      };
+      w.__cineCanvas = cv;
+      p.render(ctx, W, H, dpr); // frame 0 at startT
+      return () => { delete w.__cineStep; delete w.__cineCanvas; playerRef.current = null; removeEventListener('resize', resize); };
+    }
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const dt = Math.min(0.1, (now - last) / 1000); last = now;

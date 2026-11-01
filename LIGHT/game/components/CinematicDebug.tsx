@@ -20,7 +20,7 @@ const CinematicDebug: React.FC = () => {
       <div className="fixed inset-0 bg-black text-amber-100 font-mono p-8">
         <div className="text-lg mb-4">?cinematic=&lt;id&gt; — unknown id “{id}”. Scenes:</div>
         <ul className="space-y-1">{sceneIds().map(s => <li key={s}><a className="underline" href={`?cinematic=${s}`}>{s}</a> — {SCENES[s].duration}s, {SCENES[s].shots.length} shots</li>)}</ul>
-        <div className="mt-6 text-amber-100/60">flags: &amp;t=&lt;s&gt; start time · &amp;loop=1 · &amp;mute=1 · &amp;noblur=1 · &amp;low=1</div>
+        <div className="mt-6 text-amber-100/60">flags: &amp;t=&lt;s&gt; start time · &amp;loop=1 · &amp;mute=1 · &amp;noblur=1 · &amp;low=1 · &amp;export=&lt;fps&gt; (tools/cineframes.mjs)</div>
       </div>
     );
   }
@@ -29,6 +29,9 @@ const CinematicDebug: React.FC = () => {
   const mute = q?.get('mute') === '1';
   engineFlags.blur = q?.get('noblur') !== '1'; // (M1) perf isolation
   engineFlags.low = q?.get('low') === '1'; // (M10) low-tier flag isolation
+  // (M10) &export=1 (or =<fps>): no rAF, no audio, no HUD — tools/cineframes.mjs steps window.__cineStep() and saves PNGs
+  const exportRaw = q?.get('export'); const exportFps = exportRaw ? (parseFloat(exportRaw) > 1 ? parseFloat(exportRaw) : 30) : undefined;
+  if (exportFps && !done) return <CinematicPlayer key={run} scene={scene} startT={startT} loop={false} audio={false} passive exportFps={exportFps} onDone={() => setDone(true)} />;
   return (
     <>
       {!done && (
