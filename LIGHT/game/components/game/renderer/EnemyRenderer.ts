@@ -85,11 +85,14 @@ const drawBossPhaseOverlay = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame
     // core
     const coreR = size * (0.22 + 0.06 * phase) * (1 + pulse * 0.15) * (shifting ? 1.6 : 1);
     const g = ctx.createRadialGradient(0, 0, 0, 0, 0, coreR * 2.2);
-    const col = phase === 1 ? enemy.def.glowColor : PHASE_CORE[phase];
-    g.addColorStop(0, '#ffffff');
+    // (BUGS #6) Darkness is the one boss whose core must NOT be white: its glowColor is #ffffff, so the additive
+    // white-to-white gradient painted a flat 90 px blob over the black body. Its core is a dim violet instead.
+    const isDark = enemy.def.visualType === 'DARKNESS';
+    const col = isDark ? '#6d28d9' : phase === 1 ? enemy.def.glowColor : PHASE_CORE[phase];
+    g.addColorStop(0, isDark ? '#a78bfa' : '#ffffff');
     g.addColorStop(0.35, col);
     g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalAlpha = shifting ? 0.95 : 0.55 + 0.25 * pulse;
+    ctx.globalAlpha = isDark ? (shifting ? 0.5 : 0.18 + 0.1 * pulse) : shifting ? 0.95 : 0.55 + 0.25 * pulse;
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(0, 0, coreR * 2.2, 0, Math.PI * 2); ctx.fill();
     // P2: a thin amber seam ring; P3: cracks radiating from the core (seeded by the boss id so they don't jitter)
@@ -446,60 +449,75 @@ export const drawEnemy = (ctx: CanvasRenderingContext2D, enemy: Enemy, frame: nu
             }
             break;
 
-        case 'DARKNESS':
-            // THE END: PURE CONTRAST (Now Dark Purple)
-            // 1. The Aura (Jagged, static-like interference) - DARK PURPLE
-            ctx.shadowBlur = 60;
-            ctx.shadowColor = '#5b21b6'; // Violet 800
-            ctx.fillStyle = '#2e1065';   // Violet 950 (Darkest Purple)
-            
+        case 'DARKNESS': {
+            // (BUGS #6) THE END — a hole in the world with a face. Silhouette first: jagged black disc with a violet
+            // rim-light, eight slow tendrils, a horizontal slit eye that tracks nothing, and a thin inner iris.
+            // The hit flash is kept to the rim (a white body would read as a glitch, not the final boss).
+            const flashing = (enemy.flashTimer ?? 0) > 0;
+            ctx.globalCompositeOperation = 'source-over';
+            // 1. tendrils (behind): eight sinuous strokes reaching out and curling back
+            ctx.shadowBlur = 0;
+            ctx.lineCap = 'round';
+            for (let k = 0; k < 8; k++) {
+                const a0 = (k / 8) * Math.PI * 2 + frame * 0.004;
+                const sway = Math.sin(frame * 0.05 + k * 1.7) * 0.35;
+                const len = size * (1.25 + 0.2 * Math.sin(frame * 0.03 + k * 2.1));
+                ctx.strokeStyle = 'rgba(46, 16, 101, 0.9)';
+                ctx.lineWidth = size * 0.11;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(a0) * size * 0.7, Math.sin(a0) * size * 0.7);
+                ctx.quadraticCurveTo(Math.cos(a0 + sway) * len * 0.8, Math.sin(a0 + sway) * len * 0.8,
+                    Math.cos(a0 - sway * 0.6) * len, Math.sin(a0 - sway * 0.6) * len);
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(124, 58, 237, 0.35)';
+                ctx.lineWidth = size * 0.03;
+                ctx.stroke();
+            }
+            // 2. the body: jagged black disc, violet glow behind it
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#5b21b6';
+            ctx.fillStyle = '#030014';
             ctx.beginPath();
-            const spikeCount = 40;
-            for(let i=0; i<=spikeCount; i++) {
-                const angle = (i/spikeCount) * Math.PI * 2 + (frame * 0.01);
-                // Noise driven radius
+            const spikeCount = 48;
+            for (let i = 0; i <= spikeCount; i++) {
+                const angle = (i / spikeCount) * Math.PI * 2 + frame * 0.01;
                 const noise = Math.sin(frame * 0.1 + i * 1.5) + Math.cos(frame * 0.2 + i * 3);
-                const r = size * (1.0 + Math.abs(noise) * 0.15);
-                const px = Math.cos(angle) * r;
-                const py = Math.sin(angle) * r;
-                if (i===0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
+                const r = size * (0.92 + Math.abs(noise) * 0.1);
+                const px = Math.cos(angle) * r, py = Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
             }
             ctx.closePath();
             ctx.fill();
-            
-            // 2. The Void (Absolute Black Circle)
+            // 3. rim-light: violet normally, white on hit
             ctx.shadowBlur = 0;
-            ctx.fillStyle = '#000000';
-            ctx.beginPath();
-            ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 3. Inner Accretion (Rings) - DARK PURPLE TINT
-            ctx.strokeStyle = 'rgba(139, 92, 246, 0.4)'; // Violet 500 alpha
-            ctx.lineWidth = 2;
-            
-            // Ring 1 (Slow)
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 0.7, size * 0.2, frame * 0.02, 0, Math.PI * 2);
+            ctx.strokeStyle = flashing ? '#ffffff' : 'rgba(167, 139, 250, 0.85)';
+            ctx.lineWidth = flashing ? 5 : 2.5;
             ctx.stroke();
-            
-            // Ring 2 (Fast, inverse)
-            ctx.strokeStyle = 'rgba(167, 139, 250, 0.6)'; // Violet 400 alpha
-            ctx.beginPath();
-            ctx.ellipse(0, 0, size * 0.5, size * 0.15, -frame * 0.03 + Math.PI/3, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // 4. The Eye of Non-Existence (Center)
-            // A tiny white dot that flickers, opposite of the player
-            const flicker = Math.random() > 0.9 ? 0 : 3;
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowColor = '#ffffff';
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(0, 0, flicker, 0, Math.PI*2);
-            ctx.fill();
+            // 4. inner iris rings (two counter-rotating ellipses, dim)
+            ctx.strokeStyle = 'rgba(139, 92, 246, 0.35)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.ellipse(0, 0, size * 0.7, size * 0.2, frame * 0.02, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(0, 0, size * 0.5, size * 0.15, -frame * 0.03 + Math.PI / 3, 0, Math.PI * 2); ctx.stroke();
+            // 5. the face: a horizontal slit eye that blinks every ~4 s; pupil is a hole (black), the sclera a dim violet
+            const blink = Math.max(0, Math.sin(frame * 0.026));
+            const open = blink > 0.97 ? (1 - (blink - 0.97) / 0.03) : 1;
+            const eyeW = size * 0.55, eyeH = size * 0.16 * open;
+            if (eyeH > 0.5) {
+                ctx.fillStyle = 'rgba(167, 139, 250, 0.8)';
+                ctx.shadowColor = '#a78bfa'; ctx.shadowBlur = 18;
+                ctx.beginPath();
+                ctx.moveTo(-eyeW, 0);
+                ctx.quadraticCurveTo(0, -eyeH * 2, eyeW, 0);
+                ctx.quadraticCurveTo(0, eyeH * 2, -eyeW, 0);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#000000';
+                ctx.beginPath(); ctx.ellipse(0, 0, eyeH * 0.9, eyeH * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+                // a pin of white in the pupil that flickers — the only white on the body
+                if (Math.random() > 0.1) { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill(); }
+            }
             break;
+        }
 
         case 'CRAB': {
             // (5A) shell + 6 jointed legs + 2 claws: a wide, low silhouette
