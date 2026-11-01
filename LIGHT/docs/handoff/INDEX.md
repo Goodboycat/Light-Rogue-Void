@@ -2,7 +2,8 @@
 
 The newest entry is `docs/HANDOFF.md`. Open an entry below only when you need its file/line pointers, measured numbers or known soft spots.
 
-- `M10` (partial) — constellation offscreen tree bake (shot 4 + boss ghost) + `engineFlags.low` bound to the LOW quality profile, `--low` cinebench numbers; mote batching / phone pass / frame exporter remain (newest, in HANDOFF.md)
+- `M10b` (partial) — Path2D mote batching, `embers()` low-tier halving for every scene, `tools/cineframes.mjs` deterministic PNG exporter (`?cinematic=<id>&export=<fps>`); device zip check remains (newest, in HANDOFF.md)
+- `M10a` (partial) — constellation offscreen tree bake (shot 4 + boss ghost) + `engineFlags.low` bound to the LOW quality profile + dpr-1 backing store under low, `--low` cinebench numbers
 - `M9` — Audio for the film: cin_ Ludo batch (`docs/AUDIO_LUDO.md` ### Cinematic), `duckHold`/`duckRelease`/`musicStinger`/`stopPrefix`, Cue `duckHold` + `stinger`, review pass over every timeline, `npm run cues`
 - `M8` — Constellation film (`constellation` 8 s first tree open + `makeConstellation(bossId)` 6 s) + App hook + EvolutionMatrix re-skin + cinebench
 - `M7` — Endings `ending_stay` + `ending_leave` as film scenes + WinGame hook + cinebench (`docs/handoff/M7.md`)

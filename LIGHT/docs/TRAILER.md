@@ -25,3 +25,6 @@ Music: one edit of **`music_boss`** (130 BPM, `docs/AUDIO_LUDO.md`), with **`mus
 - Shots 7–9 are easiest with a strong tree. Give yourself a full tree with the dev unlock on the menu (`onUnlockAll`), or record with the save from `tools/shots.mjs`.
 - Do not show `?debug=1` overlays. The debug flag only exposes `__LIGHT` and draws no HUD.
 - For a 15 s vertical cut (shorts), use shots 4, 7, 9, 10, 12 and 14 at 9:16. The game is responsive, so set the browser to 1080×1920.
+
+## Source frames (M10)
+`cd LIGHT/game && npm run build && npm run frames -- <sceneId> [--fps 30 --w 1920 --h 1080 --from <s> --to <s> --every N --low --noblur]` → `game/frames/<sceneId>/000000.png…` (deterministic: each PNG is exactly frame k at t = from + k/fps; gitignored). Needs `npx playwright install chromium` (+ `install-deps` on a bare Linux). Then `ffmpeg -framerate 30 -i frames/<id>/%06d.png -c:v libx264 -pix_fmt yuv420p <id>.mp4`, or `--every 15` for a 2-fps contact sheet to pick shots from.

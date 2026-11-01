@@ -6,36 +6,37 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M10 — Performance: constellation offscreen bake + low-tier flag: PARTIAL (s1+s2 done + measured; phone pass over the other scenes, frame exporter, iOS/Android zip check NOT started)
-Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commits `a9d542f` (s1+s2), `fbc0463` (report), + s4 (dpr cap). GitHub is the source of truth — `git fetch origin` first, always.
+## M10b — Performance: mote batching + low-tier embers everywhere + frame exporter: PARTIAL (s5–s7 done + measured; device zip check NOT done)
+Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commits `99ec970` (s5), `5fa909b` (s6), `3de67c9` (s7), + report. GitHub is the source of truth — `git fetch origin` first, always. Previous M10 half (bake, `low` flag, dpr cap) is `docs/handoff/M10a.md`.
 
-**What was done (M8 handoff targets (a) and (b))**
-- `game/cinematic/scenes/constellation.ts` — `drawTree` split: `drawTreeLive(ctx, set, lit, alpha, heat, t, rings)` is the old per-node path (now writes to any 2D ctx); `bakeTree(key, set, lit, cs)` renders links + glow discs ONCE into an offscreen canvas in design space (bounds of the set + 80 px margin, scale `cs = clamp(g.S × 1.4, 0.5, 1.5)` so the landing zoom does not look soft; module-level `treeCaches` Map keyed by scene id, rebuilt only when `cs` changes = resize); `drawTree(g, …, cacheKey?)` blits the bake with `lighter` when `cacheKey` is given and `heat === 0`, then draws only the breathing major rings live (`drawRing`). Users: shot 4 of every variant (`t >= T_FLASH` → heat forced to 0, key = scene id) and the boss variant's dim ghost tree (`GHOST` / `ghostLit`, key `'ghost'`, from frame 0). Shots 1–3 are untouched (lit changes per frame).
-- Low tier: `engineFlags.low` (Engine.ts next to `blur`) — in `drawTreeLive` minor nodes skip the 128-px halo (64-px core kept); the full-frame flash burst is `(520|260) >> 1`. `bindEngineFlagsToQuality(mode)` (Engine.ts) sets `low` + `blur=false` for `LOW` (and for `AUTO` on ≤4-core phones < 900 px wide); `CinematicPlayer.tsx` calls it on mount from `quality.mode` (the game's resolved profile, `components/game/Quality.ts`) for every non-debug mount. The `?cinematic=` route sets flags from the URL instead: `&low=1` (CinematicDebug.tsx), `tools/cinebench.mjs --low`.
-- Look: the bake is additive over a near-black sky, so links are a hair brighter than the live path in shot 4 — not eyeballed on a real GPU (credits); the bake frame itself costs one spike (~147 ms desktop / ~221 ms phone max in shot 4, once).
+**What was done (the M10a "Not done" items 1–3)**
+- **s5 — (c) Path2D mote batching** `game/cinematic/scenes/constellation.ts` `drawTreeLive`: minors that are settled (`lit(s) >= 0.98` → no bloom, uniform alpha) are collected into a `Map<color, {core, halo}>` of `Path2D`s and filled once per colour with `lighter` (core r = 5·(1+heat·0.4) at alpha·0.9; halo r = 26·(1+heat)·0.45 at alpha·(0.25+0.35·heat)·0.55 — flat disc standing in for the sprite's integrated brightness; halo skipped under `engineFlags.low`). Only the ignition front (0.02 < a < 0.98) and the majors still go through the 2× `drawImage` sprite path. The bake (`bakeTree`) calls `drawTreeLive` too, so the cached shot-4 tree now uses the same flat discs — look is a hair sharper than the old soft motes; eyeballed once from an exported frame (shot 3→4), not on a real GPU.
+- **s6 — low tier for every scene** `game/cinematic/Draw.ts` `embers()`: reads `engineFlags.low` → `n >> 1` and a glow sprite on 1-in-8 embers (was 1-in-4). Applies to all 49 `embers(` call sites across the scenes (counts up to 1100). The constellation scene's own `>> (low ? 1 : 0)` was removed so it is halved once, not quartered. `bokeh` / `stars` / `godRays` do NOT read the flag (not measured as hot).
+- **s7 — deterministic frame exporter** (MOVIE.md §3 M10, for `docs/TRAILER.md`):
+  - `components/CinematicPlayer.tsx` prop `exportFps?: number` — no rAF loop; installs `window.__cineStep()` (advance exactly `1/exportFps` + render, returns `{t, frame, done}`) and `window.__cineCanvas`; dpr forced to 1 (viewport = frame size); renders frame 0 at `startT` on mount.
+  - `components/CinematicDebug.tsx` — `?cinematic=<id>&export=<fps>` (`export=1` → 30 fps) mounts the player passive/muted/no HUD with `exportFps`.
+  - `tools/cineframes.mjs` (`npm run frames -- <id> …`): `--fps 30 --w 1920 --h 1080 --from 0 --to <s> --out frames/<id> --every N --low --noblur`; serves `dist/`, steps `__cineStep()` and screenshots the canvas → `000000.png…`; prints the ffmpeg line. `frames/` is gitignored. Verified: constellation 6.2–6.6 s @960×540 → 13 PNGs in 5.5 s wall (≈0.4 s/frame headless incl. encode; 1080p will be ~2–3× that). Needs `npx playwright install chromium` (+ `sudo npx playwright install-deps chromium` on a fresh sandbox — the headless shell exits 127 without the system libs).
 
-**Measured — `tools/cinebench.mjs --noblur`** (swiftshader → upper bounds; M8 numbers in brackets). Desktop 1920×1080 dpr1 full flags; phone 390×844 dpr2 CPU 4× **with `--low`**. avg ms/frame (max). 1 run each, 0 page errors.
+**Measured — `tools/cinebench.mjs --noblur`** (swiftshader → upper bounds; M10a numbers in brackets). avg ms/frame. 1 run each, 0 page errors. Both rows AFTER s5+s6.
 
-| scene | mode | s1 | s2 | s3 | s4 |
-|---|---|---|---|---|---|
-| constellation | desktop | 24 (19) | 51 (51) | 116 (120) | **48** (66) — max 147 is the one-time bake |
-| constellation | phone --low, dpr cap 1.5 (before s4) | 44 (33) | 86 (127) | 197 (392) | 79 (166) |
-| constellation | phone --low, **dpr cap 1** (s4, final) | 19 (33) | 51 (127) | **108** (392) | **46** (166) |
-| constellation_boss | desktop | **29** (71) | **37** (94) | **54** (105) | **39** (76) |
+| scene | mode | s1 | s2 | s3 | s4 | s5 |
+|---|---|---|---|---|---|---|
+| constellation | desktop 1920×1080 dpr1 full flags | 22 (24) | **36** (51) | **76** (116) | 49 (48) | — |
+| constellation | phone 390×844 dpr2 CPU 4× `--low` | 19 (19) | 48 (51) | 101 (108) | 43 (46) | — |
+| opener_1 | phone `--low` | 2 | 40 | 92 | 1 | 77 |
+| death | phone `--low` | 30 | 89 | 68 | 1 | — |
 
-Readings: the boss variant's flat ~70 ms floor is gone (ghost tree is one blit). Main s3 on desktop barely moved (116) because the full-flag desktop path keeps 520 embers + halos — s3 phone with the low flag + draw-side cuts alone landed at 197 ms; capping the backing store to dpr 1 under `low` (`cinematicDpr()`, s4) took it to **108 ms** — under the ≈150 ms the M8 note hoped for; the remaining s3 cost is `embers()` (260 glow draws) + the live per-node loop while `heat > 0`. Target (c) from M8 — merge minor-node motes into one `lighter` Path2D fill per colour — is the next win for s2/s3 and is NOT done.
+Readings: desktop main scene s3 116→76, s2 51→36 — the batching is the win it was predicted to be. Phone `--low` barely moved on constellation (s3 108→101) because under `low` the minors already had no halo and the backing store is dpr 1; the remaining s3 cost there is the flash burst `embers()` glow draws (now 260 embers, 1-in-8 glow) + the full-frame `lighter` compositing on a 4×-throttled CPU. opener_1 s3/s5 and death s2 under `--low` are 70–90 ms — still far over the 14 ms §2 target, but these are swiftshader-throttled upper bounds; MOVIE.md §2's phone targets were never met by any scene on this bench (see M2/M8 handoffs). Not benched: the other 30 scenes under `--low` (≈2 min each under throttle — credits).
 
-**Not done (M10 remaining, in order)**
-1. (c) Path2D mote batching in `drawTreeLive` for minor nodes (3 fills instead of ~2N drawImage) — s2/s3 main scene.
-2. Phone pass over the other scenes against MOVIE.md §2 targets (`node tools/cinebench.mjs all --noblur --low --w 390 --h 844 --dpr 2 --throttle 4` — ~2 min per scene under throttle; the openers' blur is already off under `low`). Decide per scene whether `low` should also halve its ember counts (only constellation reads the flag today).
-3. `?cinematic=<id>&export=1` deterministic PNG frame exporter for `docs/TRAILER.md` (MOVIE.md §3 M10) — nothing written.
-4. Itch zip check on iOS Safari + Android Chrome (manual, the user's device).
-5. ~~DPR cap under `low`~~ DONE (s4): `cinematicDpr()` returns `min(dpr, 1)` when `engineFlags.low` — note this makes LOW-profile films visibly softer on 2–3× phones (text/rings); if the user objects, make it 1.25.
+**Not done (M10 remaining)**
+1. Itch zip check on iOS Safari + Android Chrome (manual, the user's device) — load `LIGHT/out/light-rogue-void-itch.zip` on itch (or `npx vite preview` of the itch build) and watch the first Skill Tree open (constellation) and one opener on a LOW-profile phone.
+2. Optional: `node tools/cinebench.mjs all --noblur --low --w 390 --h 844 --dpr 2 --throttle 4` for the full table (≈1 h wall); if a scene's `bokeh`/`godRays` dominates, give them the `low` read the way `embers()` has it.
+3. Optional: run `npm run frames -- constellation` at 1080p and cut the TRAILER.md shot list from the PNGs (nothing cut yet).
 
 **Known soft spots**
-- `bakeTree` allocates up to `(treeW+160)×(treeH+160)×cs²` px — for the full tree (~1700×950 design) at cs 1.5 that is ~2550×1425 ≈ 14.5 MB; fine on phones, but if a device's canvas limit bites, lower the 1.5 cap in `drawTree`.
-- The cache survives scene end (module-level) — the first tree open bakes once per session; a later boss constellation reuses `'ghost'`. If `ABILITY_TREE_DATA` ever changes at runtime (it does not), the key would need a version.
-- `bindEngineFlagsToQuality` is called on mount only; a quality change while a film plays applies to the next film.
-- In shot 4 the ring radius passed to `drawRing` is the settled major radius 11 (no bloom/heat) — matches the live path once `a === 1`.
+- Batched settled minors are flat discs, not the soft sprite — if the user finds shot 2–4 motes too "hard", lower the core alpha 0.9 → 0.75 or draw the halo path at 0.55·gr instead of 0.45·gr. The threshold `a >= 0.98` means a node spends its last ~2 % of lighting on the sprite path, then snaps to the disc (not visible at 60 fps in the exported frames checked).
+- `embers()` halving under `low` changes the look of every scene on LOW profile (half the embers) — intended; the `glowMask` 7 means fields with n < 8 under low may draw no glow sprite at all.
+- Export mode ignores `cinematicDpr()` and quality; it always sets flags from the URL (`&low=1`, `&noblur=1`) like the rest of the debug route. `document.fonts.ready` is awaited before frame 0, but a scene that lazily loads an image after mount could still export frame 0 without it (none known).
+- The exporter steps `p.advance(1/fps)` — scenes that read `g.t` are exact; anything that reads wall `performance.now()` directly (none found in `cinematic/`) would drift.
 
-**Credits/tokens** (user asked each report to carry this): this chat ≈ 42 k tokens (clone, read constellation/Engine/Quality, 1 scene edit + flag plumbing, dpr cap, typecheck ×2, build ×2, Playwright deps, 4 cinebench runs, docs, itch zip ×2). M9 s2–s5 (previous chat) ≈ 45 k; M9 s1 and earlier unknown.
+**Credits/tokens** (user asked each report to carry this): this chat ≈ 38 k tokens (clone, read HANDOFF/constellation/Draw/Player/Debug, 3 code tasks, typecheck ×3, build ×3, Playwright install + deps, 5 cinebench runs, exporter test + one frame look, docs, itch zip). M10a (previous chat) ≈ 42 k; M9 s2–s5 ≈ 45 k; earlier unknown.
