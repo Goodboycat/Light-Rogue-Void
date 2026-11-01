@@ -75,7 +75,11 @@ export const drawStreakBanner = (ctx: CanvasRenderingContext2D, state: MutableGa
 /** Screen space. Red vignette pulse on hurt; slow heartbeat tint when HP < LOW_HP_PCT. */
 export const drawHurtOverlay = (ctx: CanvasRenderingContext2D, state: MutableGameState, w: number, h: number) => {
     let alpha = 0;
-    if ((state.hurtVignette ?? 0) > 0) alpha = Math.max(alpha, (state.hurtVignette! / 14) * 0.75);
+    // (BUGS #8) hurt pulse peaks at 0.5 (was 0.75) and scales with missing HP: a chip hit at full HP is a
+    // thin red edge, not the low-HP warning. Continuous contact (i-frames 18 > vignette 14) used to read as a
+    // permanent 70 % red wash on wave 5 even at full health.
+    const hpNow = state.hpRatio ?? 1;
+    if ((state.hurtVignette ?? 0) > 0) alpha = Math.max(alpha, (state.hurtVignette! / 14) * (0.3 + 0.2 * (1 - hpNow)));
     const hp = state.hpRatio ?? 1;
     if (hp < LOW_HP_PCT && hp > 0) {
         const beat = (Math.sin(state.frame * 0.09) + 1) / 2; // ~1.2 Hz

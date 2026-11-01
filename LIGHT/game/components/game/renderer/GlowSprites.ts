@@ -40,10 +40,12 @@ export function getHurtVignetteSprite(): HTMLCanvasElement {
     const cy = size / 2;
     const radius = cx * 1.15;
 
-    const g = sctx.createRadialGradient(cx, cy, cx * 0.25, cx, cy, radius);
+    // (BUGS #8) edge-only: clear until ~60 % of the half-diagonal so the play area stays readable;
+    // the old stops (0.25 → 0.18 alpha at 0.45) tinted ~70 % of the screen on every chip hit.
+    const g = sctx.createRadialGradient(cx, cy, cx * 0.6, cx, cy, radius);
     g.addColorStop(0, 'rgba(239, 68, 68, 0)');
-    g.addColorStop(0.45, 'rgba(239, 68, 68, 0.18)');
-    g.addColorStop(0.75, 'rgba(239, 68, 68, 0.55)');
+    g.addColorStop(0.45, 'rgba(239, 68, 68, 0.10)');
+    g.addColorStop(0.78, 'rgba(239, 68, 68, 0.5)');
     g.addColorStop(1, 'rgba(220, 38, 38, 0.95)');
 
     sctx.fillStyle = g;
