@@ -49,6 +49,7 @@ Tick every box before uploading a new itch build. **The APK build is dropped —
 - [ ] HTML project, zip uploaded as **light-rogue-void-itch**, "This file will be played in the browser" checked.
 - [ ] Embed 1280 × 720, Mobile friendly ✔, fullscreen button ✔, SharedArrayBuffer **off**.
 - [ ] Copy, tags, theme CSS from `docs/ITCH_PAGE.md`; 8 screenshots from `out/shots/` (`node tools/shots.mjs`); cover 630 × 500.
+  - One-time per sandbox before `tools/shots.mjs` (or any headless Chromium tool): `sudo npx playwright install-deps chromium && npx playwright install chromium`. Without it the run logs `exitCode=127` (missing shared libs) and produces no PNGs. (BUGS #13)
 - [ ] Demo link, if used, is the same zip opened with `?demo=1` embedded via an itch `?demo=1` query on the embed URL (or a second HTML upload) — and `FULL_GAME_URL` in `game/components/game/Constants.ts` points at the real page.
 - [ ] Trailer uploaded (shot list `docs/TRAILER.md`).
 
