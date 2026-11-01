@@ -348,5 +348,6 @@ export class CinematicPlayer {
 /** DPR policy (MOVIE.md §2). */
 export const cinematicDpr = () => {
   const d = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
+  if (engineFlags.low) return Math.min(d, 1); // (M10) low tier: 1× backing store — the single biggest phone win (4× fewer px than dpr 2)
   return Math.min(d, typeof innerWidth === 'number' && innerWidth < 900 ? 1.5 : 2);
 };

@@ -7,7 +7,7 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 ---
 
 ## M10 — Performance: constellation offscreen bake + low-tier flag: PARTIAL (s1+s2 done + measured; phone pass over the other scenes, frame exporter, iOS/Android zip check NOT started)
-Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commit `a9d542f` (s1+s2) + this docs commit. GitHub is the source of truth — `git fetch origin` first, always.
+Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commits `a9d542f` (s1+s2), `fbc0463` (report), + s4 (dpr cap). GitHub is the source of truth — `git fetch origin` first, always.
 
 **What was done (M8 handoff targets (a) and (b))**
 - `game/cinematic/scenes/constellation.ts` — `drawTree` split: `drawTreeLive(ctx, set, lit, alpha, heat, t, rings)` is the old per-node path (now writes to any 2D ctx); `bakeTree(key, set, lit, cs)` renders links + glow discs ONCE into an offscreen canvas in design space (bounds of the set + 80 px margin, scale `cs = clamp(g.S × 1.4, 0.5, 1.5)` so the landing zoom does not look soft; module-level `treeCaches` Map keyed by scene id, rebuilt only when `cs` changes = resize); `drawTree(g, …, cacheKey?)` blits the bake with `lighter` when `cacheKey` is given and `heat === 0`, then draws only the breathing major rings live (`drawRing`). Users: shot 4 of every variant (`t >= T_FLASH` → heat forced to 0, key = scene id) and the boss variant's dim ghost tree (`GHOST` / `ghostLit`, key `'ghost'`, from frame 0). Shots 1–3 are untouched (lit changes per frame).
@@ -19,17 +19,18 @@ Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Com
 | scene | mode | s1 | s2 | s3 | s4 |
 |---|---|---|---|---|---|
 | constellation | desktop | 24 (19) | 51 (51) | 116 (120) | **48** (66) — max 147 is the one-time bake |
-| constellation | phone --low | 44 (33) | 86 (127) | **197** (392) | **79** (166) |
+| constellation | phone --low, dpr cap 1.5 (before s4) | 44 (33) | 86 (127) | 197 (392) | 79 (166) |
+| constellation | phone --low, **dpr cap 1** (s4, final) | 19 (33) | 51 (127) | **108** (392) | **46** (166) |
 | constellation_boss | desktop | **29** (71) | **37** (94) | **54** (105) | **39** (76) |
 
-Readings: the boss variant's flat ~70 ms floor is gone (ghost tree is one blit). Main s3 on desktop barely moved (116) because the full-flag desktop path keeps 520 embers + halos — s3 phone with the low flag landed at 197 ms vs the ≈150 ms the M8 note hoped for; the remaining s3 cost is `embers()` (260 glow draws) + the live per-node loop while `heat > 0`. Target (c) from M8 — merge minor-node motes into one `lighter` Path2D fill per colour — is the next win for s2/s3 and is NOT done.
+Readings: the boss variant's flat ~70 ms floor is gone (ghost tree is one blit). Main s3 on desktop barely moved (116) because the full-flag desktop path keeps 520 embers + halos — s3 phone with the low flag + draw-side cuts alone landed at 197 ms; capping the backing store to dpr 1 under `low` (`cinematicDpr()`, s4) took it to **108 ms** — under the ≈150 ms the M8 note hoped for; the remaining s3 cost is `embers()` (260 glow draws) + the live per-node loop while `heat > 0`. Target (c) from M8 — merge minor-node motes into one `lighter` Path2D fill per colour — is the next win for s2/s3 and is NOT done.
 
 **Not done (M10 remaining, in order)**
 1. (c) Path2D mote batching in `drawTreeLive` for minor nodes (3 fills instead of ~2N drawImage) — s2/s3 main scene.
 2. Phone pass over the other scenes against MOVIE.md §2 targets (`node tools/cinebench.mjs all --noblur --low --w 390 --h 844 --dpr 2 --throttle 4` — ~2 min per scene under throttle; the openers' blur is already off under `low`). Decide per scene whether `low` should also halve its ember counts (only constellation reads the flag today).
 3. `?cinematic=<id>&export=1` deterministic PNG frame exporter for `docs/TRAILER.md` (MOVIE.md §3 M10) — nothing written.
 4. Itch zip check on iOS Safari + Android Chrome (manual, the user's device).
-5. MOVIE.md §2 DPR policy could also read `engineFlags.low` (cap dpr 1) — not done; `cinematicDpr()` unchanged.
+5. ~~DPR cap under `low`~~ DONE (s4): `cinematicDpr()` returns `min(dpr, 1)` when `engineFlags.low` — note this makes LOW-profile films visibly softer on 2–3× phones (text/rings); if the user objects, make it 1.25.
 
 **Known soft spots**
 - `bakeTree` allocates up to `(treeW+160)×(treeH+160)×cs²` px — for the full tree (~1700×950 design) at cs 1.5 that is ~2550×1425 ≈ 14.5 MB; fine on phones, but if a device's canvas limit bites, lower the 1.5 cap in `drawTree`.
@@ -37,4 +38,4 @@ Readings: the boss variant's flat ~70 ms floor is gone (ghost tree is one blit).
 - `bindEngineFlagsToQuality` is called on mount only; a quality change while a film plays applies to the next film.
 - In shot 4 the ring radius passed to `drawRing` is the settled major radius 11 (no bloom/heat) — matches the live path once `a === 1`.
 
-**Credits/tokens** (user asked each report to carry this): this chat ≈ 35 k tokens (clone, read constellation/Engine/Quality, 1 scene edit + flag plumbing, typecheck, build, Playwright deps, 3 cinebench runs, docs, itch zip). M9 s2–s5 (previous chat) ≈ 45 k; M9 s1 and earlier unknown.
+**Credits/tokens** (user asked each report to carry this): this chat ≈ 42 k tokens (clone, read constellation/Engine/Quality, 1 scene edit + flag plumbing, dpr cap, typecheck ×2, build ×2, Playwright deps, 4 cinebench runs, docs, itch zip ×2). M9 s2–s5 (previous chat) ≈ 45 k; M9 s1 and earlier unknown.
