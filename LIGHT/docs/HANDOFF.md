@@ -6,34 +6,35 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M9 — Audio for the film: cin_ Ludo batch + film-length ducking (`duckHold`) + `musicStinger` + review pass over every scene timeline: DONE
-Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip 2.43 MB. Two chats: the first pushed s1 (`ced98fa`, the plumbing) and was axed while writing s2; this chat did s2–s5. GitHub is the source of truth — `git fetch origin` first, always.
+## M10 — Performance: constellation offscreen bake + low-tier flag: PARTIAL (s1+s2 done + measured; phone pass over the other scenes, frame exporter, iOS/Android zip check NOT started)
+Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commit `a9d542f` (s1+s2) + this docs commit. GitHub is the source of truth — `git fetch origin` first, always.
 
-**What M9 is.** No new scene. The 8 `cin_` ids already existed in `audio/sfxIds.ts` (M5/M7 added them with synth families: `cin_whisper` drone, `cin_cut` noise, `cin_silence_drop` sweep_up, `cin_tendril` sweep_down, `cin_heartbeat` thud, `cin_eye_open` drone, `cin_ember_rise` sweep_up, `cin_title_hit` chord — l.25–27/55–56/70–71). M9 gave them a home in the Ludo list, built the mix plumbing the brief asked for, and re-placed the cues in every scene so the music behaves like a film score instead of a 600 ms dip per sound.
+**What was done (M8 handoff targets (a) and (b))**
+- `game/cinematic/scenes/constellation.ts` — `drawTree` split: `drawTreeLive(ctx, set, lit, alpha, heat, t, rings)` is the old per-node path (now writes to any 2D ctx); `bakeTree(key, set, lit, cs)` renders links + glow discs ONCE into an offscreen canvas in design space (bounds of the set + 80 px margin, scale `cs = clamp(g.S × 1.4, 0.5, 1.5)` so the landing zoom does not look soft; module-level `treeCaches` Map keyed by scene id, rebuilt only when `cs` changes = resize); `drawTree(g, …, cacheKey?)` blits the bake with `lighter` when `cacheKey` is given and `heat === 0`, then draws only the breathing major rings live (`drawRing`). Users: shot 4 of every variant (`t >= T_FLASH` → heat forced to 0, key = scene id) and the boss variant's dim ghost tree (`GHOST` / `ghostLit`, key `'ghost'`, from frame 0). Shots 1–3 are untouched (lit changes per frame).
+- Low tier: `engineFlags.low` (Engine.ts next to `blur`) — in `drawTreeLive` minor nodes skip the 128-px halo (64-px core kept); the full-frame flash burst is `(520|260) >> 1`. `bindEngineFlagsToQuality(mode)` (Engine.ts) sets `low` + `blur=false` for `LOW` (and for `AUTO` on ≤4-core phones < 900 px wide); `CinematicPlayer.tsx` calls it on mount from `quality.mode` (the game's resolved profile, `components/game/Quality.ts`) for every non-debug mount. The `?cinematic=` route sets flags from the URL instead: `&low=1` (CinematicDebug.tsx), `tools/cinebench.mjs --low`.
+- Look: the bake is additive over a near-black sky, so links are a hair brighter than the live path in shot 4 — not eyeballed on a real GPU (credits); the bake frame itself costs one spike (~147 ms desktop / ~221 ms phone max in shot 4, once).
 
-**Files**
-- `game/audio/AudioManager.ts` l.180–245 — `duck(amount, ms)` unchanged shape, but recovers to the **held** level when a hold is active (`heldLevel`); `duckHold(amount, rampMs)` (l.194) ramps the music to `amount` and keeps it there; `duckRelease(rampMs)` (l.202) idempotent recovery to 1; `musicStinger(id, vol)` (l.214) plays a one-shot **on the music bus** (music volume, not sfx), ignores the per-id throttle, ducks the running track to `min(0.25, heldLevel)` for its length, never touches `current`; `stopPrefix('cin_')` (l.232) 60 ms-fades every voice with that id prefix.
-- `game/cinematic/Engine.ts` — `Cue` gained `duckHold?: number` and `stinger?: SfxId`; `AudioSink` gained optional `duckHold / duckRelease / stinger / stopCin`; `releaseAudio(skipped)` is called by both `finish()` and skip — a held duck is released over 900 ms on finish / 350 ms on skip, and skip also cuts the `cin_` beds so a whisper never outlives its frame. **Scenes never write a release cue.**
-- `game/components/CinematicPlayer.tsx` l.14–19 — the sink is wired to `Audio.*`; the hold is also released on unmount.
-- Kits (one edit lights every scene that spreads them): `bossKit.ts` `bossCues` `duckHold 0.35` @0.05 (6 intros); `interruptKit.ts` `interruptCues` `duckHold 0.25` @0.02 (6 interrupts; `interrupt_6` keeps its extra `duck 0.05` dip for the true-black beat — it recovers to 0.25, not 1); `outroKit.ts` `outroCues` `duckHold 0.3` @0.02 + `chapter_card` and `music_sting_reveal` as **stingers** (6 outros).
-- Openers 1–6: `{ t: 0.02, duckHold: 0.3 }` + `chapter_card` as a stinger @0.1. `title_seam`: `chapter_card` @T_TITLE and `music_sting_reveal` @26.3 as stingers (music_title starts at 27.0 — the sting is the hand-off). `run_summary`: `chapter_card` stinger @T_HEAD. `constellation`: `duckHold 0.35`, `cin_title_hit` stinger, the old trailing `duck: 1` release cue deleted (the player releases). `death`, `ending_stay`, `ending_leave`: unchanged `music: null` + `duck 0` at t=0 (they own silence, there is nothing to hold); their `cin_title_hit` hits are stingers so they ride the music bus with `music_ending`.
-- `docs/AUDIO_LUDO.md` → new `### Cinematic (M5/M7/M9 — the film)` section under SFX prompts: the 8 rows moved out of Story, batch mix notes (dry, no tails, peak −3 dBFS, beds under a 0.25–0.35 hold, one-shots loudest in frame), and the timeline contract paragraph.
-- `game/tools/cue-audit.mjs` (`npm run cues`) — static per-scene table: sfx / stinger / duckHold / duck / music counts + cin_ ids used. Regex over `cues: [...]`; kit cues show on the kit row. Run it after touching any timeline.
+**Measured — `tools/cinebench.mjs --noblur`** (swiftshader → upper bounds; M8 numbers in brackets). Desktop 1920×1080 dpr1 full flags; phone 390×844 dpr2 CPU 4× **with `--low`**. avg ms/frame (max). 1 run each, 0 page errors.
 
-**Cue placement (the review pass, one line per family)**
-- Boss intros: hold 0.35 from the first frame, `boss_telegraph` @0.05, `ambush_ring` @rise, `boss_phase` + `story_line` @turn, `boss_arrive` + `boss_enrage` @name+0.45 — the slam lands on the name card; per-boss extras unchanged.
-- Boss outros: hold 0.3, `boss_die` @0.02, burst `enemy_die_big`+`pickup_essence`, `chapter_card` **stinger** @chart (the chart is drawn under a musical hit now, not an SFX), `landmark_reveal` @chart+1.3, `music_sting_reveal` **stinger** @chart+1.9.
-- Interrupts: hold 0.25, `boss_telegraph`/`boss_fire`/`story_line` in the first 0.4 s, `cin_whisper` @rise, `cin_cut` @turn+0.02, `cin_silence_drop` @strike then `boss_arrive`+`boss_enrage` +0.35/0.4 — skip cuts the whisper.
-- Openers: hold 0.3 then the `chapter_card` stinger — the chapter title is the only musical event, everything after is dry SFX.
-- Constellation: hold 0.35 → `cin_silence_drop` → `cin_whisper` bed → `cin_ember_rise` @sky → `burst_fire`+`cin_cut` @ignite → `cin_title_hit` stinger @flash+0.4; release by the player at end.
-- Death / endings: music killed at t=0 (not held), `cin_heartbeat` beats on `BEATS`, `cin_eye_open`, `cin_tendril`, `cin_cut` at the turn, `music_ending` returns with a 0.6 duck ramp, `cin_title_hit` stinger on the title.
+| scene | mode | s1 | s2 | s3 | s4 |
+|---|---|---|---|---|---|
+| constellation | desktop | 24 (19) | 51 (51) | 116 (120) | **48** (66) — max 147 is the one-time bake |
+| constellation | phone --low | 44 (33) | 86 (127) | **197** (392) | **79** (166) |
+| constellation_boss | desktop | **29** (71) | **37** (94) | **54** (105) | **39** (76) |
 
-**Not measured.** M9 changes no rendering; no cinebench run (credits). Not eyeballed/eared in a browser — verified by typecheck, build, `npm run cues` table (every film scene has exactly one hold or a `music: null`; stingers: openers 1 each, outros 2, title_seam 2, constellation 1, endings 1–2, run_summary 1).
+Readings: the boss variant's flat ~70 ms floor is gone (ghost tree is one blit). Main s3 on desktop barely moved (116) because the full-flag desktop path keeps 520 embers + halos — s3 phone with the low flag landed at 197 ms vs the ≈150 ms the M8 note hoped for; the remaining s3 cost is `embers()` (260 glow draws) + the live per-node loop while `heat > 0`. Target (c) from M8 — merge minor-node motes into one `lighter` Path2D fill per colour — is the next win for s2/s3 and is NOT done.
+
+**Not done (M10 remaining, in order)**
+1. (c) Path2D mote batching in `drawTreeLive` for minor nodes (3 fills instead of ~2N drawImage) — s2/s3 main scene.
+2. Phone pass over the other scenes against MOVIE.md §2 targets (`node tools/cinebench.mjs all --noblur --low --w 390 --h 844 --dpr 2 --throttle 4` — ~2 min per scene under throttle; the openers' blur is already off under `low`). Decide per scene whether `low` should also halve its ember counts (only constellation reads the flag today).
+3. `?cinematic=<id>&export=1` deterministic PNG frame exporter for `docs/TRAILER.md` (MOVIE.md §3 M10) — nothing written.
+4. Itch zip check on iOS Safari + Android Chrome (manual, the user's device).
+5. MOVIE.md §2 DPR policy could also read `engineFlags.low` (cap dpr 1) — not done; `cinematicDpr()` unchanged.
 
 **Known soft spots**
-- `musicStinger` plays through `musicBus` so the Settings music slider governs it — if a user has music at 0 they lose `chapter_card`/`cin_title_hit` entirely. Acceptable (they are musical), but note it in ITCH_PAGE if players complain.
-- `duck()` inside a hold uses `heldLevel` captured at `duckHold` time; two overlapping holds (scene A ends, scene B starts within the 900 ms release) are fine because `duckHold` cancels scheduled values, but the release ramp of A is cut short — intended.
-- `interrupt_6` filters `ambush_ring` out of `interruptCues` by `sfx` — the filter predicate still works since `duckHold` cues have no `sfx`.
-- Real audio files for the `cin_` batch are still not generated (Ludo prompts only); synth families play meanwhile.
+- `bakeTree` allocates up to `(treeW+160)×(treeH+160)×cs²` px — for the full tree (~1700×950 design) at cs 1.5 that is ~2550×1425 ≈ 14.5 MB; fine on phones, but if a device's canvas limit bites, lower the 1.5 cap in `drawTree`.
+- The cache survives scene end (module-level) — the first tree open bakes once per session; a later boss constellation reuses `'ghost'`. If `ABILITY_TREE_DATA` ever changes at runtime (it does not), the key would need a version.
+- `bindEngineFlagsToQuality` is called on mount only; a quality change while a film plays applies to the next film.
+- In shot 4 the ring radius passed to `drawRing` is the settled major radius 11 (no bloom/heat) — matches the live path once `a === 1`.
 
-**Credits/tokens** (user asked each report to carry this): the previous M9 chat (s1) — unknown, axed. This chat: M9 s2–s5 ≈ 45 k tokens (clone, read handoff/kits, 4 edits, typecheck, build, itch zip, docs). Running total for this chat is reported at the end of the chat / in the M10 entry if it gets there.
+**Credits/tokens** (user asked each report to carry this): this chat ≈ 35 k tokens (clone, read constellation/Engine/Quality, 1 scene edit + flag plumbing, typecheck, build, Playwright deps, 3 cinebench runs, docs, itch zip). M9 s2–s5 (previous chat) ≈ 45 k; M9 s1 and earlier unknown.
