@@ -46,7 +46,9 @@ const DeathSummary: React.FC<DeathSummaryProps> = ({ summary, maxWaveReached, af
   }, []);
   const { S, H } = useDesignScale();
   const firstWave = (chapterIndexOf(summary.wave) - 1) * WAVES_PER_CHAPTER + 1;
-  const [selectedWave, setSelectedWave] = useState(Math.max(1, Math.floor(maxWaveReached)));
+  // (BUGS #4) maxWaveReached can arrive undefined/NaN on a fresh save → button read "RE-IGNITE AT WAVE ?"; clamp to a finite integer ≥ 1
+  const maxW = Number.isFinite(maxWaveReached) && maxWaveReached >= 1 ? Math.floor(maxWaveReached) : Math.max(1, Math.floor(summary.wave || 1));
+  const [selectedWave, setSelectedWave] = useState(maxW);
   // buttons unmount-safe: appear after the matter line (shot 3) so the typography lands first
   const [show, setShow] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShow(true), 3800); return () => clearTimeout(t); }, []);
@@ -70,10 +72,10 @@ const DeathSummary: React.FC<DeathSummaryProps> = ({ summary, maxWaveReached, af
             className="px-8 py-3 border-2 border-amber-300 text-amber-100 font-tech text-lg md:text-xl tracking-[0.25em] bg-amber-400/10 hover:bg-amber-400/25 transition-all flex items-center gap-2 shadow-[0_0_40px_rgba(251,191,36,0.35)]">
             <Sparkles size={18} /> TREE
           </button>
-          {maxWaveReached > 1 && (
+          {maxW > 1 && (
             <div className="w-full flex items-center gap-3 px-2">
               <span className="font-mono text-amber-100/40 text-xs">1</span>
-              <input type="range" min={1} max={Math.floor(maxWaveReached)} value={selectedWave} onChange={e => setSelectedWave(parseInt(e.target.value))}
+              <input type="range" min={1} max={maxW} value={selectedWave} onChange={e => setSelectedWave(Math.max(1, parseInt(e.target.value) || 1))}
                 className="flex-1 accent-amber-400 h-1.5 bg-amber-100/10 rounded-lg appearance-none cursor-pointer" />
               <span className="font-mono text-amber-300 font-bold text-base w-8 text-right">{selectedWave}</span>
             </div>
