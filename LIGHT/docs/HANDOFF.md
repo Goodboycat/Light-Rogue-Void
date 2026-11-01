@@ -6,37 +6,27 @@ Read just this file. It holds **only the newest chat's entry** (below the line).
 
 ---
 
-## M10b — Performance: mote batching + low-tier embers everywhere + frame exporter: PARTIAL (s5–s7 done + measured; device zip check NOT done)
-Gate: `npm run typecheck` 0 errors, `npm run build` green, itch zip rebuilt. Commits `99ec970` (s5), `5fa909b` (s6), `3de67c9` (s7), + report. GitHub is the source of truth — `git fetch origin` first, always. Previous M10 half (bake, `low` flag, dpr cap) is `docs/handoff/M10a.md`.
+## B1 — BUGS.md fix pass (chat 10 list): PARTIAL — 9 of 13 fixed; #11 #12 open, #1 #2 were already fixed
+Gate: `npm run typecheck` 0 errors, `npm run build` green (JS 1.87 MB / 486 kB gz), `npm run itch` → `LIGHT/out/light-rogue-void-itch.zip` 2.43 MB (single-file index.html 2.69 MB). GitHub is the source of truth — `git fetch origin` first, always. All work in `LIGHT/`, nothing else needed in `LIGHT_extras/`.
 
-**What was done (the M10a "Not done" items 1–3)**
-- **s5 — (c) Path2D mote batching** `game/cinematic/scenes/constellation.ts` `drawTreeLive`: minors that are settled (`lit(s) >= 0.98` → no bloom, uniform alpha) are collected into a `Map<color, {core, halo}>` of `Path2D`s and filled once per colour with `lighter` (core r = 5·(1+heat·0.4) at alpha·0.9; halo r = 26·(1+heat)·0.45 at alpha·(0.25+0.35·heat)·0.55 — flat disc standing in for the sprite's integrated brightness; halo skipped under `engineFlags.low`). Only the ignition front (0.02 < a < 0.98) and the majors still go through the 2× `drawImage` sprite path. The bake (`bakeTree`) calls `drawTreeLive` too, so the cached shot-4 tree now uses the same flat discs — look is a hair sharper than the old soft motes; eyeballed once from an exported frame (shot 3→4), not on a real GPU.
-- **s6 — low tier for every scene** `game/cinematic/Draw.ts` `embers()`: reads `engineFlags.low` → `n >> 1` and a glow sprite on 1-in-8 embers (was 1-in-4). Applies to all 49 `embers(` call sites across the scenes (counts up to 1100). The constellation scene's own `>> (low ? 1 : 0)` was removed so it is halved once, not quartered. `bokeh` / `stars` / `godRays` do NOT read the flag (not measured as hot).
-- **s7 — deterministic frame exporter** (MOVIE.md §3 M10, for `docs/TRAILER.md`):
-  - `components/CinematicPlayer.tsx` prop `exportFps?: number` — no rAF loop; installs `window.__cineStep()` (advance exactly `1/exportFps` + render, returns `{t, frame, done}`) and `window.__cineCanvas`; dpr forced to 1 (viewport = frame size); renders frame 0 at `startT` on mount.
-  - `components/CinematicDebug.tsx` — `?cinematic=<id>&export=<fps>` (`export=1` → 30 fps) mounts the player passive/muted/no HUD with `exportFps`.
-  - `tools/cineframes.mjs` (`npm run frames -- <id> …`): `--fps 30 --w 1920 --h 1080 --from 0 --to <s> --out frames/<id> --every N --low --noblur`; serves `dist/`, steps `__cineStep()` and screenshots the canvas → `000000.png…`; prints the ffmpeg line. `frames/` is gitignored. Verified: constellation 6.2–6.6 s @960×540 → 13 PNGs in 5.5 s wall (≈0.4 s/frame headless incl. encode; 1080p will be ~2–3× that). Needs `npx playwright install chromium` (+ `sudo npx playwright install-deps chromium` on a fresh sandbox — the headless shell exits 127 without the system libs).
+**Fixed this pass (one commit each, message starts `BUGS #n:`; `git log --oneline | grep BUGS`)**
+- #3 `a4d1f68a` run-start spawn shield — `Constants.ts` `SPAWN_SHIELD_FRAMES` (5 s still) / `SPAWN_SHIELD_AFTER_MOVE_FRAMES` (1 s after first move/dash); `onPlayerHurt` returns false while active; dashed ring + "SHIELDED · MOVE TO BEGIN" in `renderer/PlayerRenderer.ts`.
+- #4 `a87d511` `DeathSummary.tsx` clamps `maxWaveReached` to finite int ≥ 1 (falls back to `summary.wave`) so the button never reads "RE-IGNITE AT WAVE ?".
+- #7 `19530f3` menu title in `menu_loop.ts` `drawTitle`: bold 700 44 px, gold/violet glow, dark plate; no longer fades to pale violet while the Eye watches.
+- #8 `034d171` hurt vignette edge-only (gradient from 60 % radius), alpha 0.3–0.5 scaled by missing HP (was flat 0.75).
+- #5 `6820ac8` Crimson Eclipse lasers source-over 0.38/0.22 (were additive → white), core orange 0.45, flare core amber 0.55, phase-3 flash 0.35.
+- #6 `5907247` Darkness body in `EnemyRenderer.ts` visualType DARKNESS: jagged black disc + violet rim, 8 tendrils, iris rings, slit eye; phase-core overlay dim violet not white.
+- #10 `fcda2a6` desktop-only HUD text (`md:` classes; mobile untouched per user): `GameOverlay.tsx` wave label `md:text-sm`, kills `md:text-xs`, light phrase `md:text-xl`, darkness phrase `md:text-base`, maturity rank `md:text-xs`; `StoryCaption.tsx` body `md:text-lg`, label `md:text-xs`, box `md:max-w-2xl`; `GameHUD.tsx` ESC hint `md:text-sm`, demo badge `md:text-xs`; `BossBar.tsx` phase text `md:text-sm`, HP % `md:text-xs`.
+- #9 `6443083` `EvolutionMatrix.tsx` `#tree-fresh-hint` card at 60 % height while `respecInfo.count === 0 && !previewId` — two texts: matter > 0 → "tap a green node … drag to pan"; matter = 0 → "survive waves to earn dark matter … RESUME". `MenuSideButton` icon pad `md:p-4`, label `md:text-base`; RESUME `md:text-sm`.
+- #13 `54d6ada` `docs/CHECKLIST.md` §7 sub-bullet: `sudo npx playwright install-deps chromium && npx playwright install chromium` once per sandbox or `tools/shots.mjs` exits 127.
 
-**Measured — `tools/cinebench.mjs --noblur`** (swiftshader → upper bounds; M10a numbers in brackets). avg ms/frame. 1 run each, 0 page errors. Both rows AFTER s5+s6.
-
-| scene | mode | s1 | s2 | s3 | s4 | s5 |
-|---|---|---|---|---|---|---|
-| constellation | desktop 1920×1080 dpr1 full flags | 22 (24) | **36** (51) | **76** (116) | 49 (48) | — |
-| constellation | phone 390×844 dpr2 CPU 4× `--low` | 19 (19) | 48 (51) | 101 (108) | 43 (46) | — |
-| opener_1 | phone `--low` | 2 | 40 | 92 | 1 | 77 |
-| death | phone `--low` | 30 | 89 | 68 | 1 | — |
-
-Readings: desktop main scene s3 116→76, s2 51→36 — the batching is the win it was predicted to be. Phone `--low` barely moved on constellation (s3 108→101) because under `low` the minors already had no halo and the backing store is dpr 1; the remaining s3 cost there is the flash burst `embers()` glow draws (now 260 embers, 1-in-8 glow) + the full-frame `lighter` compositing on a 4×-throttled CPU. opener_1 s3/s5 and death s2 under `--low` are 70–90 ms — still far over the 14 ms §2 target, but these are swiftshader-throttled upper bounds; MOVIE.md §2's phone targets were never met by any scene on this bench (see M2/M8 handoffs). Not benched: the other 30 scenes under `--low` (≈2 min each under throttle — credits).
-
-**Not done (M10 remaining)**
-1. Itch zip check on iOS Safari + Android Chrome (manual, the user's device) — load `LIGHT/out/light-rogue-void-itch.zip` on itch (or `npx vite preview` of the itch build) and watch the first Skill Tree open (constellation) and one opener on a LOW-profile phone.
-2. Optional: `node tools/cinebench.mjs all --noblur --low --w 390 --h 844 --dpr 2 --throttle 4` for the full table (≈1 h wall); if a scene's `bokeh`/`godRays` dominates, give them the `low` read the way `embers()` has it.
-3. Optional: run `npm run frames -- constellation` at 1080p and cut the TRAILER.md shot list from the PNGs (nothing cut yet).
+**Not done**
+1. #11 bundle is one 1.87 MB chunk (grew 1.65 → 1.87 since chat 10 because of M8–M10 cinematics). Candidate: `vite.config.ts` `build.rollupOptions.output.manualChunks` → split `cinematic/` scenes + `framer-motion` + `@fontsource` CSS; **but** `tools/itch.sh` uses `vite-plugin-singlefile`, which inlines everything anyway, so chunking only helps the non-itch (Pages) build. Low value; skip unless the user asks.
+2. #12 shared SFX files (`enemy_die_big` / `meteor_hit` → heavy_slam) — waits on the Ludo batch (`docs/AUDIO_REMAINING.md`). Nothing to do until the files arrive.
+3. No screenshot verification was run this chat (credits) — #9 / #10 are unverified visually. If the next chat has budget: `sudo npx playwright install-deps chromium && npx playwright install chromium && node tools/shots.mjs` and look at `out/shots/02-tree.png` (hint card should sit under the spark, not over the bottom nav arrows) and `04-wave5.png` (wave label 14 px).
+4. M10b leftovers (device zip check on iOS/Android, optional cinebench `all --low`, TRAILER frames) are still open — `docs/handoff/M10b.md`.
 
 **Known soft spots**
-- Batched settled minors are flat discs, not the soft sprite — if the user finds shot 2–4 motes too "hard", lower the core alpha 0.9 → 0.75 or draw the halo path at 0.55·gr instead of 0.45·gr. The threshold `a >= 0.98` means a node spends its last ~2 % of lighting on the sprite path, then snaps to the disc (not visible at 60 fps in the exported frames checked).
-- `embers()` halving under `low` changes the look of every scene on LOW profile (half the embers) — intended; the `glowMask` 7 means fields with n < 8 under low may draw no glow sprite at all.
-- Export mode ignores `cinematicDpr()` and quality; it always sets flags from the URL (`&low=1`, `&noblur=1`) like the rest of the debug route. `document.fonts.ready` is awaited before frame 0, but a scene that lazily loads an image after mount could still export frame 0 without it (none known).
-- The exporter steps `p.advance(1/fps)` — scenes that read `g.t` are exact; anything that reads wall `performance.now()` directly (none found in `cinematic/`) would drift.
-
-**Credits/tokens** (user asked each report to carry this): this chat ≈ 38 k tokens (clone, read HANDOFF/constellation/Draw/Player/Debug, 3 code tasks, typecheck ×3, build ×3, Playwright install + deps, 5 cinebench runs, exporter test + one frame look, docs, itch zip). M10a (previous chat) ≈ 42 k; M9 s2–s5 ≈ 45 k; earlier unknown.
+- `#tree-fresh-hint` is `pointer-events-none` at `top-[60%]`; on short phone landscapes (≤ 400 px tall) it may overlap the `bottom-32` buyable-node arrows — if so move it to `top-[52%]` or hide below `md:`.
+- Hint condition uses `respecInfo.count` (unlocked ids minus `spark`) — a save with matter spent then fully refunded shows the hint again (intended).
+- #10 only touched `md:` classes; the `touch` (joystick) branch sizes are unchanged, and the itch embed at 960×540 **is** ≥ `md` (768 px) so it gets the larger sizes — that was the bug's actual repro.
