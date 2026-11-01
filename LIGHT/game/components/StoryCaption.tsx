@@ -68,7 +68,7 @@ const StoryCaption: React.FC<Props> = ({ lines, seq, raised, holdMs }) => {
             style={{ zIndex: 30, paddingBottom: 'env(safe-area-inset-bottom, 0px)', paddingLeft: 'env(safe-area-inset-left, 0px)', paddingRight: 'env(safe-area-inset-right, 0px)' }}
         >
             <div
-                className="max-w-xl w-full text-center rounded-md px-4 py-2"
+                className="max-w-xl md:max-w-2xl w-full text-center rounded-md px-4 py-2"
                 style={{
                     background: 'rgba(0,0,0,0.45)',
                     borderLeft: `3px solid ${color}`,
@@ -77,13 +77,13 @@ const StoryCaption: React.FC<Props> = ({ lines, seq, raised, holdMs }) => {
                 }}
             >
                 <div
-                    className="text-[10px] tracking-[0.3em] mb-1 opacity-80"
+                    className="text-[10px] md:text-xs tracking-[0.3em] mb-1 opacity-80"
                     style={{ color, fontFamily: isWatcher ? 'ui-monospace, monospace' : undefined }}
                 >
                     {VOICE_LABEL[line.voice]}
                 </div>
                 <p
-                    className={`text-sm md:text-base leading-snug ${isWatcher ? 'italic' : ''}`}
+                    className={`text-sm md:text-lg leading-snug ${isWatcher ? 'italic' : ''}`}
                     style={{
                         color: isWatcher ? '#e2e8f0' : '#f8fafc',
                         fontFamily: isWatcher ? 'ui-monospace, SFMono-Regular, Menlo, monospace' : undefined,

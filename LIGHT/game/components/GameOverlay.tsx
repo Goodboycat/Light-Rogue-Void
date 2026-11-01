@@ -92,14 +92,14 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
                         })}
                     </div>
                 )}
-                <div className="font-tech text-[9px] md:text-[10px] tracking-[0.3em] text-white/40 uppercase hidden md:block">Light integrity cells</div>
+                <div className="font-tech text-[9px] md:text-xs tracking-[0.3em] text-white/40 uppercase hidden md:block">Light integrity cells</div>
             </div>
 
             {/* Top Center: Timer & Wave (7A: plate; shrinks when the boss bar owns the row) */}
             <div id="hud-wave" className={`absolute left-1/2 -translate-x-1/2 text-center rounded-lg bg-black/35 backdrop-blur-sm border border-white/10 px-4 py-1.5 transition-all ${bossActive ? 'top-2 scale-75 md:scale-90 origin-top' : 'top-3 md:top-6'}`}>
                 <div className="text-2xl md:text-4xl font-bold font-tech text-white tabular-nums drop-shadow-lg leading-none">{Math.ceil(timeRemaining)}</div>
-                <div className="text-[10px] tracking-[0.4em] text-purple-400 font-tech mt-1">WAVE {wave}</div>
-                <div id="wave-kills" className="text-[10px] tracking-[0.2em] text-white/50 font-tech tabular-nums">
+                <div className="text-[10px] md:text-sm tracking-[0.4em] text-purple-400 font-tech mt-1">WAVE {wave}</div>
+                <div id="wave-kills" className="text-[10px] md:text-xs tracking-[0.2em] text-white/50 font-tech tabular-nums">
                     {Math.min(waveKills, waveQuota)}/{waveQuota} <span className="text-white/25">KILLS</span>
                 </div>
             </div>
@@ -116,7 +116,7 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
                             exit: { opacity: 0, y: -10 },
                             transition: { duration: 0.5 }
                         } as any)}
-                        className={`font-tech ${touch ? 'text-xs' : 'text-sm md:text-lg'} text-white/80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] italic tracking-widest`}
+                        className={`font-tech ${touch ? 'text-xs' : 'text-sm md:text-xl'} text-white/80 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] italic tracking-widest`}
                     >
                         "{currentPhrase}"
                     </motion.div>
@@ -133,7 +133,7 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
                                 exit: { opacity: 0 },
                                 transition: { duration: 0.8 }
                             } as any)}
-                            className={`font-serif ${touch ? 'text-[10px]' : 'text-xs md:text-sm'} text-slate-500 italic tracking-widest uppercase`}
+                            className={`font-serif ${touch ? 'text-[10px]' : 'text-xs md:text-base'} text-slate-500 italic tracking-widest uppercase`}
                         >
                             {darknessPhrase}
                         </motion.div>
@@ -144,7 +144,7 @@ const GameOverlay: React.FC<GameOverlayProps> = ({
             {/* Bottom Right: Maturity/Growth Status */}
             <div id="hud-maturity" className={`absolute bottom-6 right-6 text-right ${touch ? 'hidden' : 'hidden md:block'}`}>
                 <div className="font-tech text-xl drop-shadow-lg" style={{ color: maturity.color }}>{maturity.title}</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-tech">Maturity Rank {maturity.level}</div>
+                <div className="text-[10px] md:text-xs text-white/30 uppercase tracking-[0.2em] font-tech">Maturity Rank {maturity.level}</div>
             </div>
         </div>
     );

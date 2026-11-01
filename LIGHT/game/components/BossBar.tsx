@@ -27,7 +27,7 @@ const BossBar: React.FC<{ info: BossBarInfo }> = ({ info }) => {
                 <span className="font-tech text-sm md:text-lg tracking-[0.2em] text-white drop-shadow-[0_0_6px_rgba(0,0,0,0.9)]">
                     {info.name}
                 </span>
-                <span className={`font-mono text-[10px] md:text-xs tracking-widest ${info.enraged ? 'text-red-400 animate-pulse' : 'text-slate-300'}`}>
+                <span className={`font-mono text-[10px] md:text-sm tracking-widest ${info.enraged ? 'text-red-400 animate-pulse' : 'text-slate-300'}`}>
                     {info.enraged ? 'ENRAGED' : `ENRAGE ${mm}:${ss}`}
                 </span>
             </div>
@@ -40,7 +40,7 @@ const BossBar: React.FC<{ info: BossBarInfo }> = ({ info }) => {
                 {BOSS_PHASE_THRESHOLDS.map(t => (
                     <div key={t} className="absolute inset-y-0 w-[2px] bg-white/80" style={{ left: `${t * 100}%` }} />
                 ))}
-                <span className="absolute inset-0 flex items-center justify-center font-tech text-[9px] md:text-[11px] tracking-[0.3em] text-white mix-blend-difference">
+                <span className="absolute inset-0 flex items-center justify-center font-tech text-[9px] md:text-xs tracking-[0.3em] text-white mix-blend-difference">
                     {info.shifting ? 'SHIFTING' : PHASE_LABEL[info.phase] ?? ''}
                 </span>
             </div>
