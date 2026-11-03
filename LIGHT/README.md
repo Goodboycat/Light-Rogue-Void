@@ -33,6 +33,7 @@ Pillars: **storytelling · action · discovery · stressful bosses**.
 
 ## URLs
 - **GitHub**: https://github.com/Goodboycat/Light-Rogue-Void
+- **Play in browser (GitHub Pages)**: https://goodboycat.github.io/Light-Rogue-Void/ — auto-built from `main` by `.github/workflows/pages.yml` (Vite build of `game/`, Pages source = GitHub Actions)
 - **itch.io**: https://goodboycat.itch.io/light-rogue-void (set `FULL_GAME_URL` in `game/components/game/Constants.ts` if the slug differs)
 - Local dev: http://localhost:3000 (`cd LIGHT/game && npm run dev`)
 
